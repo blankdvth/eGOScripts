@@ -61,7 +61,7 @@ function createPresetButton(text, callback) {
 }
 
 /**
- * Creates a preset button {@see createPresetButton}
+ * Creates a link button
  * @param {string} text 
  * @param {string} link 
  * @returns {HTMLButtonElement} Button
