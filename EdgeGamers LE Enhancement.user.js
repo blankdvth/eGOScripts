@@ -32,10 +32,10 @@ function add_maul_profile_button(div, member_id) { create_button("https://maul.e
 
 function add_bans_button(div, steam_id_64) { create_button("https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=" + steam_id_64, "List Bans", div); }
 
-function add_lookup_button(div, post_title) { 
+function add_lookup_button(div, post_title) {
     var steam_id_unknown = post_title.match(/^.* - .* - (?<game_id>[\w\d\/\[\]\-\.:]*)$/);
     if (steam_id_unknown) {
-        create_button("https://steamid.io/lookup/" + steam_id_unknown.groups.game_id, "Lookup ID", div); 
+        create_button("https://steamid.io/lookup/" + steam_id_unknown.groups.game_id, "Lookup ID", div);
     }
 }
 
@@ -60,14 +60,51 @@ function add_nav(href, text, nav) {
     nav.insertBefore(li, nav.childNodes[nav.childNodes.length - 5]);
 }
 
+function add_maul_nav(nav_list) {
+    //MAUL DIV
+    var maul_div = nav_list.childNodes[11].childNodes[1]
+    maul_div.setAttribute('data-has-children', 'true');
+    var dropdown = document.createElement("a");
+
+    //i hate this
+    dropdown.setAttribute('data-xf-key', '3');
+    dropdown.setAttribute('data-xf-click', 'menu');
+    dropdown.setAttribute('data-menu-pos-ref', '< .p-navEl');
+    dropdown.setAttribute('class', 'p-navEl-splitTrigger');
+    dropdown.setAttribute('role', 'button');
+    dropdown.setAttribute('tabindex', '0');
+    dropdown.setAttribute('aria-label', 'Toggle expanded');
+    dropdown.setAttribute('aria-expanded', 'false');
+    dropdown.setAttribute('aria-haspopup', 'true');
+
+    maul_div.append(dropdown);
+
+    var maul_dropdown = document.createElement("div");
+    maul_dropdown.setAttribute('class', 'menu menu--structural');
+    maul_dropdown.setAttribute('data-menu', 'menu');
+    maul_dropdown.setAttribute('aria-hidden', 'true');
+
+    var dropdownhtml = '<div class="menu-content"> \
+    <a href="https://maul.edgegamers.com/index.php?page=bans" target="_blank" class="menu-linkRow u-indentDepth0 js-offCanvasCopy " data-nav-id="maulBans">Bans</a> \
+    <a href="https://maul.edgegamers.com/index.php?page=users" target="_blank" class="menu-linkRow u-indentDepth0 js-offCanvasCopy " data-nav-id="newProfilePosts">Users</a> \
+    <hr class="menu-separator"> \
+    </div>'
+
+    maul_dropdown.innerHTML = dropdownhtml;
+    maul_div.append(maul_dropdown);
+}
+
 (function() {
     // Determine what page we're on
     var url = window.location.href;
 
     // Add Helpful Links to the Navigation Bar
     var nav_list = document.querySelector(".p-nav-list");
-    add_nav("https://maul.edgegamers.com/index.php?page=bans", "Bans", nav_list);
+    // add_nav("https://maul.edgegamers.com/index.php?page=bans", "Bans", nav_list);
+    add_maul_nav(nav_list);
+
     add_nav("https://gitlab.edgegamers.io/", "GitLab", nav_list);
+    add_nav("https://wisp.edgegamers.io/", "WISP", nav_list);
     add_nav("https://edgegamers.gameme.com/", "GameME", nav_list);
 
     if (url.match(/^https:\/\/www\.edgegamers\.com\/members\/\d+/)) { // Members Page
