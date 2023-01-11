@@ -58,7 +58,7 @@ function generate_forums_url(threadId, postId) {
     return `https://edgegamers.com/threads/${threadId}/` + ((postId) ? `#post-${postId}` : "");
 }
 
-(function() {
+(function () {
     // Determine what page we're on
     var url = window.location.href;
 
@@ -71,25 +71,26 @@ function generate_forums_url(threadId, postId) {
         var div = create_preset_div();
 
         // Insert presets
-        add_preset("Get IP (via Ban)", div, function() {
-            document.getElementById("handle").value = "x";
+        add_preset("Get IP (via Ban)", div, function () {
+            document.getElementById("handle").value = "Suspected Ban Evader";
             document.getElementById("length").value = 1;
-            document.getElementById("reason").value = "test";
-            document.getElementById("notes").value = "ip";
+            document.getElementById("reason").value = "IP Check";
+            document.getElementById("notes").value = "Checking IP";
         });
-        add_preset("Ban Evasion", div, function() {
+        add_preset("Ban Evasion", div, function () {
             document.getElementById("reason").value = "Ban Evasion";
             var length = document.getElementById("length");
             length.value = 0;
             length.disabled = true;
-            document.getElementById("preventAmnesty").checked = true;
         });
         // You can add more presets following the format shown above
-    } else if (url.match(/^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban&id=\d+$/)) { // Edit Ban Page
+        return;
+    }
+    if (url.match(/^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban&id=\d+$/)) { // Edit Ban Page
         var div = create_preset_div();
 
         // Insert presets
-        add_preset("Ban Evasion", div, function() {
+        add_preset("Ban Evasion", div, function () {
             document.getElementById("reason").value = "Ban Evasion";
             var length = document.getElementById("length");
             if (length.value != 0) {
@@ -106,10 +107,10 @@ function generate_forums_url(threadId, postId) {
         id_div.style.fledDirection = "row";
         id_div.style.paddingTop = "10px";
         id_group.appendChild(id_div);
-        id_div.appendChild(create_link_button("Open Steam Profile", "https://steamcommunity.com/profiles/" + id, "_blank"));
-        id_div.appendChild(create_link_button("Open in GameME", "https://edgegamers.gameme.com/search?si=uniqueid&rc=all&q=" + SteamIDConverter.toSteamID(id), "_blank"));
-        id_div.appendChild(create_link_button("Open in SteamID.io", "https://steamid.io/lookup/" + id, "_blank"));
-        id_div.appendChild(create_link_button("Open in SteamID.uk", "https://steamid.uk/profile/" + id, "_blank"));
+        id_div.appendChild(create_link_button("Steam", "https://steamcommunity.com/profiles/" + id, "_blank"));
+        id_div.appendChild(create_link_button("GameME", "https://edgegamers.gameme.com/search?si=uniqueid&rc=all&q=" + SteamIDConverter.toSteamID(id), "_blank"));
+        id_div.appendChild(create_link_button("SteamID (IO)", "https://steamid.io/lookup/" + id, "_blank"));
+        id_div.appendChild(create_link_button("SteamID (UK)", "https://steamid.uk/profile/" + id, "_blank"));
 
         // IP buttons
         var ip_group = Array.from(document.querySelectorAll(".control-label")).find(el => el.textContent === "IP").parentElement; // BECAUSE MAUL HAS THE IP LABELED WITH THE WRONG FOR
@@ -119,23 +120,27 @@ function generate_forums_url(threadId, postId) {
         ip_div.style.fledDirection = "row";
         ip_div.style.paddingTop = "10px";
         ip_group.appendChild(ip_div);
-        ip_div.appendChild(create_link_button("Open in Spur", "https://spur.us/context/" + ip, "_blank"));
-        ip_div.appendChild(create_link_button("Open in IPInfo", "https://ipinfo.io/" + ip, "_blank"));
-    } else if (url.match(/^https:\/\/maul\.edgegamers\.com\/index\.php\?page=home&id=\d+$/)) { // Profile Page
+        ip_div.appendChild(create_link_button("Check Spur", "https://spur.us/context/" + ip, "_blank"));
+        ip_div.appendChild(create_link_button("Check IPInfo", "https://ipinfo.io/" + ip, "_blank"));
+        return;
+    }
+    if (url.match(/^https:\/\/maul\.edgegamers\.com\/index\.php\?page=home&id=\d+$/)) { // Profile Page
         var userNotes = [...document.querySelectorAll("div.col-xs-6 > div > div:nth-child(3)")];
         userNotes.forEach(userNote => {
             userNote.textContent = userNote.textContent.replaceAll(
                 /(?:https?:\/\/)?(?:www\.)?edge-gamers\.com\/forums\/showthread\.php\?p=(\d+)(?:#?post(\d+))?/g,
                 function (match, threadId, postId) {
                     return generate_forums_url(threadId, postId);
-            });
+                });
             userNote.textContent = userNote.textContent.replaceAll(
                 /(?:https?:\/\/)?(?:www\.)?edge-gamers\.com\/forums\/showthread\.php\?(\d+)[\-a-zA-Z]*/g,
                 function (match, threadId) {
                     return generate_forums_url(threadId, null);
-            });
+                });
         });
-    } else if (url.match(/^https:\/\/maul\.edgegamers\.com\/index\.php\?[-=a-zA-Z0-9&]*page=bans.*$/)) { // List Ban Page
+        return;
+    }
+    if (url.match(/^https:\/\/maul\.edgegamers\.com\/index\.php\?[-=a-zA-Z0-9&]*page=bans.*$/)) { // List Ban Page
         var banNotes = document.querySelectorAll("span[id*=notes].col-xs-10");
         banNotes.forEach(banNote => {
             // Replace the text with a linkified version

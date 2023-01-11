@@ -13,7 +13,7 @@
 
 'use strict';
 
-function create_button(href, text, div, target="_blank", append=false) {
+function create_button(href, text, div, target = "_blank", append = false) {
     var button = document.createElement("a");
     button.href = href;
     button.target = target;
@@ -25,7 +25,7 @@ function create_button(href, text, div, target="_blank", append=false) {
 
     // Add all elements to their respective parents
     button.appendChild(button_text);
-    append ? div.appendChild(button, div.lastElementChild) : div.insertBefore(button, div.lastElementChild);   
+    append ? div.appendChild(button, div.lastElementChild) : div.insertBefore(button, div.lastElementChild);
 }
 
 function add_maul_profile_button(div, member_id) { create_button("https://maul.edgegamers.com/index.php?page=home&id=" + member_id, "MAUL Profile", div); }
@@ -34,9 +34,8 @@ function add_bans_button(div, steam_id_64) { create_button("https://maul.edgegam
 
 function add_lookup_button(div, post_title) {
     var steam_id_unknown = post_title.match(/^.* - .* - (?<game_id>[\w\d\/\[\]\-\.:]*)$/);
-    if (steam_id_unknown) {
+    if (steam_id_unknown)
         create_button("https://steamid.io/lookup/" + steam_id_unknown.groups.game_id, "Lookup ID", div);
-    }
 }
 
 function add_move_button(div, url) {
@@ -96,27 +95,25 @@ function add_maul_nav(nav_list) {
 
 function handle_new_child(event) {
     // Make sure this specific event is the node we want
-    if(event.target.nodeName != 'DIV' || !event.target.classList.contains('tooltip-content-inner')) {
+    if (event.target.nodeName != 'DIV' || !event.target.classList.contains('tooltip-content-inner'))
         return;
-    }
+
     // The buttongroup containing the "Follow" button
     var buttenGroupOne = event.target.querySelector('.memberTooltip > .memberTooltip-actions > :nth-child(1)');
     buttenGroupOne.querySelector('a').href.match(/^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/);
     var matches = buttenGroupOne.querySelector('a').href.match(/^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/);
     // Make sure matches were found, exit gracefully if not.
-    if(matches) {
-        var id = matches[1];
-    }
-    else {
+    if (!matches)
         return;
-    } 
+
+    var id = matches[1];
     // The buttongroup containing the "Start conversation" button
     var buttonGroupTwo = event.target.querySelector('.memberTooltip > .memberTooltip-actions > :nth-child(2)');
     // If the user is banned, buttonGroupTwo will be null. Default to buttonGroupOne.
     create_button("https://maul.edgegamers.com/index.php?page=home&id=" + id, "MAUL Profile", buttonGroupTwo == null ? buttenGroupOne : buttonGroupTwo, "_blank", true);
 }
 
-(function() {
+(function () {
     // Determine what page we're on
     var url = window.location.href;
 
@@ -124,7 +121,6 @@ function handle_new_child(event) {
 
     // Add Helpful Links to the Navigation Bar
     var nav_list = document.querySelector(".p-nav-list");
-    //add_nav("https://maul.edgegamers.com/index.php?page=bans", "Bans", nav_list);
     add_maul_nav(nav_list);
 
     add_nav("https://gitlab.edgegamers.io/", "GitLab", nav_list);
@@ -132,7 +128,9 @@ function handle_new_child(event) {
 
     if (url.match(/^https:\/\/www\.edgegamers\.com\/members\/\d+/)) { // Members Page
         add_maul_profile_button(document.querySelector(".memberHeader-buttons"), window.location.pathname.substring(9));
-    } else if (url.match(/^https:\/\/www\.edgegamers\.com\/threads\/\d+\/move(?:\?move_.*)?$/)) { // Thread Move Page
+        return;
+    }
+    if (url.match(/^https:\/\/www\.edgegamers\.com\/threads\/\d+\/move(?:\?move_.*)?$/)) { // Thread Move Page
         if (url.endsWith("?move_to_completed")) {
             var breadcrumbs = document.querySelector(".p-breadcrumbs").textContent.trim().split("\n\n\n\n\n\n");
             breadcrumbs = breadcrumbs[breadcrumbs.length - 2];
@@ -150,67 +148,72 @@ function handle_new_child(event) {
                 try { // These buttons may not exist if you created the post yourself, this is just to prevent edge cases.
                     checkArr.find(el => el.textContent === "Notify members watching the destination forum").querySelector("label > input").checked = false;
                     checkArr.find(el => el.textContent.startsWith("Notify thread starter of this action.")).querySelector("label > input").checked = false;
-                } catch {}
+                } catch { }
                 form.submit();
             }
         }
-    } else if (url.match(/^https:\/\/www\.edgegamers\.com\/threads\/\d+/)) { // Forum Thread of Some Sort
-        var breadcrumbs = document.querySelector(".p-breadcrumbs").innerText;
-        var post_title = document.querySelector(".p-title").innerText;
-
-        if (breadcrumbs.match(/((Contest (a Ban|Completed))|(Report (a Player|Completed))) ?$/)) { // Ban Contest or Report
-            var button_group = document.querySelector("div.buttonGroup");
-            add_maul_profile_button(button_group, document.querySelector(".message-name > a.username").href.substring(35));
-
-            var steam_id = post_title.match(/^.* - .* - ([^\d]*?(?<game_id>(\d+)|(STEAM_\d:\d:\d+)|(\[U:\d:\d+\])).*)$/)
-            if (steam_id) {
-                var unparsed_id = steam_id.groups.game_id;
-                try {
-                    var steam_id_64 = (SteamIDConverter.isSteamID64(unparsed_id) ? unparsed_id : SteamIDConverter.toSteamID64(unparsed_id));
-                    add_bans_button(button_group, steam_id_64);
-                } catch (TypeError) {
-                    add_lookup_button(button_group, post_title);
-                }
-            } else {
-                add_lookup_button(button_group, post_title);
-            }
-
-            if (!breadcrumbs.match(/Completed ?$/)) {
-                add_move_button(button_group, url)
-            }
-        } else if (breadcrumbs.match(/Leadership/)) { // LE Forums
-            var watermarkTop = document.createElement("div");
-            document.getElementsByTagName("body")[0].appendChild(watermarkTop);
-
-            watermarkTop.innerHTML = "Confidential";
-            watermarkTop.style.color = "rgba(255,0,0,0.15)";
-            watermarkTop.style.fontSize = "100px";
-            watermarkTop.style.position = "fixed";
-            watermarkTop.style.top = "1%";
-            watermarkTop.style.left = "50%";
-            watermarkTop.style.transform = "translateX(-50%)"
-            watermarkTop.style.pointerEvents = "none";
-            watermarkTop.style.zIndex = "999";
-
-            var watermarkBottom = document.createElement("div");
-            document.getElementsByTagName("body")[0].appendChild(watermarkBottom);
-
-            watermarkBottom.innerHTML = "Confidential";
-            watermarkBottom.style.color = "rgba(255,0,0,0.15)";
-            watermarkBottom.style.fontSize = "100px";
-            watermarkBottom.style.position = "fixed";
-            watermarkBottom.style.top = "85%";
-            watermarkBottom.style.left = "50%";
-            watermarkBottom.style.transform = "translateX(-50%)"
-            watermarkBottom.style.pointerEvents = "none";
-            watermarkBottom.style.zIndex = "999";
-        }
-    } else if (url.match(/^https:\/\/www\.edgegamers\.com\/forums\/?$/)) { // Forums List
+        return;
+    }
+    if (url.match(/^https:\/\/www\.edgegamers\.com\/forums\/?$/)) { // Forums List
         // Adds the Moderator Trash Bin to the Private Forums section
         var private_category = document.querySelector(".block--category1240 > .block-container > .block-body");
         var subforum = document.createElement("div");
         subforum.classList.add("node", "node--forum", "node--id685");
         subforum.innerHTML = "<div class=\"node-body\"><span class=\"node-icon\"><i class=\"fa--xf far fa-comments\" aria-hidden=\"true\"></i></span><div class=\"node-main js-nodeMain\"><h3 class=\"node-title\"><a href=\"/forums/685/\" data-xf-init=\"element-tooltip\" data-shortcut=\"node-description\">Moderator Trash Bin</a></h3></div><div class=\"node-extra\"><span class=\"node-extra-placeholder\">Planes, Trains, and Plantains</span></div></div>";
         private_category.appendChild(subforum);
+        return;
+    }
+
+    if (!url.match(/^https:\/\/www\.edgegamers\.com\/threads\/\d+/))
+        return; // Forum Thread of Some Sort
+    var breadcrumbs = document.querySelector(".p-breadcrumbs").innerText;
+    var post_title = document.querySelector(".p-title").innerText;
+
+    if (breadcrumbs.match(/((Contest (a Ban|Completed))|(Report (a Player|Completed))) ?$/)) { // Ban Contest or Report
+        var button_group = document.querySelector("div.buttonGroup");
+        add_maul_profile_button(button_group, document.querySelector(".message-name > a.username").href.substring(35));
+
+        var steam_id = post_title.match(/^.* - .* - ([^\d]*?(?<game_id>(\d+)|(STEAM_\d:\d:\d+)|(\[U:\d:\d+\])).*)$/)
+        if (steam_id) {
+            var unparsed_id = steam_id.groups.game_id;
+            try {
+                var steam_id_64 = (SteamIDConverter.isSteamID64(unparsed_id) ? unparsed_id : SteamIDConverter.toSteamID64(unparsed_id));
+                add_bans_button(button_group, steam_id_64);
+            } catch (TypeError) {
+                add_lookup_button(button_group, post_title);
+            }
+        } else {
+            add_lookup_button(button_group, post_title);
+        }
+
+        if (!breadcrumbs.match(/Completed ?$/))
+            add_move_button(button_group, url)
+
+    } else if (breadcrumbs.match(/Leadership/)) { // LE Forums
+        var watermarkTop = document.createElement("div");
+        document.getElementsByTagName("body")[0].appendChild(watermarkTop);
+
+        watermarkTop.innerHTML = "Confidential";
+        watermarkTop.style.color = "rgba(255,0,0,0.15)";
+        watermarkTop.style.fontSize = "100px";
+        watermarkTop.style.position = "fixed";
+        watermarkTop.style.top = "1%";
+        watermarkTop.style.left = "50%";
+        watermarkTop.style.transform = "translateX(-50%)"
+        watermarkTop.style.pointerEvents = "none";
+        watermarkTop.style.zIndex = "999";
+
+        var watermarkBottom = document.createElement("div");
+        document.getElementsByTagName("body")[0].appendChild(watermarkBottom);
+
+        watermarkBottom.innerHTML = "Confidential";
+        watermarkBottom.style.color = "rgba(255,0,0,0.15)";
+        watermarkBottom.style.fontSize = "100px";
+        watermarkBottom.style.position = "fixed";
+        watermarkBottom.style.top = "85%";
+        watermarkBottom.style.left = "50%";
+        watermarkBottom.style.transform = "translateX(-50%)"
+        watermarkBottom.style.pointerEvents = "none";
+        watermarkBottom.style.zIndex = "999";
     }
 })();
