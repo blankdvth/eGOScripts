@@ -13,7 +13,7 @@
 
 'use strict';
 
-function create_button(href, text, div, target="_blank") {
+function create_button(href, text, div, target="_blank", append=false) {
     var button = document.createElement("a");
     button.href = href;
     button.target = target;
@@ -25,7 +25,7 @@ function create_button(href, text, div, target="_blank") {
 
     // Add all elements to their respective parents
     button.appendChild(button_text);
-    div.insertBefore(button, div.lastElementChild);
+    append ? div.appendChild(button, div.lastElementChild) : div.insertBefore(button, div.lastElementChild);   
 }
 
 function add_maul_profile_button(div, member_id) { create_button("https://maul.edgegamers.com/index.php?page=home&id=" + member_id, "MAUL Profile", div); }
@@ -61,12 +61,12 @@ function add_nav(href, text, nav) {
 }
 
 function add_maul_nav(nav_list) {
-    //MAUL DIV
+    // MAUL DIV
     var maul_div = nav_list.childNodes[11].childNodes[1]
     maul_div.setAttribute('data-has-children', 'true');
     var dropdown = document.createElement("a");
 
-    //i hate this
+    // i hate this
     dropdown.setAttribute('data-xf-key', '3');
     dropdown.setAttribute('data-xf-click', 'menu');
     dropdown.setAttribute('data-menu-pos-ref', '< .p-navEl');
@@ -94,13 +94,37 @@ function add_maul_nav(nav_list) {
     maul_div.append(maul_dropdown);
 }
 
+function handle_new_child(event) {
+    // Make sure this specific event is the node we want
+    if(event.target.nodeName != 'DIV' || !event.target.classList.contains('tooltip-content-inner')) {
+        return;
+    }
+    // The buttongroup containing the "Follow" button
+    var buttenGroupOne = event.target.querySelector('.memberTooltip > .memberTooltip-actions > :nth-child(1)');
+    buttenGroupOne.querySelector('a').href.match(/^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/);
+    var matches = buttenGroupOne.querySelector('a').href.match(/^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/);
+    // Make sure matches were found, exit gracefully if not.
+    if(matches) {
+        var id = matches[1];
+    }
+    else {
+        return;
+    } 
+    // The buttongroup containing the "Start conversation" button
+    var buttonGroupTwo = event.target.querySelector('.memberTooltip > .memberTooltip-actions > :nth-child(2)');
+    // If the user is banned, buttonGroupTwo will be null. Default to buttonGroupOne.
+    create_button("https://maul.edgegamers.com/index.php?page=home&id=" + id, "MAUL Profile", buttonGroupTwo == null ? buttenGroupOne : buttonGroupTwo, "_blank", true);
+}
+
 (function() {
     // Determine what page we're on
     var url = window.location.href;
 
+    document.body.addEventListener('DOMNodeInserted', handle_new_child, false);
+
     // Add Helpful Links to the Navigation Bar
     var nav_list = document.querySelector(".p-nav-list");
-    // add_nav("https://maul.edgegamers.com/index.php?page=bans", "Bans", nav_list);
+    //add_nav("https://maul.edgegamers.com/index.php?page=bans", "Bans", nav_list);
     add_maul_nav(nav_list);
 
     add_nav("https://gitlab.edgegamers.io/", "GitLab", nav_list);
