@@ -64,14 +64,16 @@ function addLookupButton(div, post_title) {
 }
 
 /**
- * Adds a "Move to Complted" button to the div
+ * Adds a Move button to the div {@see handleThreadMovePage}
  * @param {HTMLDivElement} div Div to add to
  * @param {string} url URL to move to
+ * @param {string} text Text for the button
+ * @param {string} id Movement ID, this is a parameter in the URL that is used to determine where to move in the movement handling page
  */
-function addMoveButton(div, url) {
+function addMoveButton(div, url, text = "Move to Completed", id = "to_completed") {
     var post_id = url.match(/threads\/(?<post_id>\d+)/)
     if (post_id)
-        createButton("https://www.edgegamers.com/threads/" + post_id.groups.post_id + "/move?move_to_completed", "Move to Completed", div, "_self");
+        createButton("https://www.edgegamers.com/threads/" + post_id.groups.post_id + "/move?move_" + id, text, div, "_self");
 }
 
 /**
