@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         EdgeGamers MAUL Enhancement
-// @namespace    https://gist.github.com/blankdvth/0ab51b9a52dc3b7f5e96082902fd685d
+// @namespace    https://github.com/blankdvth/eGOScripts
 // @version      1.7
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left

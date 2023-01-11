@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         EdgeGamers LE Enhancement
-// @namespace    https://gist.github.com/blankdvth/b40c1a9a0b1cf10881672c2fbe780cd6
+// @namespace    https://github.com/blankdvth/eGOScripts
 // @version      2.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth
