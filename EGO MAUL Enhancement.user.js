@@ -8,7 +8,8 @@
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=edgegamers.com
 // @require      https://peterolson.github.io/BigInteger.js/BigInteger.min.js
 // @require      https://raw.githubusercontent.com/12pt/steamid-converter/master/js/converter-min.js
-// @grant        none
+// @resource    admins https://gist.githubusercontent.com/MSWS/310f334dbaec82bfc30efb174eb311fc/raw/a7856a1ed0ee84b2b1be4e9200dfa7fbcc900762/admins.txt
+// @grant       GM_getResourceText
 // ==/UserScript==
 
 'use strict';
@@ -56,6 +57,19 @@ function create_link_button(text, link) {
 
 function generate_forums_url(threadId, postId) {
     return `https://edgegamers.com/threads/${threadId}/` + ((postId) ? `#post-${postId}` : "");
+}
+
+let knownAdmins = {};
+
+function load_admins() {
+    let admins = GM_getResourceText("admins");
+    admins.split("\n").forEach(line => {
+        let separator = line.lastIndexOf("|");
+        let username = line.substring(0, separator)
+        let id = line.substring(separator + 1);
+        knownAdmins[username] = id;
+    });
+    console.log("Loaded admins, MSWS: " + knownAdmins["MSWS"]);
 }
 
 (function () {
@@ -141,6 +155,28 @@ function generate_forums_url(threadId, postId) {
         return;
     }
     if (url.match(/^https:\/\/maul\.edgegamers\.com\/index\.php\?[-=a-zA-Z0-9&]*page=bans.*$/)) { // List Ban Page
+        load_admins();
+        let expandingElementList = document.querySelectorAll(".expand");
+        console.log(knownAdmins);
+        for (let expandingElement of expandingElementList) {
+            let element = expandingElement.childNodes[1];
+            let adminsOrReason = element.childNodes[14].textContent;
+            let admins;
+            let adminsElement;
+            if (adminsOrReason === "Admins Online:") {
+                // Admins Online field, fetch 17th
+                adminsElement = element.childNodes[17];
+            } else {
+                // Reason field is given, fetch 24th
+                adminsElement = element.childNodes[24];
+            }
+            for(let admin of adminsElement.textContent.split(", ")) {
+                let id = knownAdmins[admin];
+                if(id == undefined)
+                    continue;
+                adminsElement.innerHTML = adminsElement.innerHTML.replaceAll(admin, `<a href="https://maul.edgegamers.com/index.php?page=home&id=${knownAdmins[admin]}">${admin}</a>`);
+            }
+        }
         var banNotes = document.querySelectorAll("span[id*=notes].col-xs-10");
         banNotes.forEach(banNote => {
             // Replace the text with a linkified version
