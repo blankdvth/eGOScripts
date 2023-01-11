@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name         EdgeGamers LE Enhancement
-// @namespace    https://github.com/blankdvth/eGOScripts
+// @name         EdgeGamers Forum Enhancement
+// @namespace    https://github.com/MSWS/eGOMonkey
 // @version      3.0.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
@@ -12,14 +12,23 @@
 // ==/UserScript==
 
 'use strict';
+const MAUL_BUTTON_TEXT = "MAUL";
 
+/**
+ * Creates a button and adds it to the given div
+ * @param {string} href URL that button should link to
+ * @param {string} text Buttons' text
+ * @param {HTMLDivElement} div Div to add/append to
+ * @param {string} target Meta target for button
+ * @param {boolean} append True to append, false to insert
+ */
 function createButton(href, text, div, target = "_blank", append = false) {
     var button = document.createElement("a");
     button.href = href;
     button.target = target;
     button.classList.add('button--link', 'button');
 
-    var button_text = document.createElement("span"); // Create the MAUL Profile button text
+    var button_text = document.createElement("span"); // Create button text
     button_text.classList.add('button-text');
     button_text.innerHTML = text;
 
@@ -28,23 +37,50 @@ function createButton(href, text, div, target = "_blank", append = false) {
     append ? div.appendChild(button, div.lastElementChild) : div.insertBefore(button, div.lastElementChild);
 }
 
-function addMAULProfileButton(div, member_id) { createButton("https://maul.edgegamers.com/index.php?page=home&id=" + member_id, "MAUL Profile", div); }
+/**
+ * Adds a MAUL profile button to the given div
+ * @param {HTMLDivElement} div Div to add to
+ * @param {number} member_id Member's ID
+ */
+function addMAULProfileButton(div, member_id) { createButton("https://maul.edgegamers.com/index.php?page=home&id=" + member_id, MAUL_BUTTON_TEXT, div); }
 
+/**
+ * Adds a "List Bans" button to the div
+ * @param {HTMLDivElement} div Div to add to
+ * @param {number} steam_id_64 Steam ID to check
+ * TODO: Add support for other game IDs
+ */
 function addBansButton(div, steam_id_64) { createButton("https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=" + steam_id_64, "List Bans", div); }
 
+/**
+ * Adds a "Lookup ID" button to the div
+ * @param {HTMLDivElement} div Div to add to
+ * @param {number} post_title Steam ID to lookup
+ */
 function addLookupButton(div, post_title) {
     var steam_id_unknown = post_title.match(/^.* - .* - (?<game_id>[\w\d\/\[\]\-\.:]*)$/);
     if (steam_id_unknown)
         createButton("https://steamid.io/lookup/" + steam_id_unknown.groups.game_id, "Lookup ID", div);
 }
 
+/**
+ * Adds a "Move to Complted" button to the div
+ * @param {HTMLDivElement} div Div to add to
+ * @param {string} url URL to move to
+ */
 function addMoveButton(div, url) {
     var post_id = url.match(/threads\/(?<post_id>\d+)/)
-    if (post_id) {
+    if (post_id)
         createButton("https://www.edgegamers.com/threads/" + post_id.groups.post_id + "/move?move_to_completed", "Move to Completed", div, "_self");
-    }
 }
 
+/**
+ * Adds a NAV item to the website's nav bar
+ * @param {string} href URL to link to
+ * @param {string} text Text for button
+ * @param {HTMLElement} nav Nav to add to
+ * @returns void
+ */
 function addNav(href, text, nav) {
     var li = document.createElement("li");
     var div = document.createElement("div");
@@ -59,13 +95,17 @@ function addNav(href, text, nav) {
     nav.insertBefore(li, nav.childNodes[nav.childNodes.length - 5]);
 }
 
+/**
+ * Adds dropdown options for MAUL specifically
+ * @param {HTMLElement} nav_list Site's navbar
+ * @returns void
+ */
 function addMAULNav(nav_list) {
     // MAUL DIV
     var maul_div = nav_list.childNodes[11].childNodes[1]
     maul_div.setAttribute('data-has-children', 'true');
     var dropdown = document.createElement("a");
 
-    // i hate this
     dropdown.setAttribute('data-xf-key', '3');
     dropdown.setAttribute('data-xf-click', 'menu');
     dropdown.setAttribute('data-menu-pos-ref', '< .p-navEl');
@@ -93,6 +133,11 @@ function addMAULNav(nav_list) {
     maul_div.append(maul_dropdown);
 }
 
+/**
+ * Listens to and appends MAUL button when user hovers over a profile
+ * @param {HTMLElementEventMap} event 
+ * @returns void
+ */
 function tooltipMAULListener(event) {
     // Make sure this specific event is the node we want
     if (event.target.nodeName != 'DIV' || !event.target.classList.contains('tooltip-content-inner'))
@@ -110,9 +155,13 @@ function tooltipMAULListener(event) {
     // The buttongroup containing the "Start conversation" button
     var buttonGroupTwo = event.target.querySelector('.memberTooltip > .memberTooltip-actions > :nth-child(2)');
     // If the user is banned, buttonGroupTwo will be null. Default to buttonGroupOne.
-    createButton("https://maul.edgegamers.com/index.php?page=home&id=" + id, "MAUL Profile", buttonGroupTwo ?? buttenGroupOne, "_blank", true);
+    createButton("https://maul.edgegamers.com/index.php?page=home&id=" + id, MAUL_BUTTON_TEXT, buttonGroupTwo ?? buttenGroupOne, "_blank", true);
 }
 
+/**
+ * Moves and auto-fills out the moving prompt for a thread.
+ * @returns void
+ */
 function handlThreadMovePage() {
     if (!url.endsWith("?move_to_completed"))
         return;
@@ -137,12 +186,19 @@ function handlThreadMovePage() {
     }
 }
 
+/**
+ * Checks if a given breadcrumbs string contains LE threads
+ * @param {string} str 
+ * @returns true if LE, false otherwise
+ */
 function isLeadership(str) {
     return str.match(/(Leadership|Report a Player|Report Completed)/);
 }
 
+/**
+ * Adds misc. threads to main thread list
+ */
 function handleForumsList() {
-    // Adds the Moderator Trash Bin to the Private Forums section
     var private_category = document.querySelector(".block--category1240 > .block-container > .block-body");
     var subforum = document.createElement("div");
     subforum.classList.add("node", "node--forum", "node--id685");
@@ -150,6 +206,9 @@ function handleForumsList() {
     private_category.appendChild(subforum);
 }
 
+/**
+ * Handles generic/nonspecific threads
+ */
 function handleGenericThread() {
     var breadcrumbs = document.querySelector(".p-breadcrumbs").innerText;
     if (breadcrumbs.match(/((Contest (a Ban|Completed))|(Report (a Player|Completed))) ?$/)) { // Ban Contest or Report
@@ -159,6 +218,10 @@ function handleGenericThread() {
         handleLeadership();
 }
 
+/**
+ * Adds "View Bans" or "Lookup ID" button on report/contest threads.
+ * TODO: Add support for other game IDs
+ */
 function handleBanReport() {
     var breadcrumbs = document.querySelector(".p-breadcrumbs").innerText;
     var post_title = document.querySelector(".p-title").innerText;
@@ -182,11 +245,19 @@ function handleBanReport() {
         addMoveButton(button_group, window.location.href);
 }
 
+/**
+ * Adds Confidential banners on top and bottom of page
+ */
 function handleLeadership() {
     generateRedText("5%");
     generateRedText("80%");
 }
 
+/**
+ * Generates large, transparent text (basically a watermark)
+ * @param {string} top CSS Top Style
+ * @param {string} str Text to display
+ */
 function generateRedText(top, str = "Confidential") {
     var text = document.createElement("div");
     document.body.appendChild(text);
