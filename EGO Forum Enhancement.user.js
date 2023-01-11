@@ -235,9 +235,11 @@ function handleBanReport() {
             var steam_id_64 = (SteamIDConverter.isSteamID64(unparsed_id) ? unparsed_id : SteamIDConverter.toSteamID64(unparsed_id));
             addBansButton(button_group, steam_id_64);
         } catch (TypeError) {
+            addBansButton(button_group, post_title.split(" - ")[2]);
             addLookupButton(button_group, post_title);
         }
     } else {
+        addBansButton(button_group, post_title.split(" - ")[2]);
         addLookupButton(button_group, post_title);
     }
 
