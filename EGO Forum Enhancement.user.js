@@ -113,6 +113,98 @@ function handle_new_child(event) {
     create_button("https://maul.edgegamers.com/index.php?page=home&id=" + id, "MAUL Profile", buttonGroupTwo == null ? buttenGroupOne : buttonGroupTwo, "_blank", true);
 }
 
+function handle_thread_move_page() {
+    if (!url.endsWith("?move_to_completed"))
+        return;
+    var breadcrumbs = document.querySelector(".p-breadcrumbs").textContent.trim().split("\n\n\n\n\n\n");
+    breadcrumbs = breadcrumbs[breadcrumbs.length - 2];
+    if (breadcrumbs.match(/^(Contest a Ban)|(Report a Player)$/)) { // Ban Contest or Report (Non-Completed)
+        const CONTEST_COMPLETED = 1236;
+        const REPORT_COMPLETED = 1235;
+        var form = document.forms[1];
+        var drop = form.querySelector("select.js-nodeList");
+        var checkArr = Array.from(form.querySelectorAll(".inputChoices-choice"));
+        var optArr = Array.from(drop.options);
+        drop.selectedIndex = optArr.indexOf(optArr.find(el => el.value == (breadcrumbs.startsWith("Contest") ? CONTEST_COMPLETED : REPORT_COMPLETED)));
+        if (drop.selectedIndex == -1) {
+            throw "Could not find Completed forum";
+        }
+        try { // These buttons may not exist if you created the post yourself, this is just to prevent edge cases.
+            checkArr.find(el => el.textContent === "Notify members watching the destination forum").querySelector("label > input").checked = false;
+            checkArr.find(el => el.textContent.startsWith("Notify thread starter of this action.")).querySelector("label > input").checked = false;
+        } catch { }
+        form.submit();
+    }
+}
+
+function handle_forums_list() {
+    // Adds the Moderator Trash Bin to the Private Forums section
+    var private_category = document.querySelector(".block--category1240 > .block-container > .block-body");
+    var subforum = document.createElement("div");
+    subforum.classList.add("node", "node--forum", "node--id685");
+    subforum.innerHTML = "<div class=\"node-body\"><span class=\"node-icon\"><i class=\"fa--xf far fa-comments\" aria-hidden=\"true\"></i></span><div class=\"node-main js-nodeMain\"><h3 class=\"node-title\"><a href=\"/forums/685/\" data-xf-init=\"element-tooltip\" data-shortcut=\"node-description\">Moderator Trash Bin</a></h3></div><div class=\"node-extra\"><span class=\"node-extra-placeholder\">Planes, Trains, and Plantains</span></div></div>";
+    private_category.appendChild(subforum);
+}
+
+function handle_generic_thread() {
+    if (breadcrumbs.match(/((Contest (a Ban|Completed))|(Report (a Player|Completed))) ?$/)) { // Ban Contest or Report
+        handle_banreport();
+    } else if (breadcrumbs.match(/Leadership/)) { // LE Forums
+        handle_leadership();
+    }
+}
+
+function handle_banreport() {
+    var breadcrumbs = document.querySelector(".p-breadcrumbs").innerText;
+    var post_title = document.querySelector(".p-title").innerText;
+    var button_group = document.querySelector("div.buttonGroup");
+    add_maul_profile_button(button_group, document.querySelector(".message-name > a.username").href.substring(35));
+
+    var steam_id = post_title.match(/^.* - .* - ([^\d]*?(?<game_id>(\d+)|(STEAM_\d:\d:\d+)|(\[U:\d:\d+\])).*)$/)
+    if (steam_id) {
+        var unparsed_id = steam_id.groups.game_id;
+        try {
+            var steam_id_64 = (SteamIDConverter.isSteamID64(unparsed_id) ? unparsed_id : SteamIDConverter.toSteamID64(unparsed_id));
+            add_bans_button(button_group, steam_id_64);
+        } catch (TypeError) {
+            add_lookup_button(button_group, post_title);
+        }
+    } else {
+        add_lookup_button(button_group, post_title);
+    }
+
+    if (!breadcrumbs.match(/Completed ?$/))
+        add_move_button(button_group, url)
+}
+
+function handle_leadership() {
+    var watermarkTop = document.createElement("div");
+    document.getElementsByTagName("body")[0].appendChild(watermarkTop);
+
+    watermarkTop.innerHTML = "Confidential";
+    watermarkTop.style.color = "rgba(255,0,0,0.15)";
+    watermarkTop.style.fontSize = "100px";
+    watermarkTop.style.position = "fixed";
+    watermarkTop.style.top = "1%";
+    watermarkTop.style.left = "50%";
+    watermarkTop.style.transform = "translateX(-50%)"
+    watermarkTop.style.pointerEvents = "none";
+    watermarkTop.style.zIndex = "999";
+
+    var watermarkBottom = document.createElement("div");
+    document.getElementsByTagName("body")[0].appendChild(watermarkBottom);
+
+    watermarkBottom.innerHTML = "Confidential";
+    watermarkBottom.style.color = "rgba(255,0,0,0.15)";
+    watermarkBottom.style.fontSize = "100px";
+    watermarkBottom.style.position = "fixed";
+    watermarkBottom.style.top = "85%";
+    watermarkBottom.style.left = "50%";
+    watermarkBottom.style.transform = "translateX(-50%)"
+    watermarkBottom.style.pointerEvents = "none";
+    watermarkBottom.style.zIndex = "999";
+}
+
 (function () {
     // Determine what page we're on
     var url = window.location.href;
@@ -131,89 +223,15 @@ function handle_new_child(event) {
         return;
     }
     if (url.match(/^https:\/\/www\.edgegamers\.com\/threads\/\d+\/move(?:\?move_.*)?$/)) { // Thread Move Page
-        if (url.endsWith("?move_to_completed")) {
-            var breadcrumbs = document.querySelector(".p-breadcrumbs").textContent.trim().split("\n\n\n\n\n\n");
-            breadcrumbs = breadcrumbs[breadcrumbs.length - 2];
-            if (breadcrumbs.match(/^(Contest a Ban)|(Report a Player)$/)) { // Ban Contest or Report (Non-Completed)
-                const CONTEST_COMPLETED = 1236;
-                const REPORT_COMPLETED = 1235;
-                var form = document.forms[1];
-                var drop = form.querySelector("select.js-nodeList");
-                var checkArr = Array.from(form.querySelectorAll(".inputChoices-choice"));
-                var optArr = Array.from(drop.options);
-                drop.selectedIndex = optArr.indexOf(optArr.find(el => el.value == (breadcrumbs.startsWith("Contest") ? CONTEST_COMPLETED : REPORT_COMPLETED)));
-                if (drop.selectedIndex == -1) {
-                    throw "Could not find Completed forum";
-                }
-                try { // These buttons may not exist if you created the post yourself, this is just to prevent edge cases.
-                    checkArr.find(el => el.textContent === "Notify members watching the destination forum").querySelector("label > input").checked = false;
-                    checkArr.find(el => el.textContent.startsWith("Notify thread starter of this action.")).querySelector("label > input").checked = false;
-                } catch { }
-                form.submit();
-            }
-        }
-        return;
+        handle_thread_move_page();
     }
     if (url.match(/^https:\/\/www\.edgegamers\.com\/forums\/?$/)) { // Forums List
-        // Adds the Moderator Trash Bin to the Private Forums section
-        var private_category = document.querySelector(".block--category1240 > .block-container > .block-body");
-        var subforum = document.createElement("div");
-        subforum.classList.add("node", "node--forum", "node--id685");
-        subforum.innerHTML = "<div class=\"node-body\"><span class=\"node-icon\"><i class=\"fa--xf far fa-comments\" aria-hidden=\"true\"></i></span><div class=\"node-main js-nodeMain\"><h3 class=\"node-title\"><a href=\"/forums/685/\" data-xf-init=\"element-tooltip\" data-shortcut=\"node-description\">Moderator Trash Bin</a></h3></div><div class=\"node-extra\"><span class=\"node-extra-placeholder\">Planes, Trains, and Plantains</span></div></div>";
-        private_category.appendChild(subforum);
+        handle_forums_list();
         return;
     }
 
     if (!url.match(/^https:\/\/www\.edgegamers\.com\/threads\/\d+/))
         return; // Forum Thread of Some Sort
-    var breadcrumbs = document.querySelector(".p-breadcrumbs").innerText;
-    var post_title = document.querySelector(".p-title").innerText;
 
-    if (breadcrumbs.match(/((Contest (a Ban|Completed))|(Report (a Player|Completed))) ?$/)) { // Ban Contest or Report
-        var button_group = document.querySelector("div.buttonGroup");
-        add_maul_profile_button(button_group, document.querySelector(".message-name > a.username").href.substring(35));
 
-        var steam_id = post_title.match(/^.* - .* - ([^\d]*?(?<game_id>(\d+)|(STEAM_\d:\d:\d+)|(\[U:\d:\d+\])).*)$/)
-        if (steam_id) {
-            var unparsed_id = steam_id.groups.game_id;
-            try {
-                var steam_id_64 = (SteamIDConverter.isSteamID64(unparsed_id) ? unparsed_id : SteamIDConverter.toSteamID64(unparsed_id));
-                add_bans_button(button_group, steam_id_64);
-            } catch (TypeError) {
-                add_lookup_button(button_group, post_title);
-            }
-        } else {
-            add_lookup_button(button_group, post_title);
-        }
-
-        if (!breadcrumbs.match(/Completed ?$/))
-            add_move_button(button_group, url)
-
-    } else if (breadcrumbs.match(/Leadership/)) { // LE Forums
-        var watermarkTop = document.createElement("div");
-        document.getElementsByTagName("body")[0].appendChild(watermarkTop);
-
-        watermarkTop.innerHTML = "Confidential";
-        watermarkTop.style.color = "rgba(255,0,0,0.15)";
-        watermarkTop.style.fontSize = "100px";
-        watermarkTop.style.position = "fixed";
-        watermarkTop.style.top = "1%";
-        watermarkTop.style.left = "50%";
-        watermarkTop.style.transform = "translateX(-50%)"
-        watermarkTop.style.pointerEvents = "none";
-        watermarkTop.style.zIndex = "999";
-
-        var watermarkBottom = document.createElement("div");
-        document.getElementsByTagName("body")[0].appendChild(watermarkBottom);
-
-        watermarkBottom.innerHTML = "Confidential";
-        watermarkBottom.style.color = "rgba(255,0,0,0.15)";
-        watermarkBottom.style.fontSize = "100px";
-        watermarkBottom.style.position = "fixed";
-        watermarkBottom.style.top = "85%";
-        watermarkBottom.style.left = "50%";
-        watermarkBottom.style.transform = "translateX(-50%)"
-        watermarkBottom.style.pointerEvents = "none";
-        watermarkBottom.style.zIndex = "999";
-    }
 })();

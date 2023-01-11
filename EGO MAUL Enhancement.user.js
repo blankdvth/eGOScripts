@@ -8,7 +8,7 @@
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=edgegamers.com
 // @require      https://peterolson.github.io/BigInteger.js/BigInteger.min.js
 // @require      https://raw.githubusercontent.com/12pt/steamid-converter/master/js/converter-min.js
-// @resource    admins https://gist.githubusercontent.com/MSWS/310f334dbaec82bfc30efb174eb311fc/raw/a7856a1ed0ee84b2b1be4e9200dfa7fbcc900762/admins.txt
+// @resource    admins https://gist.githubusercontent.com/MSWS/310f334dbaec82bfc30efb174eb311fc/raw/19c693d9e3b37ffc066a8d25e88cc08930778f99/admins.txt
 // @grant       GM_getResourceText
 // ==/UserScript==
 
@@ -69,7 +69,133 @@ function load_admins() {
         let id = line.substring(separator + 1);
         knownAdmins[username] = id;
     });
-    console.log("Loaded admins, MSWS: " + knownAdmins["MSWS"]);
+}
+
+function handle_add_ban_page() {
+    var div = create_preset_div();
+
+    // Insert presets
+    add_preset("Get IP (via Ban)", div, function () {
+        document.getElementById("handle").value = "Suspected Ban Evader";
+        document.getElementById("length").value = 1;
+        document.getElementById("reason").value = "IP Check";
+        document.getElementById("notes").value = "Checking IP";
+    });
+    add_preset("Ban Evasion", div, function () {
+        document.getElementById("reason").value = "Ban Evasion";
+        var length = document.getElementById("length");
+        length.value = 0;
+        length.disabled = true;
+    });
+    // You can add more presets following the format shown above
+}
+
+function handle_edit_ban_page() {
+    var div = create_preset_div();
+
+    // Insert presets
+    add_preset("Ban Evasion", div, function () {
+        document.getElementById("reason").value = "Ban Evasion";
+        var length = document.getElementById("length");
+        if (length.value != 0) {
+            length.value = 0;
+            length.disabled = true;
+        }
+    });
+
+    // Steam ID buttons
+    var id_group = document.querySelector(".control-label[for=gameId]").parentElement;
+    var id = id_group.querySelector("p").innerText;
+    var id_div = document.createElement("div");
+    id_div.style.display = "flex";
+    id_div.style.fledDirection = "row";
+    id_div.style.paddingTop = "10px";
+    id_group.appendChild(id_div);
+    id_div.appendChild(create_link_button("Steam", "https://steamcommunity.com/profiles/" + id, "_blank"));
+    id_div.appendChild(create_link_button("GameME", "https://edgegamers.gameme.com/search?si=uniqueid&rc=all&q=" + SteamIDConverter.toSteamID(id), "_blank"));
+    id_div.appendChild(create_link_button("SteamID (IO)", "https://steamid.io/lookup/" + id, "_blank"));
+    id_div.appendChild(create_link_button("SteamID (UK)", "https://steamid.uk/profile/" + id, "_blank"));
+
+    // IP buttons
+    var ip_group = Array.from(document.querySelectorAll(".control-label")).find(el => el.textContent === "IP").parentElement; // BECAUSE MAUL HAS THE IP LABELED WITH THE WRONG FOR
+    var ip = ip_group.querySelector("p").innerText;
+    var ip_div = document.createElement("div");
+    ip_div.style.display = "flex";
+    ip_div.style.fledDirection = "row";
+    ip_div.style.paddingTop = "10px";
+    ip_group.appendChild(ip_div);
+    ip_div.appendChild(create_link_button("Check Spur", "https://spur.us/context/" + ip, "_blank"));
+    ip_div.appendChild(create_link_button("Check IPInfo", "https://ipinfo.io/" + ip, "_blank"));
+}
+
+function handle_profile_page() {
+    var userNotes = [...document.querySelectorAll("div.col-xs-6 > div > div:nth-child(3)")];
+    userNotes.forEach(userNote => {
+        userNote.textContent = userNote.textContent.replaceAll(
+            /(?:https?:\/\/)?(?:www\.)?edge-gamers\.com\/forums\/showthread\.php\?p=(\d+)(?:#?post(\d+))?/g,
+            function (match, threadId, postId) {
+                return generate_forums_url(threadId, postId);
+            });
+        userNote.textContent = userNote.textContent.replaceAll(
+            /(?:https?:\/\/)?(?:www\.)?edge-gamers\.com\/forums\/showthread\.php\?(\d+)[\-a-zA-Z]*/g,
+            function (match, threadId) {
+                return generate_forums_url(threadId, null);
+            });
+    });
+}
+
+function handle_ban_list_page() {
+    load_admins();
+    let expandingElementList = document.querySelectorAll(".expand");
+    console.log(knownAdmins);
+    for (let expandingElement of expandingElementList) {
+        let element = expandingElement.childNodes[1];
+        let adminsOrReason = element.childNodes[14].textContent;
+        let admins;
+        let adminsElement;
+        if (adminsOrReason === "Admins Online:") {
+            // Admins Online field, fetch 17th
+            adminsElement = element.childNodes[17];
+        } else {
+            // Reason field is given, fetch 24th
+            adminsElement = element.childNodes[24];
+        }
+        for (let admin of adminsElement.textContent.split(", ")) {
+            let id = knownAdmins[admin];
+            if (id == undefined)
+                continue;
+            adminsElement.innerHTML = adminsElement.innerHTML.replaceAll(admin, `<a href="https://maul.edgegamers.com/index.php?page=home&id=${knownAdmins[admin]}">${admin}</a>`);
+        }
+    }
+    var banNotes = document.querySelectorAll("span[id*=notes].col-xs-10");
+    banNotes.forEach(banNote => {
+        // Replace the text with a linkified version
+        var replaced = banNote.innerHTML.replaceAll(
+            /https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)/g,
+            '<a href="$&" target="_blank">$&</a>'
+        );
+        // If the text hasn't been changed, move on
+        if (replaced === banNote.innerHTML)
+            return;
+        // Create a hidden div to store the original text
+        var hiddenDiv = document.createElement("span");
+        hiddenDiv.style.display = "none";
+        hiddenDiv.innerHTML = banNote.innerHTML;
+        hiddenDiv.id = banNote.id + "_original";
+        // Replace the text with a linkified version
+        banNote.innerHTML = replaced;
+        // Add the hidden div to the DOM
+        banNote.parentElement.appendChild(hiddenDiv);
+        // Add an event listener to the edit button to restore the original text. The edit notes button takes the text from the span, and we need to avoid having the linkified text in the edit box.
+        let editNotes = banNote.parentElement.querySelector("span.edit_note_button");
+        // We're using mousedown instead of click because the click event fires too late, and the textarea is already populated with the linkified text. The textarea is populated during click/mouseup, so mousedown fires before that.
+        function handleEditNotesClick(event) {
+            banNote.innerHTML = hiddenDiv.innerHTML;
+            event.target.removeEventListener("mousedown", handleEditNotesClick);
+            hiddenDiv.remove();
+        }
+        editNotes.addEventListener("mousedown", handleEditNotesClick);
+    });
 }
 
 (function () {
@@ -77,134 +203,18 @@ function load_admins() {
     var url = window.location.href;
 
     if (url.match(/^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban\/?$/)) { // Add Ban Page (not Edit, that will have &id=12345 in the URL)
-        // Preconfigure game related selectors
-        document.getElementById("division").selectedIndex = 5;
-        document.getElementById("idTypeId").selectedIndex = 6;
-        document.getElementById("gameId").disabled = false;
-
-        var div = create_preset_div();
-
-        // Insert presets
-        add_preset("Get IP (via Ban)", div, function () {
-            document.getElementById("handle").value = "Suspected Ban Evader";
-            document.getElementById("length").value = 1;
-            document.getElementById("reason").value = "IP Check";
-            document.getElementById("notes").value = "Checking IP";
-        });
-        add_preset("Ban Evasion", div, function () {
-            document.getElementById("reason").value = "Ban Evasion";
-            var length = document.getElementById("length");
-            length.value = 0;
-            length.disabled = true;
-        });
-        // You can add more presets following the format shown above
+        handle_add_ban_page();
         return;
     }
     if (url.match(/^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban&id=\d+$/)) { // Edit Ban Page
-        var div = create_preset_div();
-
-        // Insert presets
-        add_preset("Ban Evasion", div, function () {
-            document.getElementById("reason").value = "Ban Evasion";
-            var length = document.getElementById("length");
-            if (length.value != 0) {
-                length.value = 0;
-                length.disabled = true;
-            }
-        });
-
-        // Steam ID buttons
-        var id_group = document.querySelector(".control-label[for=gameId]").parentElement;
-        var id = id_group.querySelector("p").innerText;
-        var id_div = document.createElement("div");
-        id_div.style.display = "flex";
-        id_div.style.fledDirection = "row";
-        id_div.style.paddingTop = "10px";
-        id_group.appendChild(id_div);
-        id_div.appendChild(create_link_button("Steam", "https://steamcommunity.com/profiles/" + id, "_blank"));
-        id_div.appendChild(create_link_button("GameME", "https://edgegamers.gameme.com/search?si=uniqueid&rc=all&q=" + SteamIDConverter.toSteamID(id), "_blank"));
-        id_div.appendChild(create_link_button("SteamID (IO)", "https://steamid.io/lookup/" + id, "_blank"));
-        id_div.appendChild(create_link_button("SteamID (UK)", "https://steamid.uk/profile/" + id, "_blank"));
-
-        // IP buttons
-        var ip_group = Array.from(document.querySelectorAll(".control-label")).find(el => el.textContent === "IP").parentElement; // BECAUSE MAUL HAS THE IP LABELED WITH THE WRONG FOR
-        var ip = ip_group.querySelector("p").innerText;
-        var ip_div = document.createElement("div");
-        ip_div.style.display = "flex";
-        ip_div.style.fledDirection = "row";
-        ip_div.style.paddingTop = "10px";
-        ip_group.appendChild(ip_div);
-        ip_div.appendChild(create_link_button("Check Spur", "https://spur.us/context/" + ip, "_blank"));
-        ip_div.appendChild(create_link_button("Check IPInfo", "https://ipinfo.io/" + ip, "_blank"));
+        handle_edit_ban_page();
         return;
     }
     if (url.match(/^https:\/\/maul\.edgegamers\.com\/index\.php\?page=home&id=\d+$/)) { // Profile Page
-        var userNotes = [...document.querySelectorAll("div.col-xs-6 > div > div:nth-child(3)")];
-        userNotes.forEach(userNote => {
-            userNote.textContent = userNote.textContent.replaceAll(
-                /(?:https?:\/\/)?(?:www\.)?edge-gamers\.com\/forums\/showthread\.php\?p=(\d+)(?:#?post(\d+))?/g,
-                function (match, threadId, postId) {
-                    return generate_forums_url(threadId, postId);
-                });
-            userNote.textContent = userNote.textContent.replaceAll(
-                /(?:https?:\/\/)?(?:www\.)?edge-gamers\.com\/forums\/showthread\.php\?(\d+)[\-a-zA-Z]*/g,
-                function (match, threadId) {
-                    return generate_forums_url(threadId, null);
-                });
-        });
+        handle_profile_page();
         return;
     }
     if (url.match(/^https:\/\/maul\.edgegamers\.com\/index\.php\?[-=a-zA-Z0-9&]*page=bans.*$/)) { // List Ban Page
-        load_admins();
-        let expandingElementList = document.querySelectorAll(".expand");
-        console.log(knownAdmins);
-        for (let expandingElement of expandingElementList) {
-            let element = expandingElement.childNodes[1];
-            let adminsOrReason = element.childNodes[14].textContent;
-            let admins;
-            let adminsElement;
-            if (adminsOrReason === "Admins Online:") {
-                // Admins Online field, fetch 17th
-                adminsElement = element.childNodes[17];
-            } else {
-                // Reason field is given, fetch 24th
-                adminsElement = element.childNodes[24];
-            }
-            for(let admin of adminsElement.textContent.split(", ")) {
-                let id = knownAdmins[admin];
-                if(id == undefined)
-                    continue;
-                adminsElement.innerHTML = adminsElement.innerHTML.replaceAll(admin, `<a href="https://maul.edgegamers.com/index.php?page=home&id=${knownAdmins[admin]}">${admin}</a>`);
-            }
-        }
-        var banNotes = document.querySelectorAll("span[id*=notes].col-xs-10");
-        banNotes.forEach(banNote => {
-            // Replace the text with a linkified version
-            var replaced = banNote.innerHTML.replaceAll(
-                /https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)/g,
-                '<a href="$&" target="_blank">$&</a>'
-            );
-            // If the text hasn't been changed, move on
-            if (replaced === banNote.innerHTML)
-                return;
-            // Create a hidden div to store the original text
-            var hiddenDiv = document.createElement("span");
-            hiddenDiv.style.display = "none";
-            hiddenDiv.innerHTML = banNote.innerHTML;
-            hiddenDiv.id = banNote.id + "_original";
-            // Replace the text with a linkified version
-            banNote.innerHTML = replaced;
-            // Add the hidden div to the DOM
-            banNote.parentElement.appendChild(hiddenDiv);
-            // Add an event listener to the edit button to restore the original text. The edit notes button takes the text from the span, and we need to avoid having the linkified text in the edit box.
-            editNotes = banNote.parentElement.querySelector("span.edit_note_button");
-            // We're using mousedown instead of click because the click event fires too late, and the textarea is already populated with the linkified text. The textarea is populated during click/mouseup, so mousedown fires before that.
-            function handleEditNotesClick(event) {
-                banNote.innerHTML = hiddenDiv.innerHTML;
-                event.target.removeEventListener("mousedown", handleEditNotesClick);
-                hiddenDiv.remove();
-            }
-            editNotes.addEventListener("mousedown", handleEditNotesClick);
-        });
+        handle_ban_list_page();
     }
 })();
