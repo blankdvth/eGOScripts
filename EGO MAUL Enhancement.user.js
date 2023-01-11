@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         EdgeGamers MAUL Enhancement
-// @namespace    https://github.com/blankdvth/eGOScripts
+// @namespace    https://github.com/MSWS/eGOMonkey
 // @version      2.0.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS
@@ -8,8 +8,8 @@
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=edgegamers.com
 // @require      https://peterolson.github.io/BigInteger.js/BigInteger.min.js
 // @require      https://raw.githubusercontent.com/12pt/steamid-converter/master/js/converter-min.js
-// @resource    admins https://gist.githubusercontent.com/MSWS/310f334dbaec82bfc30efb174eb311fc/raw/19c693d9e3b37ffc066a8d25e88cc08930778f99/admins.txt
-// @grant       GM_getResourceText
+// @resource     admins https://gist.githubusercontent.com/MSWS/310f334dbaec82bfc30efb174eb311fc/raw/19c693d9e3b37ffc066a8d25e88cc08930778f99/admins.txt
+// @grant        GM_getResourceText
 // ==/UserScript==
 
 'use strict';
@@ -190,29 +190,37 @@ function handleBanList() {
 }
 
 /**
+ * Adds hyperlinks to each admin within a string
+ * @param {string} str 
+ * @returns {string} The string with hyperlinks
+ */
+function assignAdminsOnlineHyperlink(str) {
+    for (let admin of str.split(", ")) {
+        let id = knownAdmins[admin];
+        if (id == undefined)
+            continue;
+        str = str.replace(admin, `<a href="https://maul.edgegamers.com/index.php?page=home&id=${id}">${admin}</a>`);
+    }
+    return str;
+}
+
+/**
  * Adds hyperlinks to the Banning Admins fields
  */
 function convertBanningAdmins() {
     if (Object.keys(knownAdmins).length === 0)
         loadAdmins();
-    let expandingElementList = document.querySelectorAll(".expand");
-    for (let expandingElement of expandingElementList) {
-        let element = expandingElement.childNodes[1];
-        let adminsOrReason = element.childNodes[14].textContent;
-        let adminsElement;
-        if (adminsOrReason === "Admins Online:") {
-            // Admins Online field, fetch 17th
-            adminsElement = element.childNodes[17];
-        } else {
-            // Reason field is given, fetch 24th
-            adminsElement = element.childNodes[24];
-        }
-        for (let admin of adminsElement.textContent.split(", ")) {
-            let id = knownAdmins[admin];
-            if (id == undefined)
-                continue;
-            adminsElement.innerHTML = adminsElement.innerHTML.replaceAll(admin, `<a href="https://maul.edgegamers.com/index.php?page=home&id=${knownAdmins[admin]}">${admin}</a>`);
-        }
+    let headers = document.querySelectorAll(".expand > td > span.pull-left");
+    let wasAdminOnline = false;
+    for (let header of headers) {
+        if (header.innerText === "Admins Online:") {
+            wasAdminOnline = true;
+            continue;
+        } else if (!wasAdminOnline)
+            continue;
+        // Last header was Admins Online
+        header.innerHTML = assignAdminsOnlineHyperlink(header.innerText);
+        wasAdminOnline = false;
     }
 }
 
@@ -256,10 +264,8 @@ function updateBanNoteURLs() {
         handleAddBan();
     else if (url.match(/^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban&id=\d+$/))  // Edit Ban Page
         handleEditBan();
-
-    if (url.match(/^https:\/\/maul\.edgegamers\.com\/index\.php\?page=home&id=\d+$/))  // Profile Page
+    else if (url.match(/^https:\/\/maul\.edgegamers\.com\/index\.php\?page=home&id=\d+$/))  // Profile Page
         handleProfile();
-
-    if (url.match(/^https:\/\/maul\.edgegamers\.com\/index\.php\?[-=a-zA-Z0-9&]*page=bans.*$/)) // List Ban Page
+    else if (url.match(/^https:\/\/maul\.edgegamers\.com\/index\.php\?[-=a-zA-Z0-9&]*page=bans.*$/)) // List Ban Page
         handleBanList();
 })();

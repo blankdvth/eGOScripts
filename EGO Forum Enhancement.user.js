@@ -136,6 +136,26 @@ function addMAULNav(nav_list) {
 }
 
 /**
+ * Generates large, transparent text (basically a watermark)
+ * @param {string} top CSS Top Style
+ * @param {string} str Text to display
+ */
+function generateRedText(top, str = "Confidential") {
+    var text = document.createElement("div");
+    document.body.appendChild(text);
+
+    text.innerHTML = str;
+    text.style.color = "rgba(255,0,0,0.25)";
+    text.style.fontSize = "100px";
+    text.style.position = "fixed";
+    text.style.top = top;
+    text.style.left = "50%";
+    text.style.transform = "translateX(-50%)"
+    text.style.pointerEvents = "none";
+    text.style.zIndex = "999";
+}
+
+/**
  * Listens to and appends MAUL button when user hovers over a profile
  * @param {HTMLElementEventMap} event 
  * @returns void
@@ -255,26 +275,6 @@ function handleBanReport() {
 function handleLeadership() {
     generateRedText("5%");
     generateRedText("80%");
-}
-
-/**
- * Generates large, transparent text (basically a watermark)
- * @param {string} top CSS Top Style
- * @param {string} str Text to display
- */
-function generateRedText(top, str = "Confidential") {
-    var text = document.createElement("div");
-    document.body.appendChild(text);
-
-    text.innerHTML = str;
-    text.style.color = "rgba(255,0,0,0.25)";
-    text.style.fontSize = "100px";
-    text.style.position = "fixed";
-    text.style.top = top;
-    text.style.left = "50%";
-    text.style.transform = "translateX(-50%)"
-    text.style.pointerEvents = "none";
-    text.style.zIndex = "999";
 }
 
 (function () {
