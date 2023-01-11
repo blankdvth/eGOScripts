@@ -292,7 +292,7 @@ function generateRedText(top, str = "Confidential") {
         addMAULProfileButton(document.querySelector(".memberHeader-buttons"), window.location.pathname.substring(9));
 
     if (url.match(/^https:\/\/www\.edgegamers\.com\/threads\/\d+\/move(?:\?move_.*)?$/))  // Thread Move Page
-        handlThreadMovePage();
+        handleThreadMovePage();
 
     if (url.match(/^https:\/\/www\.edgegamers\.com\/forums\/?$/))  // Forums List
         handleForumsList();
