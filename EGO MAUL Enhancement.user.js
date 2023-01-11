@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         EdgeGamers MAUL Enhancement
 // @namespace    https://github.com/blankdvth/eGOScripts
-// @version      1.7
+// @version      2.0.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
-// @author       blank_dvth, Left
+// @author       blank_dvth, Left, Skle, MSWS
 // @match        https://maul.edgegamers.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=edgegamers.com
 // @require      https://peterolson.github.io/BigInteger.js/BigInteger.min.js

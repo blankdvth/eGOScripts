@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         EdgeGamers Ad Resize
 // @namespace    https://github.com/blankdvth/eGOScripts
-// @version      1.1
+// @version      1.1.1
 // @description  Removes whitespace left over from ads on the EdgeGamers website. This is to be used in combination with an adblocker (such as U-Block Origin).
-// @author       blank_dvth
+// @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=edgegamers.com
 // @grant        none

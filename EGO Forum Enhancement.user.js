@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         EdgeGamers LE Enhancement
 // @namespace    https://github.com/blankdvth/eGOScripts
-// @version      2.1
+// @version      3.0.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
-// @author       blank_dvth
+// @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=edgegamers.com
 // @require      https://peterolson.github.io/BigInteger.js/BigInteger.min.js
