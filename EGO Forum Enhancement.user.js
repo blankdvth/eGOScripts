@@ -110,7 +110,7 @@ function handle_new_child(event) {
     // The buttongroup containing the "Start conversation" button
     var buttonGroupTwo = event.target.querySelector('.memberTooltip > .memberTooltip-actions > :nth-child(2)');
     // If the user is banned, buttonGroupTwo will be null. Default to buttonGroupOne.
-    create_button("https://maul.edgegamers.com/index.php?page=home&id=" + id, "MAUL Profile", buttonGroupTwo == null ? buttenGroupOne : buttonGroupTwo, "_blank", true);
+    create_button("https://maul.edgegamers.com/index.php?page=home&id=" + id, "MAUL Profile", buttonGroupTwo ?? buttenGroupOne, "_blank", true);
 }
 
 function handle_thread_move_page() {
@@ -137,6 +137,10 @@ function handle_thread_move_page() {
     }
 }
 
+function is_leadership(str) {
+    return str.match(/(Leadership|Report a Player|Report Completed)/);
+}
+
 function handle_forums_list() {
     // Adds the Moderator Trash Bin to the Private Forums section
     var private_category = document.querySelector(".block--category1240 > .block-container > .block-body");
@@ -147,11 +151,12 @@ function handle_forums_list() {
 }
 
 function handle_generic_thread() {
+    var breadcrumbs = document.querySelector(".p-breadcrumbs").innerText;
     if (breadcrumbs.match(/((Contest (a Ban|Completed))|(Report (a Player|Completed))) ?$/)) { // Ban Contest or Report
         handle_banreport();
-    } else if (breadcrumbs.match(/Leadership/)) { // LE Forums
-        handle_leadership();
     }
+    if (is_leadership(breadcrumbs)) // LE Forums
+        handle_leadership();
 }
 
 function handle_banreport() {
@@ -174,7 +179,7 @@ function handle_banreport() {
     }
 
     if (!breadcrumbs.match(/Completed ?$/))
-        add_move_button(button_group, url)
+        add_move_button(button_group, window.location.href);
 }
 
 function handle_leadership() {
@@ -182,10 +187,10 @@ function handle_leadership() {
     document.getElementsByTagName("body")[0].appendChild(watermarkTop);
 
     watermarkTop.innerHTML = "Confidential";
-    watermarkTop.style.color = "rgba(255,0,0,0.15)";
+    watermarkTop.style.color = "rgba(255,0,0,0.25)";
     watermarkTop.style.fontSize = "100px";
     watermarkTop.style.position = "fixed";
-    watermarkTop.style.top = "1%";
+    watermarkTop.style.top = "5%";
     watermarkTop.style.left = "50%";
     watermarkTop.style.transform = "translateX(-50%)"
     watermarkTop.style.pointerEvents = "none";
@@ -195,10 +200,10 @@ function handle_leadership() {
     document.getElementsByTagName("body")[0].appendChild(watermarkBottom);
 
     watermarkBottom.innerHTML = "Confidential";
-    watermarkBottom.style.color = "rgba(255,0,0,0.15)";
+    watermarkBottom.style.color = "rgba(255,0,0,0.25)";
     watermarkBottom.style.fontSize = "100px";
     watermarkBottom.style.position = "fixed";
-    watermarkBottom.style.top = "85%";
+    watermarkBottom.style.top = "80%";
     watermarkBottom.style.left = "50%";
     watermarkBottom.style.transform = "translateX(-50%)"
     watermarkBottom.style.pointerEvents = "none";
@@ -220,18 +225,18 @@ function handle_leadership() {
 
     if (url.match(/^https:\/\/www\.edgegamers\.com\/members\/\d+/)) { // Members Page
         add_maul_profile_button(document.querySelector(".memberHeader-buttons"), window.location.pathname.substring(9));
-        return;
+        // return
     }
     if (url.match(/^https:\/\/www\.edgegamers\.com\/threads\/\d+\/move(?:\?move_.*)?$/)) { // Thread Move Page
         handle_thread_move_page();
     }
     if (url.match(/^https:\/\/www\.edgegamers\.com\/forums\/?$/)) { // Forums List
         handle_forums_list();
-        return;
+        // return;
     }
 
     if (!url.match(/^https:\/\/www\.edgegamers\.com\/threads\/\d+/))
-        return; // Forum Thread of Some Sort
+        return; // Not a forum thread
 
-
+    handle_generic_thread();
 })();
