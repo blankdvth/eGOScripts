@@ -104,7 +104,6 @@ function add_maul_nav(nav_list) {
     add_maul_nav(nav_list);
 
     add_nav("https://gitlab.edgegamers.io/", "GitLab", nav_list);
-    add_nav("https://wisp.edgegamers.io/", "WISP", nav_list);
     add_nav("https://edgegamers.gameme.com/", "GameME", nav_list);
 
     if (url.match(/^https:\/\/www\.edgegamers\.com\/members\/\d+/)) { // Members Page
