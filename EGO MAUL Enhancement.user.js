@@ -13,13 +13,22 @@
 // ==/UserScript==
 
 'use strict';
+let knownAdmins = {}; // Known admin list
 
-const USERNAME = ""; // Change this to your own username
-
+/**
+ * Adds a preset button to the div
+ * @param {string} name Name of button
+ * @param {HTMLDivElement} div Div to add to
+ * @param {function(HTMLElementEventMap)} func Function to call on click
+ */
 function addPreset(name, div, func) {
     div.appendChild(createPresetButton(name, func));
 }
 
+/**
+ * Creates a preset div
+ * @returns {HTMLDivElement} Div to add presets to
+ */
 function createPresetDiv() {
     var div = document.createElement("div");
     var subtitle = document.createElement("h4");
@@ -36,6 +45,12 @@ function createPresetDiv() {
     return div;
 }
 
+/**
+ * Creates a preset button
+ * @param {string} text Button text
+ * @param {function(HTMLElementEventMap)} callback Function to call on click  
+ * @returns {HTMLButtonElement} Button
+ */
 function createPresetButton(text, callback) {
     var button = document.createElement("button");
     button.classList.add("btn", "btn-default");
@@ -45,6 +60,12 @@ function createPresetButton(text, callback) {
     return button
 }
 
+/**
+ * Creates a preset button {@see createPresetButton}
+ * @param {string} text 
+ * @param {string} link 
+ * @returns {HTMLButtonElement} Button
+ */
 function createLinkButton(text, link) {
     var a = document.createElement("a");
     a.classList.add("btn", "btn-default");
@@ -55,12 +76,19 @@ function createLinkButton(text, link) {
     return a;
 }
 
+/**
+ * Generates the proper forum thread link
+ * @param {*} threadId Thread ID
+ * @param {*} postId Post ID
+ * @returns Formatted link
+ */
 function generateForumsURL(threadId, postId) {
     return `https://edgegamers.com/threads/${threadId}/` + ((postId) ? `#post-${postId}` : "");
 }
 
-let knownAdmins = {};
-
+/**
+ * Loads known admins from the admins resource into the knownAdmins dictionary
+ */
 function loadAdmins() {
     let admins = GM_getResourceText("admins");
     admins.split("\n").forEach(line => {
@@ -71,6 +99,9 @@ function loadAdmins() {
     });
 }
 
+/**
+ * Adds presets for ban reason/duration/notes
+ */
 function handleAddBan() {
     var div = createPresetDiv();
 
@@ -90,6 +121,9 @@ function handleAddBan() {
     // You can add more presets following the format shown above
 }
 
+/**
+ * Adds presets for ban evasion, and misc. utility buttons
+ */
 function handleEditBan() {
     var div = createPresetDiv();
 
@@ -128,6 +162,9 @@ function handleEditBan() {
     ip_div.appendChild(createLinkButton("Check IPInfo", "https://ipinfo.io/" + ip, "_blank"));
 }
 
+/**
+ * Automatically converts old links to updated ones
+ */
 function handleProfile() {
     var userNotes = [...document.querySelectorAll("div.col-xs-6 > div > div:nth-child(3)")];
     userNotes.forEach(userNote => {
@@ -144,14 +181,24 @@ function handleProfile() {
     });
 }
 
+/**
+ * Updates banning admins and ban notes
+ */
 function handleBanList() {
-    loadAdmins();
+    convertBanningAdmins();
+    updateBanNoteURLs();
+}
+
+/**
+ * Adds hyperlinks to the Banning Admins fields
+ */
+function convertBanningAdmins() {
+    if (Object.keys(knownAdmins).length === 0)
+        loadAdmins();
     let expandingElementList = document.querySelectorAll(".expand");
-    console.log(knownAdmins);
     for (let expandingElement of expandingElementList) {
         let element = expandingElement.childNodes[1];
         let adminsOrReason = element.childNodes[14].textContent;
-        let admins;
         let adminsElement;
         if (adminsOrReason === "Admins Online:") {
             // Admins Online field, fetch 17th
@@ -167,8 +214,11 @@ function handleBanList() {
             adminsElement.innerHTML = adminsElement.innerHTML.replaceAll(admin, `<a href="https://maul.edgegamers.com/index.php?page=home&id=${knownAdmins[admin]}">${admin}</a>`);
         }
     }
+}
+
+function updateBanNoteURLs() {
     var banNotes = document.querySelectorAll("span[id*=notes].col-xs-10");
-    banNotes.forEach(banNote => {
+    for (let banNote of banNotes) {
         // Replace the text with a linkified version
         var replaced = banNote.innerHTML.replaceAll(
             /https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)/g,
@@ -176,7 +226,7 @@ function handleBanList() {
         );
         // If the text hasn't been changed, move on
         if (replaced === banNote.innerHTML)
-            return;
+            continue;
         // Create a hidden div to store the original text
         var hiddenDiv = document.createElement("span");
         hiddenDiv.style.display = "none";
@@ -195,7 +245,7 @@ function handleBanList() {
             hiddenDiv.remove();
         }
         editNotes.addEventListener("mousedown", handleEditNotesClick);
-    });
+    }
 }
 
 (function () {
