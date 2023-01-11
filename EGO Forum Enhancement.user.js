@@ -162,7 +162,7 @@ function tooltipMAULListener(event) {
  * Moves and auto-fills out the moving prompt for a thread.
  * @returns void
  */
-function handlThreadMovePage() {
+function handleThreadMovePage() {
     if (!url.endsWith("?move_to_completed"))
         return;
     var breadcrumbs = document.querySelector(".p-breadcrumbs").textContent.trim().split("\n\n\n\n\n\n");
