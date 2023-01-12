@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/EGO%20Forum%20Enhancement.user.js
-// @version      3.1.1
+// @version      3.1.2
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -262,17 +262,12 @@ function handleForumsList() {
                 if(thread.classList.contains('is-unread')) {
                     subforum.classList.add("node--unread");
                 }
-                var userHref = thread.querySelector('.structItem-cell--main > .structItem-minor > .structItem-parts > li > a');
-                var threadTitle = thread.querySelector('.structItem-cell--main > .structItem-title > a');
+                var userHref = thread.querySelector('.structItem-cell--main > .structItem-minor > .structItem-parts > li > a').outerHTML;
+                var threadTitle = thread.querySelector('.structItem-cell--main > .structItem-title').innerHTML; // Queryselector gets the parent and var references all children in case of prefixes
+                var date = thread.querySelector('.structItem-cell--latest > a > time').outerHTML;
+                var icon = thread.querySelector('.structItem-cell--icon > .structItem-iconContainer > a').outerHTML;
 
-                var titleHtml = threadTitle.outerHTML;
-                if(threadTitle.classList.contains('labelLink')) {
-                    titleHtml += ' ' + thread.querySelector('.structItem-cell--main > .structItem-title > :nth-child(2)').outerHTML;
-                }
-                var date = thread.querySelector('.structItem-cell--latest > a > time');
-                var icon = thread.querySelector('.structItem-cell--icon > .structItem-iconContainer > a');
-
-                subforum.innerHTML = '<div class="node-body"> <span class="node-icon" aria-hidden="true"> <i class="fa--xf far fa-comments" aria-hidden="true"></i> </span> <div class="node-main js-nodeMain"> <h3 class="node-title"> <a href="/forums/685/" data-xf-init="element-tooltip" data-shortcut="node-description" id="js-XFUniqueId87">Moderator Trash Bin</a> </h3> <div class="node-description node-description--tooltip js-nodeDescTooltip">Planes, Trains, and Plantains</div> <div class="node-meta"> <div class="node-statsMeta"> <dl class="pairs pairs--inline"> <dt>Threads</dt> <dd>18.2K</dd> </dl> <dl class="pairs pairs--inline"> <dt>Messages</dt> <dd>69.6K</dd> </dl> </div> </div> <div class="node-subNodesFlat"> <span class="node-subNodesLabel">Sub-forums:</span> </div> </div> <div class="node-stats"> <dl class="pairs pairs--rows"> <dt>Threads</dt> <dd>18.1K</dd> </dl> <dl class="pairs pairs--rows"> <dt>Messages</dt> <dd>98.4K</dd> </dl> </div> <div class="node-extra"> <div class="node-extra-icon">' + icon.outerHTML + '</div> <div class="node-extra-row">' + titleHtml + '</div> <div class="node-extra-row"> <ul class="listInline listInline--bullet"> <li> ' + date.outerHTML + '</li> <li class="node-extra-user">' + userHref.outerHTML + '</li> </ul> </div> </div> </div>';
+                subforum.innerHTML = '<div class="node-body"> <span class="node-icon" aria-hidden="true"> <i class="fa--xf far fa-comments" aria-hidden="true"></i> </span> <div class="node-main js-nodeMain"> <h3 class="node-title"> <a href="/forums/685/" data-xf-init="element-tooltip" data-shortcut="node-description" id="js-XFUniqueId87">Moderator Trash Bin</a> </h3> <div class="node-description node-description--tooltip js-nodeDescTooltip">Planes, Trains, and Plantains</div> <div class="node-meta"> <div class="node-statsMeta"> <dl class="pairs pairs--inline"> <dt>Threads</dt> <dd>18.2K</dd> </dl> <dl class="pairs pairs--inline"> <dt>Messages</dt> <dd>69.6K</dd> </dl> </div> </div> <div class="node-subNodesFlat"> <span class="node-subNodesLabel">Sub-forums:</span> </div> </div> <div class="node-stats"> <dl class="pairs pairs--rows"> <dt>Threads</dt> <dd>18.1K</dd> </dl> <dl class="pairs pairs--rows"> <dt>Messages</dt> <dd>98.4K</dd> </dl> </div> <div class="node-extra"> <div class="node-extra-icon">' + icon + '</div> <div class="node-extra-row">' + threadTitle + '</div> <div class="node-extra-row"> <ul class="listInline listInline--bullet"> <li> ' + date + '</li> <li class="node-extra-user">' + userHref + '</li> </ul> </div> </div> </div>';
                 private_category.appendChild(subforum);
             });
     });
@@ -325,14 +320,14 @@ function handleBanReport() {
  * @returns void
  */
 function handleOnHold(event) {
-    if(event.target.nodeName != 'DIV' || !event.target.classList.contains('overlay-container'))
+    if (event.target.nodeName != 'DIV' || !event.target.classList.contains('overlay-container'))
         return;
 
     // Event may fire twice - add a mark the first time it fires, and ignore the rest
     var mark = document.createElement('input');
     mark.type = 'hidden';
     event.target.append(mark);
-    if(event.target.childNodes.length > 2)
+    if (event.target.childNodes.length > 2)
         return;
 
     var body = event.target.querySelector('.overlay > .overlay-content > form > .block-container > .block-body');
@@ -397,8 +392,12 @@ function handleLeadership() {
  * @returns void
  */
 function handleApplicationPage() {
-    document.querySelector('.dataList-row > :nth-child(2)').childNodes[1].setAttribute('target', '_blank');
-    document.querySelector('.dataList-row > :nth-child(2)').childNodes[3].setAttribute('target', '_blank');
+    // document.querySelector('.dataList-row > :nth-child(2)').childNodes[1].setAttribute('target', '_blank');
+    // document.querySelector('.dataList-row > :nth-child(2)').childNodes[3].setAttribute('target', '_blank');
+    var children = document.querySelector('.dataList-row > .dataList-cell > a').parentElement.children;
+    Array.from(children).forEach(function (button) {
+        button.setAttribute('target', '_blank');
+    });
 }
 
 (function () {
@@ -418,13 +417,13 @@ function handleApplicationPage() {
     if (url.match(/^https:\/\/www\.edgegamers\.com\/members\/\d+/))  // Members Page
         addMAULProfileButton(document.querySelector(".memberHeader-buttons"), window.location.pathname.substring(9));
 
-    if (url.match(/^https:\/\/www\.edgegamers\.com\/threads\/\d+\/move(?:\?move_.*)?$/))  // Thread Move Page
+    else if (url.match(/^https:\/\/www\.edgegamers\.com\/threads\/\d+\/move(?:\?move_.*)?$/))  // Thread Move Page
         handleThreadMovePage();
 
-    if (url.match(/^https:\/\/www\.edgegamers\.com\/forums\/?$/))  // Forums List
+    else if (url.match(/^https:\/\/www\.edgegamers\.com\/forums\/?$/))  // Forums List
         handleForumsList();
 
-    if (url.match(/^https:\/\/www\.edgegamers\.com\/application\/\d+\/?$/))  // Application Page
+    else if (url.match(/^https:\/\/www\.edgegamers\.com\/application\/\d+\/?$/))  // Application Page
         handleApplicationPage();
 
     handleGenericThread();
