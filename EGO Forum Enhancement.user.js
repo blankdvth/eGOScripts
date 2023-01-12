@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/EGO%20Forum%20Enhancement.user.js
-// @version      3.0.0
+// @version      3.0.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -222,10 +222,29 @@ function isLeadership(str) {
  */
 function handleForumsList() {
     var private_category = document.querySelector(".block--category1240 > .block-container > .block-body");
+
     var subforum = document.createElement("div");
     subforum.classList.add("node", "node--forum", "node--id685");
-    subforum.innerHTML = "<div class=\"node-body\"><span class=\"node-icon\"><i class=\"fa--xf far fa-comments\" aria-hidden=\"true\"></i></span><div class=\"node-main js-nodeMain\"><h3 class=\"node-title\"><a href=\"/forums/685/\" data-xf-init=\"element-tooltip\" data-shortcut=\"node-description\">Moderator Trash Bin</a></h3></div><div class=\"node-extra\"><span class=\"node-extra-placeholder\">Planes, Trains, and Plantains</span></div></div>";
-    private_category.appendChild(subforum);
+
+    var forumHtml = document.createElement('html');
+    fetch("https://www.edgegamers.com/forums/685/").then(function(response) {
+            response.text().then(function(text) {
+                forumHtml.innerHTML = text;
+                var thread = forumHtml.querySelector(".js-threadList > :first-child");
+
+                // If the last thread in the bin is unread, mark the forum as unread
+                if(thread.classList.contains('is-unread')) {
+                    subforum.classList.add("node--unread");
+                }
+                var userHref = thread.querySelector('.structItem-cell--main > .structItem-minor > .structItem-parts > li > a');
+                var threadTitle = thread.querySelector('.structItem-cell--main > .structItem-title > a');
+                var date = thread.querySelector('.structItem-cell--latest > a > time');
+                var icon = thread.querySelector('.structItem-cell--icon > .structItem-iconContainer > a');
+
+                subforum.innerHTML = '<div class="node-body"> <span class="node-icon" aria-hidden="true"> <i class="fa--xf far fa-comments" aria-hidden="true"></i> </span> <div class="node-main js-nodeMain"> <h3 class="node-title"> <a href="/forums/685/" data-xf-init="element-tooltip" data-shortcut="node-description" id="js-XFUniqueId87">Moderator Trash Bin</a> </h3> <div class="node-description node-description--tooltip js-nodeDescTooltip">Planes, Trains, and Plantains</div> <div class="node-meta"> <div class="node-statsMeta"> <dl class="pairs pairs--inline"> <dt>Threads</dt> <dd>18.2K</dd> </dl> <dl class="pairs pairs--inline"> <dt>Messages</dt> <dd>69.6K</dd> </dl> </div> </div> <div class="node-subNodesFlat"> <span class="node-subNodesLabel">Sub-forums:</span> </div> </div> <div class="node-stats"> <dl class="pairs pairs--rows"> <dt>Threads</dt> <dd>18.1K</dd> </dl> <dl class="pairs pairs--rows"> <dt>Messages</dt> <dd>98.4K</dd> </dl> </div> <div class="node-extra"> <div class="node-extra-icon">' + icon.outerHTML + '</div> <div class="node-extra-row">' + threadTitle.outerHTML + '</div> <div class="node-extra-row"> <ul class="listInline listInline--bullet"> <li> ' + date.outerHTML + '</li> <li class="node-extra-user">' + userHref.outerHTML + '</li> </ul> </div> </div> </div>';
+                private_category.appendChild(subforum);
+            });
+    });
 }
 
 /**
