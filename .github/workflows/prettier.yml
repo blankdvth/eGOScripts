@@ -24,3 +24,5 @@ jobs:
           # This part is also where you can pass other options, for example:
           prettier_options: --tab-width 4 --write **/*.user.js
           only_changed: True
+          same_commit: True
+          github_token: ${{ secrets.GITHUB_TOKEN }}
