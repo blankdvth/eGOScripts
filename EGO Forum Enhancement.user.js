@@ -392,8 +392,6 @@ function handleLeadership() {
  * @returns void
  */
 function handleApplicationPage() {
-    // document.querySelector('.dataList-row > :nth-child(2)').childNodes[1].setAttribute('target', '_blank');
-    // document.querySelector('.dataList-row > :nth-child(2)').childNodes[3].setAttribute('target', '_blank');
     var children = document.querySelector('.dataList-row > .dataList-cell > a').parentElement.children;
     Array.from(children).forEach(function (button) {
         button.setAttribute('target', '_blank');
