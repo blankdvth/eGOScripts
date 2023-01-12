@@ -22,5 +22,5 @@ jobs:
         uses: creyD/prettier_action@v4.2
         with:
           # This part is also where you can pass other options, for example:
-          prettier_options: --tab-width 4 --write .
+          prettier_options: --tab-width 4 --write **/*.user.js
           only_changed: True
