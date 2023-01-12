@@ -559,6 +559,7 @@ function handleApplicationPage() {
     else if (url.match(/^https:\/\/www\.edgegamers\.com\/application\/\d+\/?$/))
         // Application Page
         handleApplicationPage();
-
-    handleGenericThread();
+    
+    if(!url.match(/^https:\/\/www\.edgegamers\.com\/-\/$/))
+        handleGenericThread();
 })();
