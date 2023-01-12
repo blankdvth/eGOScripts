@@ -16,10 +16,11 @@ jobs:
           ref: ${{ github.head_ref }}
           # This is important to fetch the changes to the previous commit
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Prettify code
         uses: creyD/prettier_action@v4.2
         with:
           # This part is also where you can pass other options, for example:
-          prettier_options: --tab-width 4 --write *.{js}
-          only_changed: True
+          prettier_options: --tab-width 4 --write **/*.user.js
+          github_token: ${{ secrets.GITHUB_TOKEN }}
