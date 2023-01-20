@@ -557,31 +557,36 @@ function handleFindAwardPage() {
     var url = window.location.href;
     var awardId = url.substring(url.indexOf('/award-system/') + 14, url.indexOf('/recent'));
     var userToFind = url.substring(url.indexOf('username=') + 9);
-    findAwardInternal(userToFind, awardId);
+    var maxPages = document.querySelector('.pageNav-main > :last-child > a').innerHTML;
+    console.log(maxPages);
+    for(var i = 1; i <= maxPages; i++) {
+        parseAwardPage(i, userToFind, awardId);
+    }
     // window.location.href = "/award-system/" + awardId + "/recent?page=" + findAwardInternal(userToFind, awardId);
 }
 
-function findAwardInternal(userToFind, awardId) {
-    var i = 1;
-    var count = 0;
-    while(i < 10) {
-        var pageHtml = document.createElement("html");
-        fetch("/award-system/" + awardId + "/recent?page=" + i).then(function (response) {
-            response.text().then(result = function (text) {
-                pageHtml.innerHTML = text;
-                var bodyDiv = pageHtml.querySelector('.block-body');
-                Array.from(bodyDiv.children).forEach(function (div) {
-                    console.log(div.getAttribute('data-author'));
-                    if(div.getAttribute('data-author') == userToFind) {
-                        window.location.href = "/award-system/" + awardId + "/recent?page=" + count;
-                    }
-                });
+function parseAwardPage(pageNum, userToFind, awardId) {
+    var pageHtml = document.createElement("html");
+    fetch("/award-system/" + awardId + "/recent?page=" + pageNum).then(function (response) {
+        response.text().then(result = function (text) {
+            pageHtml.innerHTML = text;
+            var bodyDiv = pageHtml.querySelector('.block-body');
+            Array.from(bodyDiv.children).forEach(function (div) {
+                if(div.getAttribute('data-author') == userToFind) {
+                    window.location.href = "/award-system/" + awardId + "/recent?page=" + pageNum + "&spotlight=" + userToFind;
+                }
             });
-            count++;
         });
-        i++;
-    }
+    });
 }
+
+function handleAwardSpotlight() {
+    var url = window.location.href;
+    var userToFind = url.substring(url.indexOf('spotlight=') + 10);
+    document.querySelectorAll('[data-author="' + userToFind + '"]')[0].scrollIntoView({behavior: 'smooth'});
+}
+
+//
 
 (function () {
     // Determine what page we're on
@@ -626,9 +631,13 @@ function findAwardInternal(userToFind, awardId) {
     else if (url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\/?$/))
         // Recent Award Page
         handleRecentAwardPage();
-    else if (url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?username=[-=a-zA-Z0-9&]*$/)) {
+    else if (url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?username=.*$/)) {
         // Find award page
         handleFindAwardPage();
+    }
+    else if (url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?page=\d+\&spotlight=.*$/)) {
+        // Award page with a spotlight
+        handleAwardSpotlight();
     }
 
     handleGenericThread();
