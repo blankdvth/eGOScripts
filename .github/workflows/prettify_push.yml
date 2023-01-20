@@ -1,8 +1,9 @@
-name: Code Styling
+name: Code Styling (Push)
 
 on:
-  pull_request:
-    branches: [master]
+  push:
+    branches:
+      - 'master'
 
 jobs:
   prettier:
@@ -17,7 +18,7 @@ jobs:
           # This is important to fetch the changes to the previous commit
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-
+          
       - name: Prettify code
         uses: creyD/prettier_action@v4.2
         with:

@@ -660,5 +660,6 @@ function handleAwardSpotlight() {
         handleAwardSpotlight();
     }
 
-    handleGenericThread();
+    if (!url.match(/^https:\/\/www\.edgegamers\.com\/-\/$/))
+        handleGenericThread();
 })();
