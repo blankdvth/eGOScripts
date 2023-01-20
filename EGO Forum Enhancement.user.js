@@ -569,8 +569,13 @@ function handleFindAwardPage() {
     var url = window.location.href;
     var awardId = url.substring(url.indexOf('/award-system/') + 14, url.indexOf('/recent'));
     var userToFind = url.substring(url.indexOf('username=') + 9);
-    var maxPages = document.querySelector('.pageNav-main > :last-child > a').innerHTML;
-    console.log(maxPages);
+    var maxPagesA = document.querySelector('.pageNav-main > :last-child > a');
+    if(maxPagesA != null) {
+        var maxPages = maxPagesA.innerHTML;
+    }
+    else {
+        var maxPages = 1;
+    }
     for(var i = 1; i <= maxPages; i++) {
         parseAwardPage(i, userToFind, awardId);
     }
