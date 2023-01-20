@@ -522,6 +522,67 @@ function handleApplicationPage() {
     });
 }
 
+function handleUserAwardPage() {
+    //Substring from the first character to "'s Awards"
+    var username = document.querySelector('.p-title-value').textContent.substring(0, document.querySelector('.p-title-value').textContent.indexOf("'s Awards"));
+    var blocks = document.querySelector('.blocks');
+    Array.from(blocks.children).forEach(function (block) {
+        var awardContainer = block.querySelector('div > .userAwardsContainer');
+        Array.from(awardContainer.children).forEach(function (award) {
+            var contentDiv = award.querySelector('div');
+            if(contentDiv.classList.contains('showAsDeleted')) {
+                return;
+            }
+            
+            var awardImageClasses = contentDiv.querySelector('.contentRow-figure > span > img').classList[1];
+            var awardId = awardImageClasses.substring(awardImageClasses.indexOf('--') + 2);
+            createButton("/award-system/" + awardId + "/recent?username=" + username, "Find Issue Reason" , contentDiv.querySelector('.contentRow-main'), '_blank', true);
+        });
+    });
+}
+
+function handleRecentAwardPage() {
+    var url = window.location.href;
+    var awardId = url.substring(url.indexOf('/award-system/') + 14, url.indexOf('/recent'));
+    var form = document.createElement('form');
+    form.setAttribute('action', '/award-system/' + awardId + '/recent');
+    form.setAttribute('method', 'get');
+    form.setAttribute('class', 'block');
+    form.innerHTML = '<div class="block-container"><h3 class="block-minorHeader">Find User Award</h3><div class="block-body block-row"><input type="text" class="input" data-xf-init="auto-complete" data-single="true" name="username" data-autosubmit="true" maxlength="50" placeholder="Name…" autocomplete="off"></div></div>';
+    var pageWrapper = document.querySelector('.p-pageWrapper');
+    pageWrapper.insertBefore(form, pageWrapper.querySelector('.p-body'));
+}
+
+function handleFindAwardPage() {
+    var url = window.location.href;
+    var awardId = url.substring(url.indexOf('/award-system/') + 14, url.indexOf('/recent'));
+    var userToFind = url.substring(url.indexOf('username=') + 9);
+    findAwardInternal(userToFind, awardId);
+    // window.location.href = "/award-system/" + awardId + "/recent?page=" + findAwardInternal(userToFind, awardId);
+}
+
+function findAwardInternal(userToFind, awardId) {
+    var i = 1;
+    var count = 0;
+    while(i < 10) {
+        var pageHtml = document.createElement("html");
+        fetch("/award-system/" + awardId + "/recent?page=" + i).then(function (response) {
+            response.text().then(result = function (text) {
+                pageHtml.innerHTML = text;
+                var bodyDiv = pageHtml.querySelector('.block-body');
+                Array.from(bodyDiv.children).forEach(function (div) {
+                    console.log(div.getAttribute('data-author'));
+                    if(div.getAttribute('data-author') == userToFind) {
+                        window.location.href = "/award-system/" + awardId + "/recent?page=" + count;
+                    }
+                });
+            });
+            count++;
+        });
+        i++;
+    }
+}
+
 (function () {
     // Determine what page we're on
     var url = window.location.href;
@@ -559,6 +620,16 @@ function handleApplicationPage() {
     else if (url.match(/^https:\/\/www\.edgegamers\.com\/application\/\d+\/?$/))
         // Application Page
         handleApplicationPage();
+    else if (url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/user\/awards\?user=\d+\/?$/))
+        // User Award Page
+        handleUserAwardPage();
+    else if (url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\/?$/))
+        // Recent Award Page
+        handleRecentAwardPage();
+    else if (url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?username=[-=a-zA-Z0-9&]*$/)) {
+        // Find award page
+        handleFindAwardPage();
+    }
 
     handleGenericThread();
 })();
