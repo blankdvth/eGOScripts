@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/EGO%20Forum%20Enhancement.user.js
-// @version      3.1.2
+// @version      3.2.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -504,6 +504,7 @@ Once it is done your application process will resume. If you want to have an und
 
 /**
  * Adds Confidential banners on top and bottom of page
+ * @returns void
  */
 function handleLeadership() {
     generateRedText("5%");
@@ -522,8 +523,11 @@ function handleApplicationPage() {
     });
 }
 
+/**
+ * Adds a "Find Issue Reason" button on the user awards page
+ * @returns void
+ */
 function handleUserAwardPage() {
-    //Substring from the first character to "'s Awards"
     var username = document.querySelector('.p-title-value').textContent.substring(0, document.querySelector('.p-title-value').textContent.indexOf("'s Awards"));
     var blocks = document.querySelector('.blocks');
     Array.from(blocks.children).forEach(function (block) {
@@ -541,6 +545,10 @@ function handleUserAwardPage() {
     });
 }
 
+/**
+ * Adds a form to the recent awards page to find a user's award
+ * @returns void
+ */
 function handleRecentAwardPage() {
     var url = window.location.href;
     var awardId = url.substring(url.indexOf('/award-system/') + 14, url.indexOf('/recent'));
@@ -553,6 +561,10 @@ function handleRecentAwardPage() {
     pageWrapper.insertBefore(form, pageWrapper.querySelector('.p-body'));
 }
 
+/**
+ * Directs the url to the page containing the award of the username that was supplied
+ * @returns void
+ */
 function handleFindAwardPage() {
     var url = window.location.href;
     var awardId = url.substring(url.indexOf('/award-system/') + 14, url.indexOf('/recent'));
@@ -562,9 +574,14 @@ function handleFindAwardPage() {
     for(var i = 1; i <= maxPages; i++) {
         parseAwardPage(i, userToFind, awardId);
     }
-    // window.location.href = "/award-system/" + awardId + "/recent?page=" + findAwardInternal(userToFind, awardId);
 }
 
+/**
+ * Internal function to parse a page of awards
+ * @param {number} pageNum the current number of the page being parsed
+ * @param {string} userToFind the username to find
+ * @param {string} awardId the id of the award to find
+ */
 function parseAwardPage(pageNum, userToFind, awardId) {
     var pageHtml = document.createElement("html");
     fetch("/award-system/" + awardId + "/recent?page=" + pageNum).then(function (response) {
@@ -585,8 +602,6 @@ function handleAwardSpotlight() {
     var userToFind = url.substring(url.indexOf('spotlight=') + 10);
     document.querySelectorAll('[data-author="' + userToFind + '"]')[0].scrollIntoView({behavior: 'smooth'});
 }
-
-//
 
 (function () {
     // Determine what page we're on
