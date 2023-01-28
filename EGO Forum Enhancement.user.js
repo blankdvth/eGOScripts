@@ -528,19 +528,31 @@ function handleApplicationPage() {
  * @returns void
  */
 function handleUserAwardPage() {
-    var username = document.querySelector('.p-title-value').textContent.match(/^(.*)'s Awards$/)[1]
-    var blocks = document.querySelector('.blocks');
+    var username = document
+        .querySelector(".p-title-value")
+        .textContent.match(/^(.*)'s Awards$/)[1];
+    var blocks = document.querySelector(".blocks");
     Array.from(blocks.children).forEach(function (block) {
-        var awardContainer = block.querySelector('div > .userAwardsContainer');
+        var awardContainer = block.querySelector("div > .userAwardsContainer");
         Array.from(awardContainer.children).forEach(function (award) {
-            var contentDiv = award.querySelector('div');
-            if(contentDiv.classList.contains('showAsDeleted')) {
+            var contentDiv = award.querySelector("div");
+            if (contentDiv.classList.contains("showAsDeleted")) {
                 return;
             }
-            
-            var awardImageClasses = contentDiv.querySelector('.contentRow-figure > span > img').classList[1];
-            var awardId = awardImageClasses.substring(awardImageClasses.indexOf('--') + 2);
-            createButton("/award-system/" + awardId + "/recent?username=" + username, "Find Issue Reason" , contentDiv.querySelector('.contentRow-main'), '_blank', true);
+
+            var awardImageClasses = contentDiv.querySelector(
+                ".contentRow-figure > span > img"
+            ).classList[1];
+            var awardId = awardImageClasses.substring(
+                awardImageClasses.indexOf("--") + 2
+            );
+            createButton(
+                "/award-system/" + awardId + "/recent?username=" + username,
+                "Find Issue Reason",
+                contentDiv.querySelector(".contentRow-main"),
+                "_blank",
+                true
+            );
         });
     });
 }
@@ -551,14 +563,17 @@ function handleUserAwardPage() {
  */
 function handleRecentAwardPage() {
     var url = window.location.href;
-    var awardId = url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/(\d+)\/recent\/?$/)[1];
-    var form = document.createElement('form');
-    form.setAttribute('action', '/award-system/' + awardId + '/recent');
-    form.setAttribute('method', 'get');
-    form.setAttribute('class', 'block');
-    form.innerHTML = '<div class="block-container"><h3 class="block-minorHeader">Find User Award</h3><div class="block-body block-row"><input type="text" class="input" data-xf-init="auto-complete" data-single="true" name="username" data-autosubmit="true" maxlength="50" placeholder="Name…" autocomplete="off"></div></div>';
-    var pageWrapper = document.querySelector('.p-pageWrapper');
-    pageWrapper.insertBefore(form, pageWrapper.querySelector('.p-body'));
+    var awardId = url.match(
+        /^https:\/\/www\.edgegamers\.com\/award-system\/(\d+)\/recent\/?$/
+    )[1];
+    var form = document.createElement("form");
+    form.setAttribute("action", "/award-system/" + awardId + "/recent");
+    form.setAttribute("method", "get");
+    form.setAttribute("class", "block");
+    form.innerHTML =
+        '<div class="block-container"><h3 class="block-minorHeader">Find User Award</h3><div class="block-body block-row"><input type="text" class="input" data-xf-init="auto-complete" data-single="true" name="username" data-autosubmit="true" maxlength="50" placeholder="Name…" autocomplete="off"></div></div>';
+    var pageWrapper = document.querySelector(".p-pageWrapper");
+    pageWrapper.insertBefore(form, pageWrapper.querySelector(".p-body"));
 }
 
 /**
@@ -567,17 +582,18 @@ function handleRecentAwardPage() {
  */
 function handleFindAwardPage() {
     var url = window.location.href;
-    var match = url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/(\d+)\/recent\?username=(.+)$/)
+    var match = url.match(
+        /^https:\/\/www\.edgegamers\.com\/award-system\/(\d+)\/recent\?username=(.+)$/
+    );
     var awardId = match[1];
     var userToFind = match[2];
-    var maxPagesA = document.querySelector('.pageNav-main > :last-child > a');
-    if(maxPagesA != null) {
+    var maxPagesA = document.querySelector(".pageNav-main > :last-child > a");
+    if (maxPagesA != null) {
         var maxPages = maxPagesA.innerHTML;
-    }
-    else {
+    } else {
         var maxPages = 1;
     }
-    for(var i = 1; i <= maxPages; i++) {
+    for (var i = 1; i <= maxPages; i++) {
         parseAwardPage(i, userToFind, awardId);
     }
 }
@@ -590,23 +606,37 @@ function handleFindAwardPage() {
  */
 function parseAwardPage(pageNum, userToFind, awardId) {
     var pageHtml = document.createElement("html");
-    fetch("/award-system/" + awardId + "/recent?page=" + pageNum).then(function (response) {
-        response.text().then(result = function (text) {
-            pageHtml.innerHTML = text;
-            var bodyDiv = pageHtml.querySelector('.block-body');
-            Array.from(bodyDiv.children).forEach(function (div) {
-                if(div.getAttribute('data-author') == userToFind) {
-                    window.location.href = "/award-system/" + awardId + "/recent?page=" + pageNum + "&spotlight=" + userToFind;
-                }
-            });
-        });
-    });
+    fetch("/award-system/" + awardId + "/recent?page=" + pageNum).then(
+        function (response) {
+            response.text().then(
+                (result = function (text) {
+                    pageHtml.innerHTML = text;
+                    var bodyDiv = pageHtml.querySelector(".block-body");
+                    Array.from(bodyDiv.children).forEach(function (div) {
+                        if (div.getAttribute("data-author") == userToFind) {
+                            window.location.href =
+                                "/award-system/" +
+                                awardId +
+                                "/recent?page=" +
+                                pageNum +
+                                "&spotlight=" +
+                                userToFind;
+                        }
+                    });
+                })
+            );
+        }
+    );
 }
 
 function handleAwardSpotlight() {
     var url = window.location.href;
-    var userToFind = url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?page=\d+\&spotlight=(.+)$/)[1];
-    document.querySelectorAll('[data-author="' + userToFind + '"]')[0].scrollIntoView({behavior: 'smooth'});
+    var userToFind = url.match(
+        /^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?page=\d+\&spotlight=(.+)$/
+    )[1];
+    document
+        .querySelectorAll('[data-author="' + userToFind + '"]')[0]
+        .scrollIntoView({ behavior: "smooth" });
 }
 
 (function () {
@@ -646,17 +676,32 @@ function handleAwardSpotlight() {
     else if (url.match(/^https:\/\/www\.edgegamers\.com\/application\/\d+\/?$/))
         // Application Page
         handleApplicationPage();
-    else if (url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/user\/awards\?user=\d+\/?$/))
+    else if (
+        url.match(
+            /^https:\/\/www\.edgegamers\.com\/award-system\/user\/awards\?user=\d+\/?$/
+        )
+    )
         // User Award Page
         handleUserAwardPage();
-    else if (url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\/?$/))
+    else if (
+        url.match(
+            /^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\/?$/
+        )
+    )
         // Recent Award Page
         handleRecentAwardPage();
-    else if (url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?username=.+$/)) {
+    else if (
+        url.match(
+            /^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?username=.+$/
+        )
+    ) {
         // Find award page
         handleFindAwardPage();
-    }
-    else if (url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?page=\d+\&spotlight=.+$/)) {
+    } else if (
+        url.match(
+            /^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?page=\d+\&spotlight=.+$/
+        )
+    ) {
         // Award page with a spotlight
         handleAwardSpotlight();
     }
