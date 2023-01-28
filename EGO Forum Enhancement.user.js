@@ -528,7 +528,7 @@ function handleApplicationPage() {
  * @returns void
  */
 function handleUserAwardPage() {
-    var username = document.querySelector('.p-title-value').textContent.substring(0, document.querySelector('.p-title-value').textContent.indexOf("'s Awards"));
+    var username = document.querySelector('.p-title-value').textContent.match(/^(.*)'s Awards$/)[1]
     var blocks = document.querySelector('.blocks');
     Array.from(blocks.children).forEach(function (block) {
         var awardContainer = block.querySelector('div > .userAwardsContainer');
@@ -551,7 +551,7 @@ function handleUserAwardPage() {
  */
 function handleRecentAwardPage() {
     var url = window.location.href;
-    var awardId = url.substring(url.indexOf('/award-system/') + 14, url.indexOf('/recent'));
+    var awardId = url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/(\d+)\/recent\/?$/)[1];
     var form = document.createElement('form');
     form.setAttribute('action', '/award-system/' + awardId + '/recent');
     form.setAttribute('method', 'get');
@@ -567,8 +567,9 @@ function handleRecentAwardPage() {
  */
 function handleFindAwardPage() {
     var url = window.location.href;
-    var awardId = url.substring(url.indexOf('/award-system/') + 14, url.indexOf('/recent'));
-    var userToFind = url.substring(url.indexOf('username=') + 9);
+    var match = url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/(\d+)\/recent\?username=(.+)$/)
+    var awardId = match[1];
+    var userToFind = match[2];
     var maxPagesA = document.querySelector('.pageNav-main > :last-child > a');
     if(maxPagesA != null) {
         var maxPages = maxPagesA.innerHTML;
@@ -604,7 +605,7 @@ function parseAwardPage(pageNum, userToFind, awardId) {
 
 function handleAwardSpotlight() {
     var url = window.location.href;
-    var userToFind = url.substring(url.indexOf('spotlight=') + 10);
+    var userToFind = url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?page=\d+\&spotlight=(.+)$/)[1];
     document.querySelectorAll('[data-author="' + userToFind + '"]')[0].scrollIntoView({behavior: 'smooth'});
 }
 
@@ -651,11 +652,11 @@ function handleAwardSpotlight() {
     else if (url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\/?$/))
         // Recent Award Page
         handleRecentAwardPage();
-    else if (url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?username=.*$/)) {
+    else if (url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?username=.+$/)) {
         // Find award page
         handleFindAwardPage();
     }
-    else if (url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?page=\d+\&spotlight=.*$/)) {
+    else if (url.match(/^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?page=\d+\&spotlight=.+$/)) {
         // Award page with a spotlight
         handleAwardSpotlight();
     }
