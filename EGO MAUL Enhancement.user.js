@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers MAUL Enhancement
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/EGO%20MAUL%20Enhancement.user.js
-// @version      2.0.1
+// @version      2.0.2
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS
 // @match        https://maul.edgegamers.com/*
@@ -290,24 +290,19 @@ function updateBanNoteURLs() {
         );
         // If the text hasn't been changed, move on
         if (replaced === banNote.innerHTML) return;
-        // Create a hidden div to store the original text
-        var hiddenDiv = document.createElement("span");
-        hiddenDiv.style.display = "none";
-        hiddenDiv.innerHTML = banNote.innerHTML;
-        hiddenDiv.id = banNote.id + "_original";
+        // Store the original text as a data attribute
+        banNote.dataset.original = banNote.innerHTML;
         // Replace the text with a linkified version
         banNote.innerHTML = replaced;
-        // Add the hidden div to the DOM
-        banNote.parentElement.appendChild(hiddenDiv);
         // Add an event listener to the edit button to restore the original text. The edit notes button takes the text from the span, and we need to avoid having the linkified text in the edit box.
         let editNotes = banNote.parentElement.querySelector(
             "span.edit_note_button"
         );
         // We're using mousedown instead of click because the click event fires too late, and the textarea is already populated with the linkified text. The textarea is populated during click/mouseup, so mousedown fires before that.
         function handleEditNotesClick(event) {
-            banNote.innerHTML = hiddenDiv.innerHTML;
+            banNote.innerHTML = banNote.dataset.original;
             event.target.removeEventListener("mousedown", handleEditNotesClick);
-            hiddenDiv.remove();
+            delete banNote.dataset.original;
         }
         editNotes.addEventListener("mousedown", handleEditNotesClick);
     });
