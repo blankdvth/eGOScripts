@@ -14,6 +14,7 @@
 
 "use strict";
 let knownAdmins = {}; // Known admin list
+let USERNAME = ""; // Current username
 
 /**
  * Adds a preset button to the div
@@ -100,6 +101,17 @@ function loadAdmins() {
         let id = line.substring(separator + 1);
         knownAdmins[username] = id;
     });
+}
+
+/**
+ * Attempt to retrieve the username of the current logged in user from the navbar
+ */
+function loadUsername() {
+    if (USERNAME) return;
+    let dropdown = document.querySelector("a.dropdown-toggle")
+    if (dropdown) {
+        USERNAME = dropdown.innerText.trim();
+    }
 }
 
 /**
@@ -304,6 +316,7 @@ function updateBanNoteURLs() {
 (function () {
     // Determine what page we're on
     var url = window.location.href;
+    loadUsername();
 
     if (
         url.match(
