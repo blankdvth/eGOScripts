@@ -108,7 +108,7 @@ function loadAdmins() {
  */
 function loadUsername() {
     if (USERNAME) return;
-    let dropdown = document.querySelector("a.dropdown-toggle")
+    let dropdown = document.querySelector("a.dropdown-toggle");
     if (dropdown) {
         USERNAME = dropdown.innerText.trim();
     }
