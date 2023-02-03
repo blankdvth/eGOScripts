@@ -122,10 +122,10 @@ function handleAddBan() {
 
     // Insert presets
     addPreset("Get IP (via Ban)", div, function () {
-        document.getElementById("handle").value = "Suspected Ban Evader";
+        document.getElementById("handle").value = "x";
         document.getElementById("length").value = 1;
-        document.getElementById("reason").value = "IP Check";
-        document.getElementById("notes").value = "Checking IP";
+        document.getElementById("reason").value = "x";
+        document.getElementById("notes").value = "ip";
     });
     addPreset("Ban Evasion", div, function () {
         document.getElementById("reason").value = "Ban Evasion";
