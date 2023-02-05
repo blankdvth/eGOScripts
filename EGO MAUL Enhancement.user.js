@@ -125,12 +125,13 @@ function setupConfig() {
                 label: "Add Ban Presets",
                 section: [
                     "Ban Presets",
-                    'See <a href="https://gist.github.com/blankdvth/c4389725de81465560b59ae57dbee570" target="_blank">this guide</a> on how to format and setup presets.<br>Note: This will not apply until the page is refreshed (your updated presets also won\'t show if you reopen the config popup until you refresh).'
+                    'See <a href="https://gist.github.com/blankdvth/c4389725de81465560b59ae57dbee570" target="_blank">this guide</a> on how to format and setup presets.<br>Note: This will not apply until the page is refreshed (your updated presets also won\'t show if you reopen the config popup until you refresh).',
                 ],
                 type: "textarea",
                 save: false,
                 default: "",
-                default: "Get IP (via Ban);x;1;x;;ip\nBan Evasion;;0;Ban Evasion;;",
+                default:
+                    "Get IP (via Ban);x;1;x;;ip\nBan Evasion;;0;Ban Evasion;;",
             },
             "presets-edit-unchecked": {
                 label: "Edit Ban Presets",
@@ -139,50 +140,95 @@ function setupConfig() {
                 default: "",
                 default: "Ban Evasion;0;Ban Evasion;;;",
             },
-            'presets-add': {
-                type: 'hidden',
-                default: "Get IP (via Ban);x;1;x;;ip\nBan Evasion;;0;Ban Evasion;;",
+            "presets-add": {
+                type: "hidden",
+                default:
+                    "Get IP (via Ban);x;1;x;;ip\nBan Evasion;;0;Ban Evasion;;",
             },
-            'presets-edit': {
-                type: 'hidden',
+            "presets-edit": {
+                type: "hidden",
                 default: "Ban Evasion;0;Ban Evasion;;;",
-            }
+            },
         },
         events: {
-            'init': function() {
-                GM_config.set('presets-add-unchecked', GM_config.get('presets-add'));
-                GM_config.set('presets-edit-unchecked', GM_config.get('presets-edit'));
+            init: function () {
+                GM_config.set(
+                    "presets-add-unchecked",
+                    GM_config.get("presets-add")
+                );
+                GM_config.set(
+                    "presets-edit-unchecked",
+                    GM_config.get("presets-edit")
+                );
             },
-            'open': function(doc) {
-                GM_config.fields['presets-add-unchecked'].node.addEventListener('change', function() {
-                    var presets = GM_config.get('presets-add-unchecked', true);
+            open: function (doc) {
+                GM_config.fields["presets-add-unchecked"].node.addEventListener(
+                    "change",
+                    function () {
+                        var presets = GM_config.get(
+                            "presets-add-unchecked",
+                            true
+                        );
 
-                    if (presets.split(/\r?\n/).every(function (line) {
-                        let parts = line.split(';');
-                        return parts.length === 6 && parts[0].length > 0 && parts[2].match(/^\d*$/)
-                    }))
-                        GM_config.set('presets-add', presets);
-                }, false);
-                GM_config.fields['presets-edit-unchecked'].node.addEventListener('change', function() {
-                    var presets = GM_config.get('presets-edit-unchecked', true);
+                        if (
+                            presets.split(/\r?\n/).every(function (line) {
+                                let parts = line.split(";");
+                                return (
+                                    parts.length === 6 &&
+                                    parts[0].length > 0 &&
+                                    parts[2].match(/^\d*$/)
+                                );
+                            })
+                        )
+                            GM_config.set("presets-add", presets);
+                    },
+                    false
+                );
+                GM_config.fields[
+                    "presets-edit-unchecked"
+                ].node.addEventListener(
+                    "change",
+                    function () {
+                        var presets = GM_config.get(
+                            "presets-edit-unchecked",
+                            true
+                        );
 
-                    if (presets.split(/\r?\n/).every(function (line) {
-                        let parts = line.split(';');
-                        return parts.length === 6 && parts[0].length > 0 && parts[1].match(/^\d*$/)
-                    }))
-                        GM_config.set('presets-edit', presets);
-                }, false);
+                        if (
+                            presets.split(/\r?\n/).every(function (line) {
+                                let parts = line.split(";");
+                                return (
+                                    parts.length === 6 &&
+                                    parts[0].length > 0 &&
+                                    parts[1].match(/^\d*$/)
+                                );
+                            })
+                        )
+                            GM_config.set("presets-edit", presets);
+                    },
+                    false
+                );
             },
-            'save': function(forgotten) {
+            save: function (forgotten) {
                 if (GM_config.isOpen) {
-                    if (forgotten['presets-add-unchecked'] !== GM_config.get('presets-add'))
-                        alert('Invalid preset format for "Add Ban Presets", value not saved.\nVerify that each line has 6 semicolon-separated values, the preset name is not empty, and that length is either empty or a number > 0.');
-                    if (forgotten['presets-edit-unchecked'] !== GM_config.get('presets-edit'))
-                        alert('Invalid preset format for "Edit Ban Presets", value not saved.\nVerify that each line has 6 semicolon-separated values, the preset name is not empty, and that length is either empty or a number > 0.');
+                    if (
+                        forgotten["presets-add-unchecked"] !==
+                        GM_config.get("presets-add")
+                    )
+                        alert(
+                            'Invalid preset format for "Add Ban Presets", value not saved.\nVerify that each line has 6 semicolon-separated values, the preset name is not empty, and that length is either empty or a number > 0.'
+                        );
+                    if (
+                        forgotten["presets-edit-unchecked"] !==
+                        GM_config.get("presets-edit")
+                    )
+                        alert(
+                            'Invalid preset format for "Edit Ban Presets", value not saved.\nVerify that each line has 6 semicolon-separated values, the preset name is not empty, and that length is either empty or a number > 0.'
+                        );
                 }
-            }
+            },
         },
-        "css": 'textarea {width: 100%; height: 160px; resize: vertical;}'
+        css: "textarea {width: 100%; height: 160px; resize: vertical;}",
     });
     var dropdownMenu = document.querySelector(
         ".user-dropdown > ul.dropdown-menu"
@@ -242,11 +288,11 @@ function loadPresets() {
         presetsAdd.push({
             name: parts[0],
             handle: parts[1],
-            length: (parts[2].match(/^\d+$/)) ? parseInt(parts[2]) : parts[2],
+            length: parts[2].match(/^\d+$/) ? parseInt(parts[2]) : parts[2],
             reason: parts[3],
             pa: parts[4].length > 0,
             notes: parts[5],
-        })
+        });
     });
     presetsEditRaw.split(/\r?\n/).forEach((line) => {
         var parts = line.split(";");
@@ -255,12 +301,12 @@ function loadPresets() {
         }
         presetsEdit.push({
             name: parts[0],
-            length: (parts[1].match(/^\d+$/)) ? parseInt(parts[1]) : parts[1],
+            length: parts[1].match(/^\d+$/) ? parseInt(parts[1]) : parts[1],
             reason: parts[2],
             pa: parts[3].length > 0,
             notes: parts[4],
             addUsername: parts[5].length > 0,
-        })
+        });
     });
 }
 
@@ -317,7 +363,10 @@ function handleEditBan() {
             if (preset.reason)
                 document.getElementById("reason").value = preset.reason;
             if (preset.notes)
-                document.getElementById("notes").value += "\n\n" + preset.notes + (preset.addUsername ? " " + USERNAME : "");
+                document.getElementById("notes").value +=
+                    "\n\n" +
+                    preset.notes +
+                    (preset.addUsername ? " " + USERNAME : "");
             document.getElementById("preventAmnesty").checked = preset.pa;
         });
     }
