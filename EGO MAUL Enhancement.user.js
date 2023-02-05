@@ -130,8 +130,6 @@ function setupConfig() {
                 type: "textarea",
                 save: false,
                 default: "",
-                cols: 120,
-                rows: 8,
                 default: "Get IP (via Ban);x;1;x;;ip\nBan Evasion;;0;Ban Evasion;;",
             },
             "presets-edit-unchecked": {
@@ -139,8 +137,6 @@ function setupConfig() {
                 type: "textarea",
                 save: false,
                 default: "",
-                cols: 120,
-                rows: 8,
                 default: "Ban Evasion;0;Ban Evasion;;;",
             },
             'presets-add': {
@@ -185,7 +181,8 @@ function setupConfig() {
                         alert('Invalid preset format for "Edit Ban Presets", value not saved.\nVerify that each line has 6 semicolon-separated values, the preset name is not empty, and that length is either empty or a number > 0.');
                 }
             }
-        }
+        },
+        "css": 'textarea {width: 100%; height: 160px; resize: vertical;}'
     });
     var dropdownMenu = document.querySelector(
         ".user-dropdown > ul.dropdown-menu"
