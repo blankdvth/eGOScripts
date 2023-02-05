@@ -237,7 +237,9 @@ function handleProfile() {
     });
 
     // Attempt to get Source ID
-    var sourceIdHref = document.querySelector("span.floatRight > a[href^=\"https://steamcommunity.com/profiles/\"]");
+    var sourceIdHref = document.querySelector(
+        'span.floatRight > a[href^="https://steamcommunity.com/profiles/"]'
+    );
     if (sourceIdHref) {
         var id = sourceIdHref.innerText;
         var btn = createLinkButton(
@@ -245,7 +247,7 @@ function handleProfile() {
             "https://edgegamers.gameme.com/search?si=uniqueid&rc=all&q=" +
                 SteamIDConverter.toSteamID(id),
             "_blank"
-        )
+        );
         btn.classList.remove("btn", "btn-primary");
         sourceIdHref.parentElement.insertBefore(btn, sourceIdHref);
     }
