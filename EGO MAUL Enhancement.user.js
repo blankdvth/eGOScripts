@@ -362,7 +362,7 @@ function updateBanNoteURLs() {
                 label: "Add Ban Presets",
                 section: [
                     "Ban Presets",
-                    'See <a href="https://gist.github.com/blankdvth/c4389725de81465560b59ae57dbee570">this guide</a> on how to format and setup presets. Note: This will not apply until the page is refreshed (your updated presets also won\'t show if you reopen the config popup until you refresh).'
+                    'See <a href="https://gist.github.com/blankdvth/c4389725de81465560b59ae57dbee570">this guide</a> on how to format and setup presets.<br>Note: This will not apply until the page is refreshed (your updated presets also won\'t show if you reopen the config popup until you refresh).'
                 ],
                 type: "textarea",
                 save: false,
