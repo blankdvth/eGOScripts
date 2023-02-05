@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers MAUL Enhancement
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/EGO%20MAUL%20Enhancement.user.js
-// @version      2.1.0
+// @version      3.0.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS
 // @match        https://maul.edgegamers.com/*
@@ -17,6 +17,8 @@
 
 "use strict";
 let knownAdmins = {}; // Known admin list
+let presetsAdd = []; // Presets for adding bans
+let presetsEdit = []; // Presets for editing bans
 let USERNAME = ""; // Current username
 
 /**
@@ -25,8 +27,8 @@ let USERNAME = ""; // Current username
  * @param {HTMLDivElement} div Div to add to
  * @param {function(HTMLElementEventMap)} func Function to call on click
  */
-function addPreset(name, div, func) {
-    div.appendChild(createPresetButton(name, func));
+function addPreset(name, id, div, func) {
+    div.appendChild(createPresetButton(name, id, func));
 }
 
 /**
@@ -55,12 +57,13 @@ function createPresetDiv() {
  * @param {function(HTMLElementEventMap)} callback Function to call on click
  * @returns {HTMLButtonElement} Button
  */
-function createPresetButton(text, callback) {
+function createPresetButton(text, id, callback) {
     var button = document.createElement("button");
     button.classList.add("btn", "btn-default");
     button.innerHTML = text;
     button.onclick = callback;
     button.style.marginRight = "4px";
+    button.dataset.presetId = id;
     return button;
 }
 
@@ -94,6 +97,157 @@ function generateForumsURL(threadId, postId) {
 }
 
 /**
+ * Setup the configuration manager and add a button to open it
+ */
+function setupConfig() {
+    // Initialize the configuration manager
+    GM_config.init({
+        id: "maul-config",
+        title: "MAUL Enhancement Script Configuration",
+        fields: {
+            "autoselect-division": {
+                label: "Division Index",
+                section: [
+                    "Autoselect",
+                    'See <a href="https://gist.github.com/blankdvth/d998d60990f77cc32b986d3b3029c208" target="_blank">this guide</a> if you don\'t know how to get the indexes. Set to 0 for no autoselect.',
+                ],
+                type: "int",
+                min: 0,
+                default: 0,
+            },
+            "autoselect-gameid": {
+                label: "Game ID Type Index",
+                type: "int",
+                min: 0,
+                default: 0,
+            },
+            "presets-add-unchecked": {
+                label: "Add Ban Presets",
+                section: [
+                    "Ban Presets",
+                    'See <a href="https://gist.github.com/blankdvth/c4389725de81465560b59ae57dbee570" target="_blank">this guide</a> on how to format and setup presets.<br>Note: This will not apply until the page is refreshed (your updated presets also won\'t show if you reopen the config popup until you refresh).',
+                ],
+                type: "textarea",
+                save: false,
+                default: "",
+                default:
+                    "Get IP (via Ban);x;1;x;;ip\nBan Evasion;;0;Ban Evasion;;",
+            },
+            "presets-edit-unchecked": {
+                label: "Edit Ban Presets",
+                type: "textarea",
+                save: false,
+                default: "",
+                default: "Ban Evasion;0;Ban Evasion;;;",
+            },
+            "presets-add": {
+                type: "hidden",
+                default:
+                    "Get IP (via Ban);x;1;x;;ip\nBan Evasion;;0;Ban Evasion;;",
+            },
+            "presets-edit": {
+                type: "hidden",
+                default: "Ban Evasion;0;Ban Evasion;;;",
+            },
+        },
+        events: {
+            init: function () {
+                GM_config.set(
+                    "presets-add-unchecked",
+                    GM_config.get("presets-add")
+                );
+                GM_config.set(
+                    "presets-edit-unchecked",
+                    GM_config.get("presets-edit")
+                );
+            },
+            open: function (doc) {
+                GM_config.fields["presets-add-unchecked"].node.addEventListener(
+                    "change",
+                    function () {
+                        var presets = GM_config.get(
+                            "presets-add-unchecked",
+                            true
+                        );
+
+                        if (
+                            presets.split(/\r?\n/).every(function (line) {
+                                let parts = line.split(";");
+                                return (
+                                    parts.length === 6 &&
+                                    parts[0].length > 0 &&
+                                    parts[2].match(/^\d*$/)
+                                );
+                            })
+                        )
+                            GM_config.set("presets-add", presets);
+                    },
+                    false
+                );
+                GM_config.fields[
+                    "presets-edit-unchecked"
+                ].node.addEventListener(
+                    "change",
+                    function () {
+                        var presets = GM_config.get(
+                            "presets-edit-unchecked",
+                            true
+                        );
+
+                        if (
+                            presets.split(/\r?\n/).every(function (line) {
+                                let parts = line.split(";");
+                                return (
+                                    parts.length === 6 &&
+                                    parts[0].length > 0 &&
+                                    parts[1].match(/^\d*$/)
+                                );
+                            })
+                        )
+                            GM_config.set("presets-edit", presets);
+                    },
+                    false
+                );
+            },
+            save: function (forgotten) {
+                if (GM_config.isOpen) {
+                    if (
+                        forgotten["presets-add-unchecked"] !==
+                        GM_config.get("presets-add")
+                    )
+                        alert(
+                            'Invalid preset format for "Add Ban Presets", value not saved.\nVerify that each line has 6 semicolon-separated values, the preset name is not empty, and that length is either empty or a number > 0.'
+                        );
+                    if (
+                        forgotten["presets-edit-unchecked"] !==
+                        GM_config.get("presets-edit")
+                    )
+                        alert(
+                            'Invalid preset format for "Edit Ban Presets", value not saved.\nVerify that each line has 6 semicolon-separated values, the preset name is not empty, and that length is either empty or a number > 0.'
+                        );
+                }
+            },
+        },
+        css: "textarea {width: 100%; height: 160px; resize: vertical;}",
+    });
+    var dropdownMenu = document.querySelector(
+        ".user-dropdown > ul.dropdown-menu"
+    );
+    if (dropdownMenu) {
+        var configButton = document.createElement("li");
+        configButton.innerHTML = `<a><i class="fa fa-gear"></i> MAUL Enhancement Script Config</a>`;
+        configButton.onclick = function () {
+            GM_config.open();
+        };
+        configButton.style.cursor = "pointer";
+        dropdownMenu.insertBefore(
+            configButton,
+            dropdownMenu.querySelector("li.divider")
+        );
+    }
+}
+
+/**
  * Loads known admins from the admins resource into the knownAdmins dictionary
  */
 function loadAdmins() {
@@ -118,6 +272,45 @@ function loadUsername() {
 }
 
 /**
+ * Loads presets from the config
+ */
+function loadPresets() {
+    if (presetsAdd.length > 0 || presetsEdit.length > 0) return;
+
+    var presetsAddRaw = GM_config.get("presets-add");
+    var presetsEditRaw = GM_config.get("presets-edit");
+
+    presetsAddRaw.split(/\r?\n/).forEach((line) => {
+        var parts = line.split(";");
+        if (parts.length != 6) {
+            alert("Invalid preset: " + line);
+        }
+        presetsAdd.push({
+            name: parts[0],
+            handle: parts[1],
+            length: parts[2].match(/^\d+$/) ? parseInt(parts[2]) : parts[2],
+            reason: parts[3],
+            pa: parts[4].length > 0,
+            notes: parts[5],
+        });
+    });
+    presetsEditRaw.split(/\r?\n/).forEach((line) => {
+        var parts = line.split(";");
+        if (parts.length != 6) {
+            alert("Invalid preset: " + line);
+        }
+        presetsEdit.push({
+            name: parts[0],
+            length: parts[1].match(/^\d+$/) ? parseInt(parts[1]) : parts[1],
+            reason: parts[2],
+            pa: parts[3].length > 0,
+            notes: parts[4],
+            addUsername: parts[5].length > 0,
+        });
+    });
+}
+
+/**
  * Adds presets for ban reason/duration/notes
  */
 function handleAddBan() {
@@ -133,19 +326,23 @@ function handleAddBan() {
         document.getElementById("gameId").disabled = false;
 
     // Insert presets
-    addPreset("Get IP (via Ban)", div, function () {
-        document.getElementById("handle").value = "x";
-        document.getElementById("length").value = 1;
-        document.getElementById("reason").value = "x";
-        document.getElementById("notes").value = "ip";
-    });
-    addPreset("Ban Evasion", div, function () {
-        document.getElementById("reason").value = "Ban Evasion";
-        var length = document.getElementById("length");
-        length.value = 0;
-        length.disabled = true;
-    });
-    // You can add more presets following the format shown above
+    for (var i = 0; i < presetsAdd.length; i++) {
+        addPreset(presetsAdd[i].name, i, div, function () {
+            var preset = presetsAdd[this.dataset.presetId];
+            if (preset.handle)
+                document.getElementById("handle").value = preset.handle;
+            if (typeof preset.length === "number") {
+                document.getElementById("length").value = preset.length;
+                if (preset.length == 0)
+                    document.getElementById("length").disabled = true;
+            }
+            if (preset.reason)
+                document.getElementById("reason").value = preset.reason;
+            if (preset.notes)
+                document.getElementById("notes").value = preset.notes;
+            document.getElementById("preventAmnesty").checked = preset.pa;
+        });
+    }
 }
 
 /**
@@ -155,14 +352,24 @@ function handleEditBan() {
     var div = createPresetDiv();
 
     // Insert presets
-    addPreset("Ban Evasion", div, function () {
-        document.getElementById("reason").value = "Ban Evasion";
-        var length = document.getElementById("length");
-        if (length.value != 0) {
-            length.value = 0;
-            length.disabled = true;
-        }
-    });
+    for (var i = 0; i < presetsEdit.length; i++) {
+        addPreset(presetsEdit[i].name, i, div, function () {
+            var preset = presetsEdit[this.dataset.presetId];
+            if (typeof preset.length === "number") {
+                document.getElementById("length").value = preset.length;
+                if (preset.length == 0)
+                    document.getElementById("length").disabled = true;
+            }
+            if (preset.reason)
+                document.getElementById("reason").value = preset.reason;
+            if (preset.notes)
+                document.getElementById("notes").value +=
+                    "\n\n" +
+                    preset.notes +
+                    (preset.addUsername ? " " + USERNAME : "");
+            document.getElementById("preventAmnesty").checked = preset.pa;
+        });
+    }
 
     // Steam ID buttons
     var id_group = document.querySelector(
@@ -260,7 +467,7 @@ function handleProfile() {
                 SteamIDConverter.toSteamID(id),
             "_blank"
         );
-        btn.classList.remove("btn", "btn-primary");
+        btn.classList.remove("btn", "btn-default");
         sourceIdHref.parentElement.insertBefore(btn, sourceIdHref);
     }
 }
@@ -337,44 +544,9 @@ function updateBanNoteURLs() {
 }
 
 (function () {
-    // Initialize the configuration manager
-    GM_config.init({
-        id: "maul-config",
-        title: "MAUL Enhancement Script Configuration",
-        fields: {
-            "autoselect-division": {
-                label: "Division Index",
-                section: [
-                    "Autoselect",
-                    'See <a href="https://gist.github.com/blankdvth/d998d60990f77cc32b986d3b3029c208">this guide</a> if you don\'t know how to get the indexes. Set to 0 for no autoselect.',
-                ],
-                type: "int",
-                min: 0,
-                default: 0,
-            },
-            "autoselect-gameid": {
-                label: "Game ID Type Index",
-                type: "int",
-                min: 0,
-                default: 0,
-            },
-        },
-    });
-    var dropdownMenu = document.querySelector(
-        ".user-dropdown > ul.dropdown-menu"
-    );
-    if (dropdownMenu) {
-        var configButton = document.createElement("li");
-        configButton.innerHTML = `<a><i class="fa fa-gear"></i> MAUL Enhancement Script Config</a>`;
-        configButton.onclick = function () {
-            GM_config.open();
-        };
-        configButton.style.cursor = "pointer";
-        dropdownMenu.insertBefore(
-            configButton,
-            dropdownMenu.querySelector("li.divider")
-        );
-    }
+    // Setup configuration stuff
+    setupConfig();
+    loadPresets();
 
     // Determine what page we're on
     var url = window.location.href;
