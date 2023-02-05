@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers MAUL Enhancement
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/EGO%20MAUL%20Enhancement.user.js
-// @version      2.0.3
+// @version      2.1.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS
 // @match        https://maul.edgegamers.com/*
@@ -9,6 +9,9 @@
 // @require      https://peterolson.github.io/BigInteger.js/BigInteger.min.js
 // @require      https://raw.githubusercontent.com/12pt/steamid-converter/master/js/converter-min.js
 // @resource     admins https://raw.githubusercontent.com/blankdvth/eGOScripts/master/admins.txt
+// @require      https://openuserjs.org/src/libs/sizzle/GM_config.js
+// @grant        GM_getValue
+// @grant        GM_setValue
 // @grant        GM_getResourceText
 // ==/UserScript==
 
@@ -325,6 +328,23 @@ function updateBanNoteURLs() {
 }
 
 (function () {
+    // Initialize the configuration manager
+    GM_config.init({
+        id: "maul-config",
+        title: "MAUL Enhancement Script Configuration",
+        fields: {
+
+        },
+    });
+    var dropdownMenu = document.querySelector(".user-dropdown > ul.dropdown-menu");
+    if (dropdownMenu) {
+        var configButton = document.createElement("li");
+        configButton.innerHTML = `<a><i class="fa fa-gear"></i> MAUL Enhancement Script Config</a>`;
+        configButton.onclick = function () {GM_config.open();};
+        configButton.style.cursor = "pointer";
+        dropdownMenu.insertBefore(configButton, dropdownMenu.querySelector("li.divider"));
+    }
+
     // Determine what page we're on
     var url = window.location.href;
     loadUsername();
