@@ -670,9 +670,11 @@ function handleAwardSpotlight() {
 (function () {
     // Initialize the configuration manager
     GM_config.init({
-        id: "config",
+        id: "forums-config",
         title: "Forums Enhancement Script Configuration",
-        fields: {},
+        fields: {
+            
+        },
     });
 
     // Determine what page we're on
