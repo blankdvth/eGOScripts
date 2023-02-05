@@ -609,6 +609,7 @@ function handleApplicationPage() {
  * @returns void
  */
 function handleUserAwardPage() {
+    if (document.querySelector("div.contentRow-snippet")) return; // This is our own award page, don't add the button
     var username = document
         .querySelector(".p-title-value")
         .textContent.match(/^(.*)'s Awards$/)[1];
