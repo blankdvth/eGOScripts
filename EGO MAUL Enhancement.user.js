@@ -123,6 +123,12 @@ function loadUsername() {
 function handleAddBan() {
     var div = createPresetDiv();
 
+    // Set default dropdown options
+    document.getElementById("division").selectedIndex = GM_config.get("autoselect-division");
+    document.getElementById("idTypeId").selectedIndex = GM_config.get("autoselect-gameid");
+    if (GM_config.get("autoselect-gameid") != 0)
+        document.getElementById("gameId").disabled = false;
+
     // Insert presets
     addPreset("Get IP (via Ban)", div, function () {
         document.getElementById("handle").value = "x";
@@ -332,7 +338,21 @@ function updateBanNoteURLs() {
     GM_config.init({
         id: "maul-config",
         title: "MAUL Enhancement Script Configuration",
-        fields: {},
+        fields: {
+            'autoselect-division': {
+                label: 'Division Index',
+                section: ['Autoselect', 'See <a href="https://gist.github.com/blankdvth/d998d60990f77cc32b986d3b3029c208">this guide</a> if you don\'t know how to get the indexes. Set to 0 for no autoselect.'],
+                type: 'int',
+                min: 0,
+                default: 0,
+            },
+            'autoselect-gameid': {
+                label: 'Game ID Type Index',
+                type: 'int',
+                min: 0,
+                default: 0,
+            }
+        },
     });
     var dropdownMenu = document.querySelector(
         ".user-dropdown > ul.dropdown-menu"
