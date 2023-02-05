@@ -371,6 +371,7 @@ function updateBanNoteURLs() {
                 default: "",
                 cols: 120,
                 rows: 8,
+                default: "Get IP (via Ban);x;1;x;;ip\nBan Evasion;;0;Ban Evasion;;",
             },
             "presets-edit-unchecked": {
                 label: "Edit Ban Presets",
@@ -379,6 +380,7 @@ function updateBanNoteURLs() {
                 default: "",
                 cols: 120,
                 rows: 8,
+                default: "Ban Evasion;0;Ban Evasion;;;",
             },
             'presets-add': {
                 type: 'hidden',
