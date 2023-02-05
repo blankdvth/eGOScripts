@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers MAUL Enhancement
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/EGO%20MAUL%20Enhancement.user.js
-// @version      2.0.2
+// @version      2.0.3
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS
 // @match        https://maul.edgegamers.com/*
@@ -215,7 +215,7 @@ function handleEditBan() {
 }
 
 /**
- * Automatically converts old links to updated ones
+ * Automatically converts old links to updated ones, and adds a GameME link
  */
 function handleProfile() {
     var userNotes = [
@@ -235,6 +235,20 @@ function handleProfile() {
             }
         );
     });
+
+    // Attempt to get Source ID
+    var sourceIdHref = document.querySelector("span.floatRight > a[href^=\"https://steamcommunity.com/profiles/\"]");
+    if (sourceIdHref) {
+        var id = sourceIdHref.innerText;
+        var btn = createLinkButton(
+            "GameME",
+            "https://edgegamers.gameme.com/search?si=uniqueid&rc=all&q=" +
+                SteamIDConverter.toSteamID(id),
+            "_blank"
+        )
+        btn.classList.remove("btn", "btn-primary");
+        sourceIdHref.parentElement.insertBefore(btn, sourceIdHref);
+    }
 }
 
 /**
