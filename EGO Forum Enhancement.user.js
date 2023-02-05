@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/EGO%20Forum%20Enhancement.user.js
-// @version      3.3.1
+// @version      3.3.2
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -485,7 +485,8 @@ function handleBanReport() {
 function handleOnHold(event) {
     if (
         event.target.nodeName != "DIV" ||
-        !event.target.classList.contains("overlay-container")
+        !event.target.classList.contains("overlay-container") ||
+        !event.target.querySelector(".overlay > .overlay-title").innerText.includes("on hold")
     )
         return;
 
@@ -510,7 +511,7 @@ function handleOnHold(event) {
         ":nth-child(4) > dd > div > .formSubmitRow-controls"
     );
 
-    addPreset("No MAUL account", div, function () {
+    addPreset("No MAUL Account", div, function () {
         reason.value = "MAUL account must be created and verified";
         explain.value =
             "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
