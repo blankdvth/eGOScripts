@@ -358,7 +358,22 @@ function updateBanNoteURLs() {
                 min: 0,
                 default: 0,
             },
+            "presets-add": {
+                label: "Add Ban Presets",
+                section: [
+                    "Ban Presets",
+                    'See <a href="https://gist.github.com/blankdvth/c4389725de81465560b59ae57dbee570">this guide</a> on how to format and setup presets.'
+                ],
+                type: "textarea",
+                default: "Get IP (via Ban);x;1;x;;ip\nBan Evasion;;0;Ban Evasion;;",
+            },
+            "presets-edit": {
+                label: "Edit Ban Presets",
+                type: "textarea",
+                default: "Ban Evasion;0;Ban Evasion;;;",
+            }
         },
+        css: 'textarea {width: 100%;height: 140px;}'
     });
     var dropdownMenu = document.querySelector(
         ".user-dropdown > ul.dropdown-menu"
