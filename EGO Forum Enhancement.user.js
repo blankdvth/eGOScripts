@@ -510,13 +510,24 @@ Once it is done your application process will resume. If you want to have an und
  * @returns void
  */
 function handleProfileDropdown(event) {
-    if (event.target.nodeName != "UL" || !event.target.classList.contains("tabPanes")) return;
+    if (
+        event.target.nodeName != "UL" ||
+        !event.target.classList.contains("tabPanes")
+    )
+        return;
     var btn = document.createElement("a");
     btn.classList.add("menu-linkRow");
     btn.innerHTML = "Forum Enhancement Script Config";
     btn.style.cursor = "pointer";
-    btn.onclick = function () {GM_config.open()};
-    event.target.querySelector("li.is-active").insertBefore(btn, event.target.querySelector("li.is-active > a.menu-linkRow"))
+    btn.onclick = function () {
+        GM_config.open();
+    };
+    event.target
+        .querySelector("li.is-active")
+        .insertBefore(
+            btn,
+            event.target.querySelector("li.is-active > a.menu-linkRow")
+        );
 }
 
 /**
@@ -658,16 +669,11 @@ function handleAwardSpotlight() {
 
 (function () {
     // Initialize the configuration manager
-    GM_config.init(
-        {
-            'id': 'config',
-            'title': 'Forums Enhancement Script Configuration',
-            'fields':
-            {
-
-            }
-        }
-    );
+    GM_config.init({
+        id: "config",
+        title: "Forums Enhancement Script Configuration",
+        fields: {},
+    });
 
     // Determine what page we're on
     var url = window.location.href;
@@ -680,7 +686,11 @@ function handleAwardSpotlight() {
     document.body.addEventListener("DOMNodeInserted", handleOnHold, false);
     var profileMenu = document.querySelector("div.js-visitorMenuBody");
     if (profileMenu)
-        profileMenu.addEventListener("DOMNodeInserted", handleProfileDropdown, false);
+        profileMenu.addEventListener(
+            "DOMNodeInserted",
+            handleProfileDropdown,
+            false
+        );
 
     // Add Helpful Links to the Navigation Bar
     var nav_list = document.querySelector(".p-nav-list");
