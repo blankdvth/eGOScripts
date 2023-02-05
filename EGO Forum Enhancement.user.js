@@ -165,37 +165,42 @@ function addNav(href, text, nav) {
  * @returns void
  */
 function addMAULNav(nav_list) {
-    // MAUL DIV
-    var maul_div = nav_list.childNodes[11].childNodes[1];
-    maul_div.setAttribute("data-has-children", "true");
-    var dropdown = document.createElement("a");
+    if (GM_config.get("maul-dropdown")) {
+        // MAUL DIV
+        var maul_div = nav_list.childNodes[11].childNodes[1];
+        maul_div.setAttribute("data-has-children", "true");
+        var dropdown = document.createElement("a");
 
-    dropdown.setAttribute("data-xf-key", "3");
-    dropdown.setAttribute("data-xf-click", "menu");
-    dropdown.setAttribute("data-menu-pos-ref", "< .p-navEl");
-    dropdown.setAttribute("class", "p-navEl-splitTrigger");
-    dropdown.setAttribute("role", "button");
-    dropdown.setAttribute("tabindex", "0");
-    dropdown.setAttribute("aria-label", "Toggle expanded");
-    dropdown.setAttribute("aria-expanded", "false");
-    dropdown.setAttribute("aria-haspopup", "true");
+        dropdown.setAttribute("data-xf-key", "3");
+        dropdown.setAttribute("data-xf-click", "menu");
+        dropdown.setAttribute("data-menu-pos-ref", "< .p-navEl");
+        dropdown.setAttribute("class", "p-navEl-splitTrigger");
+        dropdown.setAttribute("role", "button");
+        dropdown.setAttribute("tabindex", "0");
+        dropdown.setAttribute("aria-label", "Toggle expanded");
+        dropdown.setAttribute("aria-expanded", "false");
+        dropdown.setAttribute("aria-haspopup", "true");
 
-    maul_div.append(dropdown);
+        maul_div.append(dropdown);
 
-    var maul_dropdown = document.createElement("div");
-    maul_dropdown.setAttribute("class", "menu menu--structural");
-    maul_dropdown.setAttribute("data-menu", "menu");
-    maul_dropdown.setAttribute("aria-hidden", "true");
+        var maul_dropdown = document.createElement("div");
+        maul_dropdown.setAttribute("class", "menu menu--structural");
+        maul_dropdown.setAttribute("data-menu", "menu");
+        maul_dropdown.setAttribute("aria-hidden", "true");
 
-    var dropdownhtml =
-        '<div class="menu-content"> \
-    <a href="https://maul.edgegamers.com/index.php?page=bans" target="_blank" class="menu-linkRow u-indentDepth0 js-offCanvasCopy " data-nav-id="maulBans">Bans</a> \
-    <a href="https://maul.edgegamers.com/index.php?page=users" target="_blank" class="menu-linkRow u-indentDepth0 js-offCanvasCopy " data-nav-id="newProfilePosts">Users</a> \
-    <hr class="menu-separator"> \
-    </div>';
+        var dropdownhtml =
+            '<div class="menu-content"> \
+        <a href="https://maul.edgegamers.com/index.php?page=bans" target="_blank" class="menu-linkRow u-indentDepth0 js-offCanvasCopy " data-nav-id="maulBans">Bans</a> \
+        <a href="https://maul.edgegamers.com/index.php?page=users" target="_blank" class="menu-linkRow u-indentDepth0 js-offCanvasCopy " data-nav-id="newProfilePosts">Users</a> \
+        <hr class="menu-separator"> \
+        </div>';
 
-    maul_dropdown.innerHTML = dropdownhtml;
-    maul_div.append(maul_dropdown);
+        maul_dropdown.innerHTML = dropdownhtml;
+        maul_div.append(maul_dropdown);
+    } else {
+        addNav("https://maul.edgegamers.com/index.php?page=bans", "Bans", nav_list);
+        addNav("https://maul.edgegamers.com/index.php?page=users", "Users", nav_list);
+    }
 }
 
 /**
@@ -672,7 +677,15 @@ function handleAwardSpotlight() {
     GM_config.init({
         id: "forums-config",
         title: "Forums Enhancement Script Configuration",
-        fields: {},
+        fields: {
+            'maul-dropdown': {
+                label: 'Use dropdown for MAUL links',
+                section: ['Feature Settings'],
+                title: 'When checked, all additional MAUL links will be in a dropdown in the original MAUL button. When unchecked, all MAUL buttons will be added to the navigation bar after the MAUL button.',
+                type: 'checkbox',
+                default: true
+            }
+        },
     });
 
     // Determine what page we're on
