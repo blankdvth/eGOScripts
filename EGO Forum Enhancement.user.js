@@ -672,9 +672,7 @@ function handleAwardSpotlight() {
     GM_config.init({
         id: "forums-config",
         title: "Forums Enhancement Script Configuration",
-        fields: {
-            
-        },
+        fields: {},
     });
 
     // Determine what page we're on

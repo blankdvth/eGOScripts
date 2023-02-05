@@ -332,17 +332,22 @@ function updateBanNoteURLs() {
     GM_config.init({
         id: "maul-config",
         title: "MAUL Enhancement Script Configuration",
-        fields: {
-
-        },
+        fields: {},
     });
-    var dropdownMenu = document.querySelector(".user-dropdown > ul.dropdown-menu");
+    var dropdownMenu = document.querySelector(
+        ".user-dropdown > ul.dropdown-menu"
+    );
     if (dropdownMenu) {
         var configButton = document.createElement("li");
         configButton.innerHTML = `<a><i class="fa fa-gear"></i> MAUL Enhancement Script Config</a>`;
-        configButton.onclick = function () {GM_config.open();};
+        configButton.onclick = function () {
+            GM_config.open();
+        };
         configButton.style.cursor = "pointer";
-        dropdownMenu.insertBefore(configButton, dropdownMenu.querySelector("li.divider"));
+        dropdownMenu.insertBefore(
+            configButton,
+            dropdownMenu.querySelector("li.divider")
+        );
     }
 
     // Determine what page we're on
