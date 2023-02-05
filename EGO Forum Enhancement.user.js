@@ -274,9 +274,10 @@ function tooltipMAULListener(event) {
 
 /**
  * Moves and auto-fills out the moving prompt for a thread.
+ * @param {string} url URL of the page
  * @returns void
  */
-function handleThreadMovePage() {
+function handleThreadMovePage(url) {
     if (!url.endsWith("?move_to_completed")) return;
     var breadcrumbs = document
         .querySelector(".p-breadcrumbs")
@@ -740,7 +741,7 @@ function handleAwardSpotlight() {
         )
     )
         // Thread Move Page
-        handleThreadMovePage();
+        handleThreadMovePage(url);
     else if (url.match(/^https:\/\/www\.edgegamers\.com\/forums\/?$/))
         // Forums List
         handleForumsList();
