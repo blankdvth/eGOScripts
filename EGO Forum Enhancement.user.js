@@ -486,7 +486,9 @@ function handleOnHold(event) {
     if (
         event.target.nodeName != "DIV" ||
         !event.target.classList.contains("overlay-container") ||
-        !event.target.querySelector(".overlay > .overlay-title").innerText.includes("on hold")
+        !event.target
+            .querySelector(".overlay > .overlay-title")
+            .innerText.includes("on hold")
     )
         return;
 
