@@ -324,7 +324,7 @@ function handleThreadMovePage() {
  * @returns true if LE, false otherwise
  */
 function isLeadership(str) {
-    return str.match(/(Leadership|Report a Player|Report Completed)/);
+    return GM_config.get("confidential-reports") ? str.match(/(Leadership|Report a Player|Report Completed)/) : str.match(/Leadership/);
 }
 
 /**
@@ -682,6 +682,12 @@ function handleAwardSpotlight() {
                 label: 'Use dropdown for MAUL links',
                 section: ['Feature Settings'],
                 title: 'When checked, all additional MAUL links will be in a dropdown in the original MAUL button. When unchecked, all MAUL buttons will be added to the navigation bar after the MAUL button.',
+                type: 'checkbox',
+                default: true
+            },
+            'confidential-reports': {
+                label: 'Show confidential watermark on reports',
+                title: 'When checked, reports will have a red confidential watermark on them.',
                 type: 'checkbox',
                 default: true
             }
