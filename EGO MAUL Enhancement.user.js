@@ -17,6 +17,8 @@
 
 "use strict";
 let knownAdmins = {}; // Known admin list
+let presetsAdd = []; // Presets for adding bans
+let presetsEdit = []; // Presets for editing bans
 let USERNAME = ""; // Current username
 
 /**
@@ -367,12 +369,16 @@ function updateBanNoteURLs() {
                 type: "textarea",
                 save: false,
                 default: "",
+                cols: 120,
+                rows: 8,
             },
             "presets-edit-unchecked": {
                 label: "Edit Ban Presets",
                 type: "textarea",
                 save: false,
                 default: "",
+                cols: 120,
+                rows: 8,
             },
             'presets-add': {
                 type: 'hidden',
@@ -416,8 +422,7 @@ function updateBanNoteURLs() {
                         alert('Invalid preset format for "Edit Ban Presets", value not saved.\nVerify that each line has 6 semicolon-separated values, the preset name is not empty, and that length is either empty or a number > 0.');
                 }
             }
-        },
-        css: 'textarea {width: 100%;height: 140px;}'
+        }
     });
     var dropdownMenu = document.querySelector(
         ".user-dropdown > ul.dropdown-menu"
