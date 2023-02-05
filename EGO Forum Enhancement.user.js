@@ -68,6 +68,40 @@ function createButton(href, text, div, target = "_blank", append = false) {
 }
 
 /**
+ * Setup the configuration manager and create an event to find and add a button to open it
+ */
+function setupConfig() {
+    // Initialize the configuration manager
+    GM_config.init({
+        id: "forums-config",
+        title: "Forums Enhancement Script Configuration",
+        fields: {
+            "maul-dropdown": {
+                label: "Use dropdown for MAUL links",
+                section: ["Feature Settings"],
+                title: "When checked, all additional MAUL links will be in a dropdown in the original MAUL button. When unchecked, all MAUL buttons will be added to the navigation bar after the MAUL button.",
+                type: "checkbox",
+                default: true,
+            },
+            "confidential-reports": {
+                label: "Show confidential watermark on reports",
+                title: "When checked, reports will have a red confidential watermark on them.",
+                type: "checkbox",
+                default: true,
+            },
+        },
+    });
+
+    var profileMenu = document.querySelector("div.js-visitorMenuBody");
+    if (profileMenu)
+        profileMenu.addEventListener(
+            "DOMNodeInserted",
+            handleProfileDropdown,
+            false
+        );
+}
+
+/**
  * Adds a MAUL profile button to the given div
  * @param {HTMLDivElement} div Div to add to
  * @param {number} member_id Member's ID
@@ -684,26 +718,8 @@ function handleAwardSpotlight() {
 }
 
 (function () {
-    // Initialize the configuration manager
-    GM_config.init({
-        id: "forums-config",
-        title: "Forums Enhancement Script Configuration",
-        fields: {
-            "maul-dropdown": {
-                label: "Use dropdown for MAUL links",
-                section: ["Feature Settings"],
-                title: "When checked, all additional MAUL links will be in a dropdown in the original MAUL button. When unchecked, all MAUL buttons will be added to the navigation bar after the MAUL button.",
-                type: "checkbox",
-                default: true,
-            },
-            "confidential-reports": {
-                label: "Show confidential watermark on reports",
-                title: "When checked, reports will have a red confidential watermark on them.",
-                type: "checkbox",
-                default: true,
-            },
-        },
-    });
+    // Setup configuration
+    setupConfig();
 
     // Determine what page we're on
     var url = window.location.href;
@@ -714,13 +730,6 @@ function handleAwardSpotlight() {
         false
     );
     document.body.addEventListener("DOMNodeInserted", handleOnHold, false);
-    var profileMenu = document.querySelector("div.js-visitorMenuBody");
-    if (profileMenu)
-        profileMenu.addEventListener(
-            "DOMNodeInserted",
-            handleProfileDropdown,
-            false
-        );
 
     // Add Helpful Links to the Navigation Bar
     var nav_list = document.querySelector(".p-nav-list");
