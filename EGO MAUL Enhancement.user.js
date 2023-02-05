@@ -421,7 +421,7 @@ function handleProfile() {
                 SteamIDConverter.toSteamID(id),
             "_blank"
         );
-        btn.classList.remove("btn", "btn-primary");
+        btn.classList.remove("btn", "btn-default");
         sourceIdHref.parentElement.insertBefore(btn, sourceIdHref);
     }
 }
