@@ -1,14 +1,16 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/EGO%20Forum%20Enhancement.user.js
-// @version      3.2.0
+// @version      3.3.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=edgegamers.com
 // @require      https://peterolson.github.io/BigInteger.js/BigInteger.min.js
 // @require      https://raw.githubusercontent.com/12pt/steamid-converter/master/js/converter-min.js
-// @grant        none
+// @require      https://openuserjs.org/src/libs/sizzle/GM_config.js
+// @grant        GM_getValue
+// @grant        GM_setValue
 // ==/UserScript==
 
 "use strict";
@@ -503,6 +505,32 @@ Once it is done your application process will resume. If you want to have an und
 }
 
 /**
+ * Adds a button to open the script config in the user dropdown menu
+ * @param {HTMLElementEventMap} event
+ * @returns void
+ */
+function handleProfileDropdown(event) {
+    if (
+        event.target.nodeName != "UL" ||
+        !event.target.classList.contains("tabPanes")
+    )
+        return;
+    var btn = document.createElement("a");
+    btn.classList.add("menu-linkRow");
+    btn.innerHTML = "Forum Enhancement Script Config";
+    btn.style.cursor = "pointer";
+    btn.onclick = function () {
+        GM_config.open();
+    };
+    event.target
+        .querySelector("li.is-active")
+        .insertBefore(
+            btn,
+            event.target.querySelector("li.is-active > a.menu-linkRow")
+        );
+}
+
+/**
  * Adds Confidential banners on top and bottom of page
  * @returns void
  */
@@ -640,6 +668,13 @@ function handleAwardSpotlight() {
 }
 
 (function () {
+    // Initialize the configuration manager
+    GM_config.init({
+        id: "config",
+        title: "Forums Enhancement Script Configuration",
+        fields: {},
+    });
+
     // Determine what page we're on
     var url = window.location.href;
 
@@ -649,6 +684,13 @@ function handleAwardSpotlight() {
         false
     );
     document.body.addEventListener("DOMNodeInserted", handleOnHold, false);
+    var profileMenu = document.querySelector("div.js-visitorMenuBody");
+    if (profileMenu)
+        profileMenu.addEventListener(
+            "DOMNodeInserted",
+            handleProfileDropdown,
+            false
+        );
 
     // Add Helpful Links to the Navigation Bar
     var nav_list = document.querySelector(".p-nav-list");
