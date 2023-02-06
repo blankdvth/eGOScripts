@@ -574,13 +574,7 @@ function handleGenericThread() {
         }
     }
 
-    if (!breadcrumbs.match(/Moderator Trash Bin ?$/)) {
-        addTrashButton(
-            button_group.querySelector(
-                "div.menu > div.menu-content > a[href$=move]"
-            )
-        );
-    }
+    if (!breadcrumbs.match(/Moderator Trash Bin ?$/)) addTrashButton(button_group.querySelector("div.menu > div.menu-content > a[href$=move]"));
 }
 
 /**
