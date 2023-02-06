@@ -102,8 +102,8 @@ function setupConfig() {
                 title: "The minimum duration to wait before automatically reauthenthicating MAUL in the background (in milliseconds).",
                 type: "int",
                 default: 3600000, // 1 hour
-                min: 300000 // 5 minutes, we don't want to spam the server
-            }
+                min: 300000, // 5 minutes, we don't want to spam the server
+            },
         },
     });
 
@@ -123,14 +123,14 @@ function autoMAULAuth() {
     if (!GM_config.get("maul-reauth-enable")) return;
     var lastAuth = GM_getValue("lastMAULAuth", 0);
     if (Date.now() - lastAuth < GM_config.get("maul-reauth")) return;
-    var authLink = document.querySelector("a.p-navEl-link[href^=\"/maul\"]")
+    var authLink = document.querySelector('a.p-navEl-link[href^="/maul"]');
     if (!authLink) return;
     GM_xmlhttpRequest({
         method: "GET",
         url: authLink.href,
         onload: function () {
             GM_setValue("lastMAULAuth", Date.now());
-        }
+        },
     });
 }
 
