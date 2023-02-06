@@ -237,7 +237,7 @@ function addMoveButton(
     div,
     url,
     text = "Move to Completed",
-    id = "to_completed"
+    id = "to_completed",
 ) {
     var post_id = url.match(/threads\/(?<post_id>\d+)/);
     if (post_id)
@@ -392,53 +392,38 @@ function tooltipMAULListener(event) {
  * @returns void
  */
 function handleThreadMovePage(url) {
-    if (!url.endsWith("?move_to_completed")) return;
-    var breadcrumbs = document
-        .querySelector(".p-breadcrumbs")
-        .textContent.trim()
-        .split("\n\n\n\n\n\n");
-    breadcrumbs = breadcrumbs[breadcrumbs.length - 2];
-    if (breadcrumbs.match(/^(Contest a Ban)|(Report a Player)$/)) {
-        // Ban Contest or Report (Non-Completed)
-        const CONTEST_COMPLETED = 1236;
-        const REPORT_COMPLETED = 1235;
-        var form = document.forms[1];
-        var drop = form.querySelector("select.js-nodeList");
-        var checkArr = Array.from(
-            form.querySelectorAll(".inputChoices-choice")
-        );
-        var optArr = Array.from(drop.options);
-        drop.selectedIndex = optArr.indexOf(
-            optArr.find(
-                (el) =>
-                    el.value ==
-                    (breadcrumbs.startsWith("Contest")
-                        ? CONTEST_COMPLETED
-                        : REPORT_COMPLETED)
-            )
-        );
-        if (drop.selectedIndex == -1) {
-            throw "Could not find Completed forum";
-        }
-        try {
-            // These buttons may not exist if you created the post yourself, this is just to prevent edge cases.
-            checkArr
-                .find(
-                    (el) =>
-                        el.textContent ===
-                        "Notify members watching the destination forum"
-                )
-                .querySelector("label > input").checked = false;
-            checkArr
-                .find((el) =>
-                    el.textContent.startsWith(
-                        "Notify thread starter of this action."
-                    )
-                )
-                .querySelector("label > input").checked = false;
-        } catch {}
-        form.submit();
+    var completedId = url.match(/\?move_(\d+)$/)
+    if (!completedId) return;
+    var form = document.forms[1];
+    var drop = form.querySelector("select.js-nodeList");
+    var checkArr = Array.from(
+        form.querySelectorAll(".inputChoices-choice")
+    );
+    var optArr = Array.from(drop.options);
+    drop.selectedIndex = optArr.indexOf(
+        optArr.find((el) => el.value == completedId[1])
+    );
+    if (drop.selectedIndex == -1) {
+        throw "Could not find Completed forum";
     }
+    try {
+        // These buttons may not exist if you created the post yourself, this is just to prevent edge cases.
+        checkArr
+            .find(
+                (el) =>
+                    el.textContent ===
+                    "Notify members watching the destination forum"
+            )
+            .querySelector("label > input").checked = false;
+        checkArr
+            .find((el) =>
+                el.textContent.startsWith(
+                    "Notify thread starter of this action."
+                )
+            )
+            .querySelector("label > input").checked = false;
+    } catch {}
+    form.submit();
 }
 
 /**
@@ -514,19 +499,25 @@ function handleGenericThread() {
         )
     ) {
         // Ban Contest or Report
-        handleBanReport();
+        handleBanReportContest();
     }
     if (isLeadership(breadcrumbs))
         // LE Forums
         handleLeadership();
+    var button_group = document.querySelector("div.buttonGroup");
+    for (var i = 0; i < completedMap.length; i++) {
+        if (breadcrumbs.match(completedMap[i].regex)) {
+            addMoveButton(button_group, window.location.href, "Move to Completed", completedMap[i].completedId);
+            break;
+        }
+    }
 }
 
 /**
  * Adds "View Bans" or "Lookup ID" button on report/contest threads.
  * TODO: Add support for other game IDs
  */
-function handleBanReport() {
-    var breadcrumbs = document.querySelector(".p-breadcrumbs").innerText;
+function handleBanReportContest() {
     var post_title = document.querySelector(".p-title").innerText;
     var button_group = document.querySelector("div.buttonGroup");
     addMAULProfileButton(
@@ -552,9 +543,6 @@ function handleBanReport() {
         addBansButton(button_group, post_title.split(" - ")[2]);
         addLookupButton(button_group, post_title);
     }
-
-    if (!breadcrumbs.match(/Completed ?$/))
-        addMoveButton(button_group, window.location.href);
 }
 
 /**
