@@ -17,6 +17,7 @@
 
 "use strict";
 const MAUL_BUTTON_TEXT = "MAUL";
+let completedMap = [];
 
 /**
  * Creates a preset button
@@ -104,7 +105,35 @@ function setupConfig() {
                 default: 3600000, // 1 hour
                 min: 300000, // 5 minutes, we don't want to spam the server
             },
+            "move-to-completed-unchecked": {
+                label: "Completed Forums Map",
+                section: ["Move to Completed", "One map (forum -> completed) per line, use the format \"regex;completed id\". For example: \"Contest a Ban;1236\".<br>Note: This will not apply until the page is refreshed (your updated maps also won\'t show if you reopen the config popup until you refresh)."],
+                type: "textarea",
+                save: false,
+                default: "Contest a Ban;1236\nReport a Player;1235",
+            },
+            "move-to-completed": {
+                type: "hidden",
+                default: "Contest a Ban;1236\nReport a Player;1235",
+            }
         },
+        events: {
+            init: function () {
+                GM_config.set("move-to-completed-unchecked", GM_config.get("move-to-completed"));
+            },
+            open: function (doc) {
+                GM_config.fields["move-to-completed-unchecked"].addEventListener("change", function () {
+                    var maps = GM_config.get("move-to-completed-unchecked", true);
+                    if (maps.split(/\r?\n/).every((map) => map.match(/^[^;\r\n]*;\d+$/)))
+                        GM_config.set("move-to-completed", maps);
+                }, false);
+            },
+            save: function (forgotten) {
+                if (forgotten["move-to-completed-unchecked"] !== GM_config.get("move-to-completed"))
+                    alert("Invalid move to completed map, verify that all lines are in the format \"regex:id\".");
+            },
+        },
+        css: "textarea {width: 100%; height: 160px; resize: vertical;}",
     });
 
     var profileMenu = document.querySelector("div.js-visitorMenuBody");
@@ -131,6 +160,24 @@ function autoMAULAuth() {
         onload: function () {
             GM_setValue("lastMAULAuth", Date.now());
         },
+    });
+}
+
+/**
+ * Loads completed threads map from config
+ */
+function loadCompletedMap() {
+    var completedMapRaw = GM_config.get("move-to-completed");
+    completedMapRaw.split(/\r?\n/).forEach((map) => {
+        var parts = map.split(";");
+        if (parts.length != 2) {
+            alert("Invalid map: " + map);
+            return;
+        }
+        completedMap.push({
+            regex: new RegExp(parts[0]),
+            completedId: parts[1],
+        });
     });
 }
 
@@ -757,6 +804,7 @@ function handleAwardSpotlight() {
 (function () {
     // Setup configuration
     setupConfig();
+    loadCompletedMap();
 
     // Determine what page we're on
     var url = window.location.href;

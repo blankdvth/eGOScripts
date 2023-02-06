@@ -129,7 +129,6 @@ function setupConfig() {
                 ],
                 type: "textarea",
                 save: false,
-                default: "",
                 default:
                     "Get IP (via Ban);x;1;x;;ip\nBan Evasion;;0;Ban Evasion;;",
             },
@@ -137,7 +136,6 @@ function setupConfig() {
                 label: "Edit Ban Presets",
                 type: "textarea",
                 save: false,
-                default: "",
                 default: "Ban Evasion;0;Ban Evasion;;;",
             },
             "presets-add": {
@@ -284,6 +282,7 @@ function loadPresets() {
         var parts = line.split(";");
         if (parts.length != 6) {
             alert("Invalid preset: " + line);
+            return;
         }
         presetsAdd.push({
             name: parts[0],
