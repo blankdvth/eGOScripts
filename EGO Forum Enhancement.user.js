@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/EGO%20Forum%20Enhancement.user.js
-// @version      3.4.2
+// @version      3.4.3
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -89,6 +89,12 @@ function setupConfig() {
             "confidential-reports": {
                 label: "Show confidential watermark on reports",
                 title: "When checked, reports will have a red confidential watermark on them.",
+                type: "checkbox",
+                default: true,
+            },
+            "show-list-bans-unknown": {
+                label: "Show List Bans for Unknown Steam IDs",
+                title: "Whether to show the List Bans button alongside Lookup ID if the Steam ID is in an unknown format.",
                 type: "checkbox",
                 default: true,
             },
@@ -566,11 +572,13 @@ function handleBanReportContest() {
                 : SteamIDConverter.toSteamID64(unparsed_id);
             addBansButton(button_group, steam_id_64);
         } catch (TypeError) {
-            addBansButton(button_group, post_title.split(" - ")[2]);
+            if (GM_config.get("show-list-bans-unknown"))
+                addBansButton(button_group, post_title.split(" - ")[2]);
             addLookupButton(button_group, post_title);
         }
     } else {
-        addBansButton(button_group, post_title.split(" - ")[2]);
+        if (GM_config.get("show-list-bans-unknown"))
+            addBansButton(button_group, post_title.split(" - ")[2]);
         addLookupButton(button_group, post_title);
     }
 }
