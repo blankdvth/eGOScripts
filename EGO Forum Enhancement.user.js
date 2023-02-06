@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/EGO%20Forum%20Enhancement.user.js
-// @version      3.3.2
+// @version      3.4.2
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -9,8 +9,10 @@
 // @require      https://peterolson.github.io/BigInteger.js/BigInteger.min.js
 // @require      https://raw.githubusercontent.com/12pt/steamid-converter/master/js/converter-min.js
 // @require      https://openuserjs.org/src/libs/sizzle/GM_config.js
+// @connect      maul.edgegamers.com
 // @grant        GM_getValue
 // @grant        GM_setValue
+// @grant        GM_xmlhttpRequest
 // ==/UserScript==
 
 "use strict";
@@ -89,6 +91,19 @@ function setupConfig() {
                 type: "checkbox",
                 default: true,
             },
+            "maul-reauth-enable": {
+                label: "Enable MAUL Reauthenthication",
+                title: "When checked, the script will automatically reauthenthicate with MAUL in the background if it's been a while since the last authenthication (see timeout below).",
+                type: "checkbox",
+                default: true,
+            },
+            "maul-reauth": {
+                label: "MAUL Reauthenthication Timeout",
+                title: "The minimum duration to wait before automatically reauthenthicating MAUL in the background (in milliseconds).",
+                type: "int",
+                default: 3600000, // 1 hour
+                min: 300000 // 5 minutes, we don't want to spam the server
+            }
         },
     });
 
@@ -99,6 +114,24 @@ function setupConfig() {
             handleProfileDropdown,
             false
         );
+}
+
+/**
+ * Automatically authenthicates with MAUL in the background if it's been a while since the last authenthication
+ */
+function autoMAULAuth() {
+    if (!GM_config.get("maul-reauth-enable")) return;
+    var lastAuth = GM_getValue("lastMAULAuth", 0);
+    if (Date.now() - lastAuth < GM_config.get("maul-reauth")) return;
+    var authLink = document.querySelector("a.p-navEl-link[href^=\"/maul\"]")
+    if (!authLink) return;
+    GM_xmlhttpRequest({
+        method: "GET",
+        url: authLink.href,
+        onload: function () {
+            GM_setValue("lastMAULAuth", Date.now());
+        }
+    });
 }
 
 /**
@@ -738,6 +771,8 @@ function handleAwardSpotlight() {
     // Add Helpful Links to the Navigation Bar
     var nav_list = document.querySelector(".p-nav-list");
     addMAULNav(nav_list);
+    // Reauthenthicate with MAUL if need be
+    autoMAULAuth();
 
     addNav("https://gitlab.edgegamers.io/", "GitLab", nav_list);
     addNav("https://edgegamers.gameme.com/", "GameME", nav_list);
