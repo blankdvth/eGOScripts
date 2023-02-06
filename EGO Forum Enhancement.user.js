@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/EGO%20Forum%20Enhancement.user.js
-// @version      3.4.3
+// @version      3.4.4
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -95,6 +95,12 @@ function setupConfig() {
             "show-list-bans-unknown": {
                 label: "Show List Bans for Unknown Steam IDs",
                 title: "Whether to show the List Bans button alongside Lookup ID if the Steam ID is in an unknown format.",
+                type: "checkbox",
+                default: true,
+            },
+            "confirm-trash": {
+                label: "Confirm Trash",
+                title: "Whether to show a confirmation dialog when clicking the trash button.",
                 type: "checkbox",
                 default: true,
             },
@@ -282,6 +288,23 @@ function addMoveButton(
             div,
             "_self"
         );
+}
+
+/**
+ * Adds a button to move a thread to the trash, with a confirmation dialog (if enabled)
+ * @param {HTMLDivElement} before Element to add button before
+ */
+function addTrashButton(before) {
+    var trashButton = document.createElement("a");
+    var post_id = window.location.href.match(/threads\/(?<post_id>\d+)/);
+    trashButton.innerHTML = "Trash Thread";
+    trashButton.style.cursor = "pointer";
+    trashButton.onclick = function () {
+        if (!GM_config.get("confirm-trash") || confirm("Trash this thread?"))
+            window.location.href = "https://www.edgegamers.com/threads/" + post_id.groups.post_id + "/move?move_685"
+    }
+    trashButton.classList.add("menu-linkRow");
+    before.parentElement.insertBefore(trashButton, before);
 }
 
 /**
@@ -546,6 +569,10 @@ function handleGenericThread() {
             );
             break;
         }
+    }
+
+    if (!breadcrumbs.match(/Moderator Trash Bin ?$/)) {
+        addTrashButton(button_group.querySelector("div.menu > div.menu-content > a[href$=move]"));
     }
 }
 
