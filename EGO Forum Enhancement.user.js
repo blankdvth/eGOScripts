@@ -297,7 +297,7 @@ function addMoveButton(
 function addTrashButton(before) {
     var trashButton = document.createElement("a");
     var post_id = window.location.href.match(/threads\/(?<post_id>\d+)/);
-    trashButton.innerHTML = "Trash Thread";
+    trashButton.innerHTML = "Trash thread";
     trashButton.style.cursor = "pointer";
     trashButton.onclick = function () {
         if (!GM_config.get("confirm-trash") || confirm("Trash this thread?"))
