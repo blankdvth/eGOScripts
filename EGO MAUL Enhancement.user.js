@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers MAUL Enhancement
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/EGO%20MAUL%20Enhancement.user.js
-// @version      3.0.0
+// @version      3.0.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS
 // @match        https://maul.edgegamers.com/*
@@ -169,14 +169,7 @@ function setupConfig() {
                         );
 
                         if (
-                            presets.split(/\r?\n/).every(function (line) {
-                                let parts = line.split(";");
-                                return (
-                                    parts.length === 6 &&
-                                    parts[0].length > 0 &&
-                                    parts[2].match(/^\d*$/)
-                                );
-                            })
+                            presets.split(/\r?\n/).every((line) => line.match(/^[^;\r\n]+;[^;\r\n]*;\d*;[^;\r\n]*;[^;\r\n]*;[^;\r\n]*$/))
                         )
                             GM_config.set("presets-add", presets);
                     },
@@ -193,14 +186,7 @@ function setupConfig() {
                         );
 
                         if (
-                            presets.split(/\r?\n/).every(function (line) {
-                                let parts = line.split(";");
-                                return (
-                                    parts.length === 6 &&
-                                    parts[0].length > 0 &&
-                                    parts[1].match(/^\d*$/)
-                                );
-                            })
+                            presets.split(/\r?\n/).every((line) => line.match(/^[^;\r\n]+;\d*;[^;\r\n]*;[^;\r\n]*;[^;\r\n]*;[^;\r\n]*$/))
                         )
                             GM_config.set("presets-edit", presets);
                     },
