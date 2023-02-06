@@ -301,8 +301,11 @@ function addTrashButton(before) {
     trashButton.style.cursor = "pointer";
     trashButton.onclick = function () {
         if (!GM_config.get("confirm-trash") || confirm("Trash this thread?"))
-            window.location.href = "https://www.edgegamers.com/threads/" + post_id.groups.post_id + "/move?move_685"
-    }
+            window.location.href =
+                "https://www.edgegamers.com/threads/" +
+                post_id.groups.post_id +
+                "/move?move_685";
+    };
     trashButton.classList.add("menu-linkRow");
     before.parentElement.insertBefore(trashButton, before);
 }
@@ -572,7 +575,11 @@ function handleGenericThread() {
     }
 
     if (!breadcrumbs.match(/Moderator Trash Bin ?$/)) {
-        addTrashButton(button_group.querySelector("div.menu > div.menu-content > a[href$=move]"));
+        addTrashButton(
+            button_group.querySelector(
+                "div.menu > div.menu-content > a[href$=move]"
+            )
+        );
     }
 }
 
