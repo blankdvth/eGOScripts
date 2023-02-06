@@ -169,7 +169,13 @@ function setupConfig() {
                         );
 
                         if (
-                            presets.split(/\r?\n/).every((line) => line.match(/^[^;\r\n]+;[^;\r\n]*;\d*;[^;\r\n]*;[^;\r\n]*;[^;\r\n]*$/))
+                            presets
+                                .split(/\r?\n/)
+                                .every((line) =>
+                                    line.match(
+                                        /^[^;\r\n]+;[^;\r\n]*;\d*;[^;\r\n]*;[^;\r\n]*;[^;\r\n]*$/
+                                    )
+                                )
                         )
                             GM_config.set("presets-add", presets);
                     },
@@ -186,7 +192,13 @@ function setupConfig() {
                         );
 
                         if (
-                            presets.split(/\r?\n/).every((line) => line.match(/^[^;\r\n]+;\d*;[^;\r\n]*;[^;\r\n]*;[^;\r\n]*;[^;\r\n]*$/))
+                            presets
+                                .split(/\r?\n/)
+                                .every((line) =>
+                                    line.match(
+                                        /^[^;\r\n]+;\d*;[^;\r\n]*;[^;\r\n]*;[^;\r\n]*;[^;\r\n]*$/
+                                    )
+                                )
                         )
                             GM_config.set("presets-edit", presets);
                     },
