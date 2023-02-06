@@ -110,11 +110,11 @@ function setupConfig() {
                 section: ["Move to Completed", "One map (forum -> completed) per line, use the format \"regex;completed id\". The ID is usually present in the URL bar when viewing that subforum list (/forums/ID here). For example: \"Contest a Ban;1236\".<br>Note: This will not apply until the page is refreshed (your updated maps also won\'t show if you reopen the config popup until you refresh)."],
                 type: "textarea",
                 save: false,
-                default: "Contest a Ban ?$;1236\nReport a Player ?$;1235",
+                default: "Contest a Ban ?$;1236\nReport a Player ?$;1235\nContact Leadership ?$;853",
             },
             "move-to-completed": {
                 type: "hidden",
-                default: "Contest a Ban ?$;1236\nReport a Player ?$;1235",
+                default: "Contest a Ban ?$;1236\nReport a Player ?$;1235\nContact Leadership ?$;853",
             }
         },
         events: {
