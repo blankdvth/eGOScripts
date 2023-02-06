@@ -107,30 +107,56 @@ function setupConfig() {
             },
             "move-to-completed-unchecked": {
                 label: "Completed Forums Map",
-                section: ["Move to Completed", "One map (forum -> completed) per line, use the format \"regex;completed id\". The ID is usually present in the URL bar when viewing that subforum list (/forums/ID here). For example: \"Contest a Ban;1236\".<br>Note: This will not apply until the page is refreshed (your updated maps also won\'t show if you reopen the config popup until you refresh)."],
+                section: [
+                    "Move to Completed",
+                    'One map (forum -> completed) per line, use the format "regex;completed id". The ID is usually present in the URL bar when viewing that subforum list (/forums/ID here). For example: "Contest a Ban;1236".<br>Note: This will not apply until the page is refreshed (your updated maps also won\'t show if you reopen the config popup until you refresh).',
+                ],
                 type: "textarea",
                 save: false,
-                default: "Contest a Ban ?$;1236\nReport a Player ?$;1235\nContact Leadership ?$;853",
+                default:
+                    "Contest a Ban ?$;1236\nReport a Player ?$;1235\nContact Leadership ?$;853",
             },
             "move-to-completed": {
                 type: "hidden",
-                default: "Contest a Ban ?$;1236\nReport a Player ?$;1235\nContact Leadership ?$;853",
-            }
+                default:
+                    "Contest a Ban ?$;1236\nReport a Player ?$;1235\nContact Leadership ?$;853",
+            },
         },
         events: {
             init: function () {
-                GM_config.set("move-to-completed-unchecked", GM_config.get("move-to-completed"));
+                GM_config.set(
+                    "move-to-completed-unchecked",
+                    GM_config.get("move-to-completed")
+                );
             },
             open: function (doc) {
-                GM_config.fields["move-to-completed-unchecked"].node.addEventListener("change", function () {
-                    var maps = GM_config.get("move-to-completed-unchecked", true);
-                    if (maps.split(/\r?\n/).every((map) => map.match(/^[^;\r\n]+;\d+$/)))
-                        GM_config.set("move-to-completed", maps);
-                }, false);
+                GM_config.fields[
+                    "move-to-completed-unchecked"
+                ].node.addEventListener(
+                    "change",
+                    function () {
+                        var maps = GM_config.get(
+                            "move-to-completed-unchecked",
+                            true
+                        );
+                        if (
+                            maps
+                                .split(/\r?\n/)
+                                .every((map) => map.match(/^[^;\r\n]+;\d+$/))
+                        )
+                            GM_config.set("move-to-completed", maps);
+                    },
+                    false
+                );
             },
             save: function (forgotten) {
-                if (forgotten["move-to-completed-unchecked"] !== GM_config.get("move-to-completed"))
-                    alert("Invalid move to completed map, verify that all lines are in the format \"regex:id\".");
+                if (
+                    forgotten["move-to-completed-unchecked"] !==
+                    GM_config.get("move-to-completed")
+                )
+                    alert(
+                        'Invalid move to completed map, verify that all lines are in the format "regex:id".'
+                    );
             },
         },
         css: "textarea {width: 100%; height: 160px; resize: vertical;}",
@@ -237,7 +263,7 @@ function addMoveButton(
     div,
     url,
     text = "Move to Completed",
-    id = "to_completed",
+    id = "to_completed"
 ) {
     var post_id = url.match(/threads\/(?<post_id>\d+)/);
     if (post_id)
@@ -392,13 +418,11 @@ function tooltipMAULListener(event) {
  * @returns void
  */
 function handleThreadMovePage(url) {
-    var completedId = url.match(/\?move_(\d+)$/)
+    var completedId = url.match(/\?move_(\d+)$/);
     if (!completedId) return;
     var form = document.forms[1];
     var drop = form.querySelector("select.js-nodeList");
-    var checkArr = Array.from(
-        form.querySelectorAll(".inputChoices-choice")
-    );
+    var checkArr = Array.from(form.querySelectorAll(".inputChoices-choice"));
     var optArr = Array.from(drop.options);
     drop.selectedIndex = optArr.indexOf(
         optArr.find((el) => el.value == completedId[1])
@@ -504,11 +528,16 @@ function handleGenericThread() {
     if (isLeadership(breadcrumbs))
         // LE Forums
         handleLeadership();
-    
+
     var button_group = document.querySelector("div.buttonGroup");
     for (var i = 0; i < completedMap.length; i++) {
         if (breadcrumbs.match(completedMap[i].regex)) {
-            addMoveButton(button_group, window.location.href, "Move to Completed", completedMap[i].completedId);
+            addMoveButton(
+                button_group,
+                window.location.href,
+                "Move to Completed",
+                completedMap[i].completedId
+            );
             break;
         }
     }
