@@ -17,6 +17,7 @@
 
 "use strict";
 const MAUL_BUTTON_TEXT = "MAUL";
+let completedMap = [];
 
 /**
  * Creates a preset button
@@ -104,7 +105,61 @@ function setupConfig() {
                 default: 3600000, // 1 hour
                 min: 300000, // 5 minutes, we don't want to spam the server
             },
+            "move-to-completed-unchecked": {
+                label: "Completed Forums Map",
+                section: [
+                    "Move to Completed",
+                    'One map (forum -> completed) per line, use the format "regex;completed id". The ID is usually present in the URL bar when viewing that subforum list (/forums/ID here). For example: "Contest a Ban;1236".<br>Note: This will not apply until the page is refreshed (your updated maps also won\'t show if you reopen the config popup until you refresh).',
+                ],
+                type: "textarea",
+                save: false,
+                default:
+                    "Contest a Ban ?$;1236\nReport a Player ?$;1235\nContact Leadership ?$;853",
+            },
+            "move-to-completed": {
+                type: "hidden",
+                default:
+                    "Contest a Ban ?$;1236\nReport a Player ?$;1235\nContact Leadership ?$;853",
+            },
         },
+        events: {
+            init: function () {
+                GM_config.set(
+                    "move-to-completed-unchecked",
+                    GM_config.get("move-to-completed")
+                );
+            },
+            open: function (doc) {
+                GM_config.fields[
+                    "move-to-completed-unchecked"
+                ].node.addEventListener(
+                    "change",
+                    function () {
+                        var maps = GM_config.get(
+                            "move-to-completed-unchecked",
+                            true
+                        );
+                        if (
+                            maps
+                                .split(/\r?\n/)
+                                .every((map) => map.match(/^[^;\r\n]+;\d+$/))
+                        )
+                            GM_config.set("move-to-completed", maps);
+                    },
+                    false
+                );
+            },
+            save: function (forgotten) {
+                if (
+                    forgotten["move-to-completed-unchecked"] !==
+                    GM_config.get("move-to-completed")
+                )
+                    alert(
+                        'Invalid move to completed map, verify that all lines are in the format "regex:id".'
+                    );
+            },
+        },
+        css: "textarea {width: 100%; height: 160px; resize: vertical;}",
     });
 
     var profileMenu = document.querySelector("div.js-visitorMenuBody");
@@ -131,6 +186,24 @@ function autoMAULAuth() {
         onload: function () {
             GM_setValue("lastMAULAuth", Date.now());
         },
+    });
+}
+
+/**
+ * Loads completed threads map from config
+ */
+function loadCompletedMap() {
+    var completedMapRaw = GM_config.get("move-to-completed");
+    completedMapRaw.split(/\r?\n/).forEach((map) => {
+        var parts = map.split(";");
+        if (parts.length != 2) {
+            alert("Invalid map: " + map);
+            return;
+        }
+        completedMap.push({
+            regex: new RegExp(parts[0]),
+            completedId: parts[1],
+        });
     });
 }
 
@@ -345,53 +418,36 @@ function tooltipMAULListener(event) {
  * @returns void
  */
 function handleThreadMovePage(url) {
-    if (!url.endsWith("?move_to_completed")) return;
-    var breadcrumbs = document
-        .querySelector(".p-breadcrumbs")
-        .textContent.trim()
-        .split("\n\n\n\n\n\n");
-    breadcrumbs = breadcrumbs[breadcrumbs.length - 2];
-    if (breadcrumbs.match(/^(Contest a Ban)|(Report a Player)$/)) {
-        // Ban Contest or Report (Non-Completed)
-        const CONTEST_COMPLETED = 1236;
-        const REPORT_COMPLETED = 1235;
-        var form = document.forms[1];
-        var drop = form.querySelector("select.js-nodeList");
-        var checkArr = Array.from(
-            form.querySelectorAll(".inputChoices-choice")
-        );
-        var optArr = Array.from(drop.options);
-        drop.selectedIndex = optArr.indexOf(
-            optArr.find(
-                (el) =>
-                    el.value ==
-                    (breadcrumbs.startsWith("Contest")
-                        ? CONTEST_COMPLETED
-                        : REPORT_COMPLETED)
-            )
-        );
-        if (drop.selectedIndex == -1) {
-            throw "Could not find Completed forum";
-        }
-        try {
-            // These buttons may not exist if you created the post yourself, this is just to prevent edge cases.
-            checkArr
-                .find(
-                    (el) =>
-                        el.textContent ===
-                        "Notify members watching the destination forum"
-                )
-                .querySelector("label > input").checked = false;
-            checkArr
-                .find((el) =>
-                    el.textContent.startsWith(
-                        "Notify thread starter of this action."
-                    )
-                )
-                .querySelector("label > input").checked = false;
-        } catch {}
-        form.submit();
+    var completedId = url.match(/\?move_(\d+)$/);
+    if (!completedId) return;
+    var form = document.forms[1];
+    var drop = form.querySelector("select.js-nodeList");
+    var checkArr = Array.from(form.querySelectorAll(".inputChoices-choice"));
+    var optArr = Array.from(drop.options);
+    drop.selectedIndex = optArr.indexOf(
+        optArr.find((el) => el.value == completedId[1])
+    );
+    if (drop.selectedIndex == -1) {
+        throw "Could not find Completed forum";
     }
+    try {
+        // These buttons may not exist if you created the post yourself, this is just to prevent edge cases.
+        checkArr
+            .find(
+                (el) =>
+                    el.textContent ===
+                    "Notify members watching the destination forum"
+            )
+            .querySelector("label > input").checked = false;
+        checkArr
+            .find((el) =>
+                el.textContent.startsWith(
+                    "Notify thread starter of this action."
+                )
+            )
+            .querySelector("label > input").checked = false;
+    } catch {}
+    form.submit();
 }
 
 /**
@@ -467,19 +523,31 @@ function handleGenericThread() {
         )
     ) {
         // Ban Contest or Report
-        handleBanReport();
+        handleBanReportContest();
     }
     if (isLeadership(breadcrumbs))
         // LE Forums
         handleLeadership();
+
+    var button_group = document.querySelector("div.buttonGroup");
+    for (var i = 0; i < completedMap.length; i++) {
+        if (breadcrumbs.match(completedMap[i].regex)) {
+            addMoveButton(
+                button_group,
+                window.location.href,
+                "Move to Completed",
+                completedMap[i].completedId
+            );
+            break;
+        }
+    }
 }
 
 /**
  * Adds "View Bans" or "Lookup ID" button on report/contest threads.
  * TODO: Add support for other game IDs
  */
-function handleBanReport() {
-    var breadcrumbs = document.querySelector(".p-breadcrumbs").innerText;
+function handleBanReportContest() {
     var post_title = document.querySelector(".p-title").innerText;
     var button_group = document.querySelector("div.buttonGroup");
     addMAULProfileButton(
@@ -505,9 +573,6 @@ function handleBanReport() {
         addBansButton(button_group, post_title.split(" - ")[2]);
         addLookupButton(button_group, post_title);
     }
-
-    if (!breadcrumbs.match(/Completed ?$/))
-        addMoveButton(button_group, window.location.href);
 }
 
 /**
@@ -757,6 +822,7 @@ function handleAwardSpotlight() {
 (function () {
     // Setup configuration
     setupConfig();
+    loadCompletedMap();
 
     // Determine what page we're on
     var url = window.location.href;
