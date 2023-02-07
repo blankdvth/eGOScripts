@@ -114,7 +114,7 @@ function setupConfig() {
                 label: "MAUL Reauthenthication Timeout",
                 title: "The minimum duration to wait before automatically reauthenthicating MAUL in the background (in milliseconds).",
                 type: "int",
-                default: 3600000, // 1 hour
+                default: 1800000, // half an hour
                 min: 300000, // 5 minutes, we don't want to spam the server
             },
             "move-to-completed-unchecked": {
