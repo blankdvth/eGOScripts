@@ -8,8 +8,8 @@
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=edgegamers.com
 // @require      https://peterolson.github.io/BigInteger.js/BigInteger.min.js
 // @require      https://raw.githubusercontent.com/12pt/steamid-converter/master/js/converter-min.js
-// @resource     admins https://raw.githubusercontent.com/blankdvth/eGOScripts/master/admins.txt
 // @require      https://openuserjs.org/src/libs/sizzle/GM_config.js
+// @resource     admins https://raw.githubusercontent.com/blankdvth/eGOScripts/master/admins.txt
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_getResourceText
