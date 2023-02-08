@@ -5,7 +5,7 @@
 // @description  Renders additional whitespace between words in GameME Chat History (and fixes console spam)
 // @author       blank_dvth
 // @match        http*://*.gameme.com/*chat*
-// @icon         https://www.google.com/s2/favicons?sz=64&domain=edgegamers.com
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=gameme.com
 // @grant        none
 // ==/UserScript==
 
