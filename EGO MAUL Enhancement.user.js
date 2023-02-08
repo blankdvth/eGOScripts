@@ -136,7 +136,7 @@ function setupConfig() {
                 label: "Edit Ban Presets",
                 type: "textarea",
                 save: false,
-                default: "Ban Evasion;0;Ban Evasion;;;",
+                default: "Ban Evasion;0;Ban Evasion;y;;",
             },
             "presets-add": {
                 type: "hidden",
@@ -145,7 +145,7 @@ function setupConfig() {
             },
             "presets-edit": {
                 type: "hidden",
-                default: "Ban Evasion;0;Ban Evasion;;;",
+                default: "Ban Evasion;0;Ban Evasion;y;;",
             },
         },
         events: {
