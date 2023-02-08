@@ -15,7 +15,7 @@ window.UnTip = function () { };
 
 (function () {
     "use strict";
-    
+
     const style = document.createElement("style");
     if (window.location.href.includes("player_histories")) {
         style.innerHTML = `
