@@ -10,8 +10,8 @@
 // ==/UserScript==
 
 // The Global Chat page on GameME calls these two functions non-stop when hovering over messages and spams console. I got annoyed...
-window.Tip = function () { };
-window.UnTip = function () { };
+window.Tip = function () {};
+window.UnTip = function () {};
 
 (function () {
     "use strict";
