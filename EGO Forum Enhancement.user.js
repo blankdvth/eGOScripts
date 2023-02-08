@@ -114,7 +114,7 @@ function setupConfig() {
                 label: "MAUL Reauthenthication Timeout",
                 title: "The minimum duration to wait before automatically reauthenthicating MAUL in the background (in milliseconds).",
                 type: "int",
-                default: 3600000, // 1 hour
+                default: 1800000, // half an hour
                 min: 300000, // 5 minutes, we don't want to spam the server
             },
             "move-to-completed-unchecked": {
@@ -297,7 +297,7 @@ function addMoveButton(
 function addTrashButton(before) {
     var trashButton = document.createElement("a");
     var post_id = window.location.href.match(/threads\/(?<post_id>\d+)/);
-    trashButton.innerHTML = "Trash Thread";
+    trashButton.innerHTML = "Trash thread";
     trashButton.style.cursor = "pointer";
     trashButton.onclick = function () {
         if (!GM_config.get("confirm-trash") || confirm("Trash this thread?"))
