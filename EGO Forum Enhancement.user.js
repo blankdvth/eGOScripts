@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/EGO%20Forum%20Enhancement.user.js
-// @version      3.4.4
+// @version      3.5.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -18,6 +18,7 @@
 "use strict";
 const MAUL_BUTTON_TEXT = "MAUL";
 let completedMap = [];
+let signatureBlockList = [];
 
 /**
  * Creates a preset button
@@ -133,12 +134,30 @@ function setupConfig() {
                 default:
                     "Contest a Ban ?$;1236\nReport a Player ?$;1235\nContact Leadership ?$;853",
             },
+            "signature-block-unchecked": {
+                label: "Signature Block List",
+                section: [
+                    "Signature Block List",
+                    "List of User IDs whose signatures will be blocked from loading automatically, separated by newlines."
+                ],
+                type: "textarea",
+                save: false,
+                default: ""
+            },
+            "signature-block": {
+                type: "hidden",
+                default: ""
+            }
         },
         events: {
             init: function () {
                 GM_config.set(
                     "move-to-completed-unchecked",
                     GM_config.get("move-to-completed")
+                );
+                GM_config.set(
+                    "signature-block-unchecked",
+                    GM_config.get("signature-block")
                 );
             },
             open: function (doc) {
@@ -160,6 +179,22 @@ function setupConfig() {
                     },
                     false
                 );
+                GM_config.fields[
+                    "signature-block-unchecked"
+                ].node.addEventListener(
+                    "change",
+                    function () {
+                        var ids = GM_config.get(
+                            "signature-block-unchecked",
+                            true
+                        );
+                        if (ids
+                                .split(/\r?\n/)
+                                .every((id) => id.match(/^\d+$/))
+                        )
+                            GM_config.set("signature-block", ids);
+                    }
+                );
             },
             save: function (forgotten) {
                 if (
@@ -169,6 +204,11 @@ function setupConfig() {
                     alert(
                         'Invalid move to completed map, verify that all lines are in the format "regex:id".'
                     );
+                if (
+                    forgotten["signature-block-unchecked"] !==
+                    GM_config.get("signature-block")
+                )
+                    alert("Invalid signature block ID list. Ensure each ID is on it's own line and all IDs are numerical.")
             },
         },
         css: "textarea {width: 100%; height: 160px; resize: vertical;}",
@@ -217,6 +257,16 @@ function loadCompletedMap() {
             completedId: parts[1],
         });
     });
+}
+
+/**
+ * Loads the signature block list IDs from config
+ */
+function loadSignatureBlockList() {
+    var signatureBlockListRaw = GM_config.get("signature-block");
+    signatureBlockListRaw.split(/\r?\n/).forEach((id) => {
+        signatureBlockList.push(id);
+    })
 }
 
 /**
@@ -580,6 +630,8 @@ function handleGenericThread() {
                 "div.menu > div.menu-content > a[href$=move]"
             )
         );
+    
+    blockSignatures();
 }
 
 /**
@@ -860,10 +912,65 @@ function handleAwardSpotlight() {
         .scrollIntoView({ behavior: "smooth" });
 }
 
+function blockSignatures() {
+    if (signatureBlockList.length == 0) return;
+    document.querySelectorAll("div.message-inner").forEach((post) => {
+        if (signatureBlockList.includes(post.querySelector("a.username[data-user-id]").dataset.userId)) {
+            function signatureEvent(event) {
+                if (!event.target.nodeName === "IFRAME") return;
+                signature.querySelectorAll("iframe[src]:not([data-src])").forEach((iframe) => {
+                    iframe.dataset.src = iframe.src;
+                    iframe.src = "";
+                })
+            }
+            var signature = post.querySelector("aside.message-signature > div");
+            signature.addEventListener("DOMNodeInserted", signatureEvent, false);
+            signature.querySelectorAll("img[src]").forEach((img) => {
+                img.src = "";
+            })
+            signature.querySelectorAll("video[poster]").forEach((video) => {
+                video.dataset.poster = video.poster;
+                video.poster = "";
+            })
+            signature.querySelectorAll("source[src]").forEach((source) => {
+                source.dataset.src = source.src;
+                source.src = "";
+            })
+            signature.style.display = "none";
+            var btn = document.createElement("button");
+            btn.onclick = function () {
+                signature.style.display = "";
+                signature.querySelectorAll("img[src][data-url]").forEach((img) => {
+                    img.src = img.dataset.url;
+                })
+                signature.querySelectorAll("iframe[src][data-src]").forEach((iframe) => {
+                    iframe.src = iframe.dataset.src;
+                    delete iframe.dataset.src;
+                })
+                signature.querySelectorAll("video[poster][data-poster]").forEach((video) => {
+                    video.poster = video.dataset.poster;
+                    delete video.dataset.poster;
+                })
+                signature.querySelectorAll("source[src][data-src]").forEach((source) => {
+                    source.src = source.dataset.src;
+                    delete source.dataset.src;
+                })
+                signature.removeEventListener("DOMNodeInserted", signatureEvent, false);
+                btn.remove();
+            }
+            btn.innerHTML = "Load Signature";
+            btn.classList.add("button--link", "button");
+            btn.style.cursor = "pointer";
+            signature.parentElement.appendChild(btn);
+        }
+    });
+}
+
 (function () {
     // Setup configuration
     setupConfig();
     loadCompletedMap();
+    loadSignatureBlockList();
 
     // Determine what page we're on
     var url = window.location.href;
