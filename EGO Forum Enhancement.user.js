@@ -902,6 +902,9 @@ function parseAwardPage(pageNum, userToFind, awardId) {
     );
 }
 
+/**
+ * Handles Award Spotlight pages, scrolling to the spotlight
+ */
 function handleAwardSpotlight() {
     var url = window.location.href;
     var userToFind = url.match(
@@ -912,32 +915,36 @@ function handleAwardSpotlight() {
         .scrollIntoView({ behavior: "smooth" });
 }
 
+/**
+ * Hides signatures behind a button, and prevents loading of most content (img, video, iframe)
+ */
 function blockSignatures() {
     if (signatureBlockList.length == 0) return;
     document.querySelectorAll("div.message-inner").forEach((post) => {
         if (signatureBlockList.includes(post.querySelector("a.username[data-user-id]").dataset.userId)) {
+            var signature = post.querySelector("aside.message-signature > div");
+            // iframe's are added after page load, using a DOMNodeInserted event to work around that
             function signatureEvent(event) {
                 if (!event.target.nodeName === "IFRAME") return;
-                signature.querySelectorAll("iframe[src]:not([data-src])").forEach((iframe) => {
-                    iframe.dataset.src = iframe.src;
-                    iframe.src = "";
-                })
+                event.target.dataset.src = event.target.src;
+                event.target.src = "about:blank";
             }
-            var signature = post.querySelector("aside.message-signature > div");
             signature.addEventListener("DOMNodeInserted", signatureEvent, false);
-            signature.querySelectorAll("img[src]").forEach((img) => {
-                img.src = "";
-            })
+            // Set the SRC of content to nothing (data:,), empty is not used as it may cause additional requests to the page
+            // Issue originated back in 2009, unsure if it is still a problem but best to lean on the safe side.
+            // Was fixed in FireFox a while ago, not sure about Chrome
+            signature.querySelectorAll("img[src]").forEach((img) => img.src = "data:,")
             signature.querySelectorAll("video[poster]").forEach((video) => {
                 video.dataset.poster = video.poster;
-                video.poster = "";
+                video.poster = "data:,";
             })
             signature.querySelectorAll("source[src]").forEach((source) => {
                 source.dataset.src = source.src;
-                source.src = "";
+                source.src = "data:,";
             })
             signature.style.display = "none";
             var btn = document.createElement("button");
+            // Button to restore everything
             btn.onclick = function () {
                 signature.style.display = "";
                 signature.querySelectorAll("img[src][data-url]").forEach((img) => {
@@ -961,6 +968,8 @@ function blockSignatures() {
             btn.innerHTML = "Load Signature";
             btn.classList.add("button--link", "button");
             btn.style.cursor = "pointer";
+            btn.style.display = "block";
+            btn.style.margin = "auto";
             signature.parentElement.appendChild(btn);
         }
     });
