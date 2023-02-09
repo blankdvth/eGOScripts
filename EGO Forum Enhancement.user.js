@@ -930,7 +930,7 @@ function blockSignatures() {
                 event.target.src = "about:blank";
             }
             signature.addEventListener("DOMNodeInserted", signatureEvent, false);
-            // Set the SRC of content to nothing (data:,), empty is not used as it may cause additional requests to the page
+            // Set the SRC of content to nothing (data:,), empty string is not used as it may cause additional requests to the page
             // Issue originated back in 2009, unsure if it is still a problem but best to lean on the safe side.
             // Was fixed in FireFox a while ago, not sure about Chrome
             signature.querySelectorAll("img[src]").forEach((img) => img.src = "data:,")
