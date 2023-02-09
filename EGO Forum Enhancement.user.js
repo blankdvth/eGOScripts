@@ -138,16 +138,16 @@ function setupConfig() {
                 label: "Signature Block List",
                 section: [
                     "Signature Block List",
-                    "List of User IDs whose signatures will be blocked from loading automatically, separated by newlines."
+                    "List of User IDs whose signatures will be blocked from loading automatically, separated by newlines.",
                 ],
                 type: "textarea",
                 save: false,
-                default: ""
+                default: "",
             },
             "signature-block": {
                 type: "hidden",
-                default: ""
-            }
+                default: "",
+            },
         },
         events: {
             init: function () {
@@ -181,20 +181,11 @@ function setupConfig() {
                 );
                 GM_config.fields[
                     "signature-block-unchecked"
-                ].node.addEventListener(
-                    "change",
-                    function () {
-                        var ids = GM_config.get(
-                            "signature-block-unchecked",
-                            true
-                        );
-                        if (ids
-                                .split(/\r?\n/)
-                                .every((id) => id.match(/^\d+$/))
-                        )
-                            GM_config.set("signature-block", ids);
-                    }
-                );
+                ].node.addEventListener("change", function () {
+                    var ids = GM_config.get("signature-block-unchecked", true);
+                    if (ids.split(/\r?\n/).every((id) => id.match(/^\d+$/)))
+                        GM_config.set("signature-block", ids);
+                });
             },
             save: function (forgotten) {
                 if (
@@ -208,7 +199,9 @@ function setupConfig() {
                     forgotten["signature-block-unchecked"] !==
                     GM_config.get("signature-block")
                 )
-                    alert("Invalid signature block ID list. Ensure each ID is on it's own line and all IDs are numerical.")
+                    alert(
+                        "Invalid signature block ID list. Ensure each ID is on it's own line and all IDs are numerical."
+                    );
             },
         },
         css: "textarea {width: 100%; height: 160px; resize: vertical;}",
@@ -266,7 +259,7 @@ function loadSignatureBlockList() {
     var signatureBlockListRaw = GM_config.get("signature-block");
     signatureBlockListRaw.split(/\r?\n/).forEach((id) => {
         signatureBlockList.push(id);
-    })
+    });
 }
 
 /**
@@ -630,7 +623,7 @@ function handleGenericThread() {
                 "div.menu > div.menu-content > a[href$=move]"
             )
         );
-    
+
     blockSignatures();
 }
 
@@ -921,7 +914,11 @@ function handleAwardSpotlight() {
 function blockSignatures() {
     if (signatureBlockList.length == 0) return;
     document.querySelectorAll("div.message-inner").forEach((post) => {
-        if (signatureBlockList.includes(post.querySelector("a.username[data-user-id]").dataset.userId)) {
+        if (
+            signatureBlockList.includes(
+                post.querySelector("a.username[data-user-id]").dataset.userId
+            )
+        ) {
             var signature = post.querySelector("aside.message-signature > div");
             // iframe's are added after page load, using a DOMNodeInserted event to work around that
             function signatureEvent(event) {
@@ -929,42 +926,60 @@ function blockSignatures() {
                 event.target.dataset.src = event.target.src;
                 event.target.src = "about:blank";
             }
-            signature.addEventListener("DOMNodeInserted", signatureEvent, false);
+            signature.addEventListener(
+                "DOMNodeInserted",
+                signatureEvent,
+                false
+            );
             // Set the SRC of content to nothing (data:,), empty string is not used as it may cause additional requests to the page
             // Issue originated back in 2009, unsure if it is still a problem but best to lean on the safe side.
             // Was fixed in FireFox a while ago, not sure about Chrome
-            signature.querySelectorAll("img[src]").forEach((img) => img.src = "data:,")
+            signature
+                .querySelectorAll("img[src]")
+                .forEach((img) => (img.src = "data:,"));
             signature.querySelectorAll("video[poster]").forEach((video) => {
                 video.dataset.poster = video.poster;
                 video.poster = "data:,";
-            })
+            });
             signature.querySelectorAll("source[src]").forEach((source) => {
                 source.dataset.src = source.src;
                 source.src = "data:,";
-            })
+            });
             signature.style.display = "none";
             var btn = document.createElement("button");
             // Button to restore everything
             btn.onclick = function () {
                 signature.style.display = "";
-                signature.querySelectorAll("img[src][data-url]").forEach((img) => {
-                    img.src = img.dataset.url;
-                })
-                signature.querySelectorAll("iframe[src][data-src]").forEach((iframe) => {
-                    iframe.src = iframe.dataset.src;
-                    delete iframe.dataset.src;
-                })
-                signature.querySelectorAll("video[poster][data-poster]").forEach((video) => {
-                    video.poster = video.dataset.poster;
-                    delete video.dataset.poster;
-                })
-                signature.querySelectorAll("source[src][data-src]").forEach((source) => {
-                    source.src = source.dataset.src;
-                    delete source.dataset.src;
-                })
-                signature.removeEventListener("DOMNodeInserted", signatureEvent, false);
+                signature
+                    .querySelectorAll("img[src][data-url]")
+                    .forEach((img) => {
+                        img.src = img.dataset.url;
+                    });
+                signature
+                    .querySelectorAll("iframe[src][data-src]")
+                    .forEach((iframe) => {
+                        iframe.src = iframe.dataset.src;
+                        delete iframe.dataset.src;
+                    });
+                signature
+                    .querySelectorAll("video[poster][data-poster]")
+                    .forEach((video) => {
+                        video.poster = video.dataset.poster;
+                        delete video.dataset.poster;
+                    });
+                signature
+                    .querySelectorAll("source[src][data-src]")
+                    .forEach((source) => {
+                        source.src = source.dataset.src;
+                        delete source.dataset.src;
+                    });
+                signature.removeEventListener(
+                    "DOMNodeInserted",
+                    signatureEvent,
+                    false
+                );
                 btn.remove();
-            }
+            };
             btn.innerHTML = "Load Signature";
             btn.classList.add("button--link", "button");
             btn.style.cursor = "pointer";
