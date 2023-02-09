@@ -13,7 +13,9 @@
 
 (function () {
     // Remove banners
-    document.querySelectorAll('div[style$="height:90px;"]').forEach((banner) => banner.remove());
+    document
+        .querySelectorAll('div[style$="height:90px;"]')
+        .forEach((banner) => banner.remove());
 
     // Remove sidebar
     var mainBody = document.querySelector("div .p-body-main--withSidebar");
