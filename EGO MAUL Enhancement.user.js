@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers MAUL Enhancement
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/EGO%20MAUL%20Enhancement.user.js
-// @version      3.0.1
+// @version      3.0.2
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS
 // @match        https://maul.edgegamers.com/*
@@ -558,14 +558,14 @@ function updateBanNoteURLs() {
         handleAddBan();
     else if (
         url.match(
-            /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban&id=\d+$/
+            /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban&id=\d+\/?$/
         )
     )
         // Edit Ban Page
         handleEditBan();
     else if (
         url.match(
-            /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=home&id=\d+$/
+            /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=home&id=\d+\/?$/
         )
     )
         // Profile Page

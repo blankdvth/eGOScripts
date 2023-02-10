@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/EGO%20Forum%20Enhancement.user.js
-// @version      3.5.0
+// @version      3.5.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -16,7 +16,6 @@
 // ==/UserScript==
 
 "use strict";
-const MAUL_BUTTON_TEXT = "MAUL";
 let completedMap = [];
 let signatureBlockList = [];
 
@@ -104,6 +103,12 @@ function setupConfig() {
                 title: "Whether to show a confirmation dialog when clicking the trash button.",
                 type: "checkbox",
                 default: true,
+            },
+            "maul-button-text": {
+                label: "MAUL Button Text",
+                title: "The text to display on the MAUL buttons that are displayed on profiles",
+                type: "text",
+                default: "MAUL",
             },
             "maul-reauth-enable": {
                 label: "Enable MAUL Reauthenthication",
@@ -270,7 +275,7 @@ function loadSignatureBlockList() {
 function addMAULProfileButton(div, member_id) {
     createButton(
         "https://maul.edgegamers.com/index.php?page=home&id=" + member_id,
-        MAUL_BUTTON_TEXT,
+        GM_config.get("maul-button-text"),
         div
     );
 }
@@ -480,7 +485,7 @@ function tooltipMAULListener(event) {
     // If the user is banned, buttonGroupTwo will be null. Default to buttonGroupOne.
     createButton(
         "https://maul.edgegamers.com/index.php?page=home&id=" + id,
-        MAUL_BUTTON_TEXT,
+        GM_config.get("maul-button-text"),
         buttonGroupTwo ?? buttenGroupOne,
         "_blank",
         true
@@ -1019,7 +1024,7 @@ function blockSignatures() {
         // Members Page
         addMAULProfileButton(
             document.querySelector(".memberHeader-buttons"),
-            window.location.pathname.substring(9)
+            window.location.pathname.match(/\/members\/(\d+)/)[1]
         );
     else if (
         url.match(
