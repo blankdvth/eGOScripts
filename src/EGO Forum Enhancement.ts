@@ -1,6 +1,8 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement
-// @namespace    https://github.com/blankdvth/eGOScripts/blob/master/EGO%20Forum%20Enhancement.user.js
+// @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
+// @downloadURL  %DOWNLOAD_URL%
+// @updateURL    %DOWNLOAD_URL%
 // @version      3.5.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
@@ -14,18 +16,29 @@
 // @grant        GM_setValue
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
+/// <reference path="../config_types/index.d.ts" />
+
+export {}; // Prevents function conflicts (duplicate functions), as this is not a problem in user scripts
+
+// Declare TypeScript types
+interface Completed_Map {
+    regex: RegExp;
+    completedId: string;
+}
+
+declare var SteamIDConverter: any;
 
 "use strict";
-let completedMap = [];
-let signatureBlockList = [];
+let completedMap: Completed_Map[] = [];
+let signatureBlockList: string[] = [];
 
 /**
  * Creates a preset button
  * @param {string} text Button text
  * @param {function(HTMLElementEventMap)} callback Function to call on click
- * @returns {HTMLButtonElement} Button
+ * @returns {HTMLSpanElement} Button
  */
-function createPresetButton(text, callback) {
+function createPresetButton(text: string, callback: (event: MouseEvent) => void): HTMLSpanElement {
     var button = document.createElement("span");
     button.classList.add("button");
     button.innerHTML = text;
@@ -41,7 +54,7 @@ function createPresetButton(text, callback) {
  * @param {HTMLDivElement} div Div to add to
  * @param {function(HTMLElementEventMap)} func Function to call on click
  */
-function addPreset(name, div, func) {
+function addPreset(name: string, div: HTMLDivElement, func: (event: MouseEvent) => void) {
     div.appendChild(createPresetButton(name, func));
 }
 
@@ -53,7 +66,7 @@ function addPreset(name, div, func) {
  * @param {string} target Meta target for button
  * @param {boolean} append True to append, false to insert
  */
-function createButton(href, text, div, target = "_blank", append = false) {
+function createButton(href: string, text: string, div: HTMLDivElement, target = "_blank", append = false) {
     var button = document.createElement("a");
     button.href = href;
     button.target = target;
@@ -66,7 +79,7 @@ function createButton(href, text, div, target = "_blank", append = false) {
     // Add all elements to their respective parents
     button.appendChild(button_text);
     append
-        ? div.appendChild(button, div.lastElementChild)
+        ? div.appendChild(button)
         : div.insertBefore(button, div.lastElementChild);
 }
 
@@ -168,13 +181,13 @@ function setupConfig() {
             open: function (doc) {
                 GM_config.fields[
                     "move-to-completed-unchecked"
-                ].node.addEventListener(
+                ].node?.addEventListener(
                     "change",
                     function () {
                         var maps = GM_config.get(
                             "move-to-completed-unchecked",
                             true
-                        );
+                        ) as string;
                         if (
                             maps
                                 .split(/\r?\n/)
@@ -186,8 +199,8 @@ function setupConfig() {
                 );
                 GM_config.fields[
                     "signature-block-unchecked"
-                ].node.addEventListener("change", function () {
-                    var ids = GM_config.get("signature-block-unchecked", true);
+                ].node?.addEventListener("change", function () {
+                    var ids = GM_config.get("signature-block-unchecked", true) as string;
                     if (ids.split(/\r?\n/).every((id) => id.match(/^\d+$/)))
                         GM_config.set("signature-block", ids);
                 });
@@ -214,11 +227,7 @@ function setupConfig() {
 
     var profileMenu = document.querySelector("div.js-visitorMenuBody");
     if (profileMenu)
-        profileMenu.addEventListener(
-            "DOMNodeInserted",
-            handleProfileDropdown,
-            false
-        );
+        handleProfileDropdown.observe(profileMenu, { childList: true, subtree: true });
 }
 
 /**
@@ -227,8 +236,8 @@ function setupConfig() {
 function autoMAULAuth() {
     if (!GM_config.get("maul-reauth-enable")) return;
     var lastAuth = GM_getValue("lastMAULAuth", 0);
-    if (Date.now() - lastAuth < GM_config.get("maul-reauth")) return;
-    var authLink = document.querySelector('a.p-navEl-link[href^="/maul"]');
+    if (Date.now() - lastAuth < (GM_config.get("maul-reauth") as number)) return;
+    var authLink = document.querySelector('a.p-navEl-link[href^="/maul"]') as HTMLAnchorElement;
     if (!authLink) return;
     GM_xmlhttpRequest({
         method: "GET",
@@ -243,7 +252,7 @@ function autoMAULAuth() {
  * Loads completed threads map from config
  */
 function loadCompletedMap() {
-    var completedMapRaw = GM_config.get("move-to-completed");
+    var completedMapRaw = GM_config.get("move-to-completed") as string;
     completedMapRaw.split(/\r?\n/).forEach((map) => {
         var parts = map.split(";");
         if (parts.length != 2) {
@@ -261,7 +270,7 @@ function loadCompletedMap() {
  * Loads the signature block list IDs from config
  */
 function loadSignatureBlockList() {
-    var signatureBlockListRaw = GM_config.get("signature-block");
+    var signatureBlockListRaw = GM_config.get("signature-block") as string;
     signatureBlockListRaw.split(/\r?\n/).forEach((id) => {
         signatureBlockList.push(id);
     });
@@ -272,10 +281,10 @@ function loadSignatureBlockList() {
  * @param {HTMLDivElement} div Div to add to
  * @param {number} member_id Member's ID
  */
-function addMAULProfileButton(div, member_id) {
+function addMAULProfileButton(div: HTMLDivElement, member_id: number | string) {
     createButton(
         "https://maul.edgegamers.com/index.php?page=home&id=" + member_id,
-        GM_config.get("maul-button-text"),
+        GM_config.get("maul-button-text") as string,
         div
     );
 }
@@ -286,7 +295,7 @@ function addMAULProfileButton(div, member_id) {
  * @param {number} steam_id_64 Steam ID to check
  * TODO: Add support for other game IDs
  */
-function addBansButton(div, steam_id_64) {
+function addBansButton(div: HTMLDivElement, steam_id_64: number) {
     createButton(
         "https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=" +
             steam_id_64,
@@ -298,15 +307,15 @@ function addBansButton(div, steam_id_64) {
 /**
  * Adds a "Lookup ID" button to the div
  * @param {HTMLDivElement} div Div to add to
- * @param {number} post_title Steam ID to lookup
+ * @param {string} post_title Title of the post
  */
-function addLookupButton(div, post_title) {
+function addLookupButton(div: HTMLDivElement, post_title: string) {
     var steam_id_unknown = post_title.match(
         /^.* - .* - (?<game_id>[\w\d\/\[\]\-\.:]*)$/
     );
     if (steam_id_unknown)
         createButton(
-            "https://steamid.io/lookup/" + steam_id_unknown.groups.game_id,
+            "https://steamid.io/lookup/" + steam_id_unknown.groups!.game_id,
             "Lookup ID",
             div
         );
@@ -320,8 +329,8 @@ function addLookupButton(div, post_title) {
  * @param {string} id Movement ID, this is a parameter in the URL that is used to determine where to move in the movement handling page
  */
 function addMoveButton(
-    div,
-    url,
+    div: HTMLDivElement,
+    url: string,
     text = "Move to Completed",
     id = "to_completed"
 ) {
@@ -329,7 +338,7 @@ function addMoveButton(
     if (post_id)
         createButton(
             "https://www.edgegamers.com/threads/" +
-                post_id.groups.post_id +
+                post_id.groups!.post_id +
                 "/move?move_" +
                 id,
             text,
@@ -342,20 +351,21 @@ function addMoveButton(
  * Adds a button to move a thread to the trash, with a confirmation dialog (if enabled)
  * @param {HTMLDivElement} before Element to add button before
  */
-function addTrashButton(before) {
+function addTrashButton(before: HTMLDivElement) {
     var trashButton = document.createElement("a");
     var post_id = window.location.href.match(/threads\/(?<post_id>\d+)/);
+    if (!post_id) return;
     trashButton.innerHTML = "Trash thread";
     trashButton.style.cursor = "pointer";
     trashButton.onclick = function () {
         if (!GM_config.get("confirm-trash") || confirm("Trash this thread?"))
             window.location.href =
                 "https://www.edgegamers.com/threads/" +
-                post_id.groups.post_id +
+                post_id!.groups!.post_id +
                 "/move?move_685";
     };
     trashButton.classList.add("menu-linkRow");
-    before.parentElement.insertBefore(trashButton, before);
+    before.parentElement?.insertBefore(trashButton, before);
 }
 
 /**
@@ -365,7 +375,7 @@ function addTrashButton(before) {
  * @param {HTMLElement} nav Nav to add to
  * @returns void
  */
-function addNav(href, text, nav) {
+function addNav(href: string, text: string, nav: HTMLElement) {
     var li = document.createElement("li");
     var div = document.createElement("div");
     var a = document.createElement("a");
@@ -384,10 +394,10 @@ function addNav(href, text, nav) {
  * @param {HTMLElement} nav_list Site's navbar
  * @returns void
  */
-function addMAULNav(nav_list) {
+function addMAULNav(nav_list: HTMLUListElement) {
     if (GM_config.get("maul-dropdown")) {
         // MAUL DIV
-        var maul_div = nav_list.childNodes[11].childNodes[1];
+        var maul_div = nav_list.childNodes[11].childNodes[1] as HTMLElement;
         maul_div.setAttribute("data-has-children", "true");
         var dropdown = document.createElement("a");
 
@@ -436,7 +446,7 @@ function addMAULNav(nav_list) {
  * @param {string} top CSS Top Style
  * @param {string} str Text to display
  */
-function generateRedText(top, str = "Confidential") {
+function generateRedText(top: string, str: string = "Confidential") {
     var text = document.createElement("div");
     document.body.appendChild(text);
 
@@ -451,81 +461,60 @@ function generateRedText(top, str = "Confidential") {
     text.style.zIndex = "999";
 }
 
-/**
- * Listens to and appends MAUL button when user hovers over a profile
- * @param {HTMLElementEventMap} event
- * @returns void
- */
-function tooltipMAULListener(event) {
-    // Make sure this specific event is the node we want
-    if (
-        event.target.nodeName != "DIV" ||
-        !event.target.classList.contains("tooltip-content-inner")
-    )
-        return;
+const tooltipMAULListener = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+        if (!mutation.target) continue;
+        const target = mutation.target as HTMLElement;
+        if (target.nodeName !== "DIV" || !target.classList.contains("tooltip-content")) continue;
+        const buttonGroupOne = target.querySelector(".memberTooltip > .memberTooltip-actions > :nth-child(1)") as HTMLElement;
+        if (!buttonGroupOne)
+            continue;
+        buttonGroupOne.querySelector("a")?.href.match(/^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/);
+        const matches = buttonGroupOne.querySelector("a")?.href.match(/^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/);
+        // Make sure matches were found, exit gracefully if not.
+        if (!matches)
+            continue;
 
-    // The buttongroup containing the "Follow" button
-    var buttenGroupOne = event.target.querySelector(
-        ".memberTooltip > .memberTooltip-actions > :nth-child(1)"
-    );
-    buttenGroupOne
-        .querySelector("a")
-        .href.match(/^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/);
-    var matches = buttenGroupOne
-        .querySelector("a")
-        .href.match(/^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/);
-    // Make sure matches were found, exit gracefully if not.
-    if (!matches) return;
-
-    var id = matches[1];
-    // The buttongroup containing the "Start conversation" button
-    var buttonGroupTwo = event.target.querySelector(
-        ".memberTooltip > .memberTooltip-actions > :nth-child(2)"
-    );
-    // If the user is banned, buttonGroupTwo will be null. Default to buttonGroupOne.
-    createButton(
-        "https://maul.edgegamers.com/index.php?page=home&id=" + id,
-        GM_config.get("maul-button-text"),
-        buttonGroupTwo ?? buttenGroupOne,
-        "_blank",
-        true
-    );
-}
+        const id = matches[1];
+        // The buttongroup containing the "Start conversation" button
+        const buttonGroupTwo = target.querySelector(".memberTooltip > .memberTooltip-actions > :nth-child(2)");
+        // If the user is banned, buttonGroupTwo will be null. Default to buttonGroupOne.
+        createButton("https://maul.edgegamers.com/index.php?page=home&id=" + id, GM_config.get("maul-button-text") as string, (buttonGroupTwo ?? buttonGroupOne) as HTMLDivElement, "_blank", true);
+    }
+});
 
 /**
  * Moves and auto-fills out the moving prompt for a thread.
  * @param {string} url URL of the page
  * @returns void
  */
-function handleThreadMovePage(url) {
+function handleThreadMovePage(url: string) {
     var completedId = url.match(/\?move_(\d+)$/);
     if (!completedId) return;
     var form = document.forms[1];
-    var drop = form.querySelector("select.js-nodeList");
+    var drop = form.querySelector("select.js-nodeList") as HTMLSelectElement;
     var checkArr = Array.from(form.querySelectorAll(".inputChoices-choice"));
     var optArr = Array.from(drop.options);
     drop.selectedIndex = optArr.indexOf(
-        optArr.find((el) => el.value == completedId[1])
+        optArr.find((el) => el.value == completedId![1]) as HTMLOptionElement
     );
     if (drop.selectedIndex == -1) {
         throw "Could not find Completed forum";
     }
     try {
         // These buttons may not exist if you created the post yourself, this is just to prevent edge cases.
-        checkArr
+        (checkArr
             .find(
                 (el) =>
                     el.textContent ===
                     "Notify members watching the destination forum"
-            )
-            .querySelector("label > input").checked = false;
-        checkArr
+            )?.querySelector("label > input") as HTMLInputElement).checked = false;
+        (checkArr
             .find((el) =>
-                el.textContent.startsWith(
+                el.textContent?.startsWith(
                     "Notify thread starter of this action."
                 )
-            )
-            .querySelector("label > input").checked = false;
+            )?.querySelector("label > input") as HTMLInputElement).checked = false;
     } catch {}
     form.submit();
 }
@@ -535,7 +524,7 @@ function handleThreadMovePage(url) {
  * @param {string} str
  * @returns true if LE, false otherwise
  */
-function isLeadership(str) {
+function isLeadership(str: string) {
     return GM_config.get("confidential-reports")
         ? str.match(/(Leadership|Report a Player|Report Completed)/)
         : str.match(/Leadership/);
@@ -561,21 +550,21 @@ function handleForumsList() {
             );
 
             // If the last thread in the bin is unread, mark the forum as unread
-            if (thread.classList.contains("is-unread")) {
+            if (thread?.classList.contains("is-unread")) {
                 subforum.classList.add("node--unread");
             }
-            var userHref = thread.querySelector(
+            var userHref = thread?.querySelector(
                 ".structItem-cell--main > .structItem-minor > .structItem-parts > li > a"
-            ).outerHTML;
-            var threadTitle = thread.querySelector(
+            )?.outerHTML;
+            var threadTitle = thread?.querySelector(
                 ".structItem-cell--main > .structItem-title"
-            ).innerHTML; // Queryselector gets the parent and var references all children in case of prefixes
-            var date = thread.querySelector(
+            )?.innerHTML; // Queryselector gets the parent and var references all children in case of prefixes
+            var date = thread?.querySelector(
                 ".structItem-cell--latest > a > time"
-            ).outerHTML;
-            var icon = thread.querySelector(
+            )?.outerHTML;
+            var icon = thread?.querySelector(
                 ".structItem-cell--icon > .structItem-iconContainer > a"
-            ).outerHTML;
+            )?.outerHTML;
 
             subforum.innerHTML =
                 '<div class="node-body"> <span class="node-icon" aria-hidden="true"> <i class="fa--xf far fa-comments" aria-hidden="true"></i> </span> <div class="node-main js-nodeMain"> <h3 class="node-title"> <a href="/forums/685/" data-xf-init="element-tooltip" data-shortcut="node-description" id="js-XFUniqueId87">Moderator Trash Bin</a> </h3> <div class="node-description node-description--tooltip js-nodeDescTooltip">Planes, Trains, and Plantains</div> <div class="node-meta"> <div class="node-statsMeta"> <dl class="pairs pairs--inline"> <dt>Threads</dt> <dd>18.2K</dd> </dl> <dl class="pairs pairs--inline"> <dt>Messages</dt> <dd>69.6K</dd> </dl> </div> </div> <div class="node-subNodesFlat"> <span class="node-subNodesLabel">Sub-forums:</span> </div> </div> <div class="node-stats"> <dl class="pairs pairs--rows"> <dt>Threads</dt> <dd>18.1K</dd> </dl> <dl class="pairs pairs--rows"> <dt>Messages</dt> <dd>98.4K</dd> </dl> </div> <div class="node-extra"> <div class="node-extra-icon">' +
@@ -587,7 +576,7 @@ function handleForumsList() {
                 '</li> <li class="node-extra-user">' +
                 userHref +
                 "</li> </ul> </div> </div> </div>";
-            private_category.appendChild(subforum);
+            private_category?.appendChild(subforum);
         });
     });
 }
@@ -596,7 +585,7 @@ function handleForumsList() {
  * Handles generic/nonspecific threads
  */
 function handleGenericThread() {
-    var breadcrumbs = document.querySelector(".p-breadcrumbs").innerText;
+    var breadcrumbs = (document.querySelector(".p-breadcrumbs") as HTMLUListElement).innerText;
     if (
         breadcrumbs.match(
             /((Contest (a Ban|Completed))|(Report (a Player|Completed))) ?$/
@@ -613,7 +602,7 @@ function handleGenericThread() {
     for (var i = 0; i < completedMap.length; i++) {
         if (breadcrumbs.match(completedMap[i].regex)) {
             addMoveButton(
-                button_group,
+                button_group as HTMLDivElement,
                 window.location.href,
                 "Move to Completed",
                 completedMap[i].completedId
@@ -624,9 +613,9 @@ function handleGenericThread() {
 
     if (!breadcrumbs.match(/Moderator Trash Bin ?$/))
         addTrashButton(
-            button_group.querySelector(
+            button_group?.querySelector(
                 "div.menu > div.menu-content > a[href$=move]"
-            )
+            ) as HTMLDivElement
         );
 
     blockSignatures();
@@ -637,18 +626,18 @@ function handleGenericThread() {
  * TODO: Add support for other game IDs
  */
 function handleBanReportContest() {
-    var post_title = document.querySelector(".p-title").innerText;
-    var button_group = document.querySelector("div.buttonGroup");
+    var post_title = (document.querySelector(".p-title") as HTMLDivElement).innerText;
+    var button_group = document.querySelector("div.buttonGroup") as HTMLDivElement;
     addMAULProfileButton(
         button_group,
-        document.querySelector(".message-name > a.username").href.substring(35)
+        (document.querySelector(".message-name > a.username") as HTMLAnchorElement).href.substring(35)
     );
 
     var steam_id = post_title.match(
         /^.* - .* - ([^\d]*?(?<game_id>(\d+)|(STEAM_\d:\d:\d+)|(\[U:\d:\d+\])).*)$/
     );
     if (steam_id) {
-        var unparsed_id = steam_id.groups.game_id;
+        var unparsed_id = steam_id.groups!.game_id;
         try {
             var steam_id_64 = SteamIDConverter.isSteamID64(unparsed_id)
                 ? unparsed_id
@@ -656,121 +645,110 @@ function handleBanReportContest() {
             addBansButton(button_group, steam_id_64);
         } catch (TypeError) {
             if (GM_config.get("show-list-bans-unknown"))
-                addBansButton(button_group, post_title.split(" - ")[2]);
+                addBansButton(button_group, post_title.split(" - ")[2] as unknown as number);
             addLookupButton(button_group, post_title);
         }
     } else {
         if (GM_config.get("show-list-bans-unknown"))
-            addBansButton(button_group, post_title.split(" - ")[2]);
+            addBansButton(button_group, post_title.split(" - ")[2] as unknown as number);
         addLookupButton(button_group, post_title);
     }
 }
 
-/**
- * Adds "On Hold" templates to the menu and increases the size of the explain box.
- * @param {HTMLElementEventMap} event
- * @returns void
- */
-function handleOnHold(event) {
-    if (
-        event.target.nodeName != "DIV" ||
-        !event.target.classList.contains("overlay-container") ||
-        !event.target
-            .querySelector(".overlay > .overlay-title")
-            .innerText.includes("on hold")
-    )
-        return;
+const handleOnHold = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+        const target = mutation.target as HTMLElement;
+        if (target.nodeName !== "DIV" || !target.classList.contains("overlay-container") || !(target.querySelector(".overlay > .overlay-title") as HTMLDivElement).innerText.includes("on hold")) continue;
 
-    // Event may fire twice - add a mark the first time it fires, and ignore the rest
-    var mark = document.createElement("input");
-    mark.type = "hidden";
-    event.target.append(mark);
-    if (event.target.childNodes.length > 2) return;
+        // Event may fire twice - add a mark the first time it fires, and ignore the rest
+        var mark = document.createElement("input");
+        mark.type = "hidden";
+        target.append(mark);
+        if (target.childNodes.length > 2) return;
 
-    var body = event.target.querySelector(
-        ".overlay > .overlay-content > form > .block-container > .block-body"
-    );
-    var reason = body.querySelector(":nth-child(1) > dd > input");
-    var explain = body.querySelector(":nth-child(2) > dd > input");
-    // Convert the explain input into a textarea
-    explain.outerHTML = explain.outerHTML.replace("input", "textarea");
-    // Variable gets dereferenced - reference it again
-    explain = body.querySelector(":nth-child(2) > dd > textarea");
-    explain.style.height = "200px";
-    explain.setAttribute("maxlength", "1024");
-    var div = body.querySelector(
-        ":nth-child(4) > dd > div > .formSubmitRow-controls"
-    );
+        var body = target.querySelector(
+            ".overlay > .overlay-content > form > .block-container > .block-body"
+        ) as HTMLDivElement;
+        var reason = body.querySelector(":nth-child(1) > dd > input") as HTMLInputElement;
+        var explain = body.querySelector(":nth-child(2) > dd > input") as HTMLInputElement;
+        // Convert the explain input into a textarea
+        explain.outerHTML = explain.outerHTML.replace("input", "textarea");
+        // Variable gets dereferenced - reference it again
+        explain = body.querySelector(":nth-child(2) > dd > textarea")!;
+        explain.style.height = "200px";
+        explain.setAttribute("maxlength", "1024");
+        var div = body.querySelector(
+            ":nth-child(4) > dd > div > .formSubmitRow-controls"
+        ) as HTMLDivElement;
 
-    addPreset("No MAUL Account", div, function () {
-        reason.value = "MAUL account must be created and verified";
-        explain.value =
-            "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
-then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!";
-    });
+        addPreset("No MAUL Account", div, function () {
+            reason.value = "MAUL account must be created and verified";
+            explain.value =
+                "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
+    then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!";
+        });
 
-    addPreset("Steam Verification", div, function () {
-        reason.value = "Steam account must be verified in MAUL";
-        explain.value =
-            "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
-then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!";
-    });
+        addPreset("Steam Verification", div, function () {
+            reason.value = "Steam account must be verified in MAUL";
+            explain.value =
+                "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
+    then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!";
+        });
 
-    addPreset("Minecraft Verification", div, function () {
-        reason.value = "Minecraft ID must be verified in MAUL";
-        explain.value =
-            "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
-then under ID for Minecraft, input your Minecraft username, click Convert to Game ID, then log onto our Minecraft server. Once you've done so, please reply to this post!";
-    });
+        addPreset("Minecraft Verification", div, function () {
+            reason.value = "Minecraft ID must be verified in MAUL";
+            explain.value =
+                "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
+    then under ID for Minecraft, input your Minecraft username, click Convert to Game ID, then log onto our Minecraft server. Once you've done so, please reply to this post!";
+        });
 
-    addPreset("Battlefield Verification", div, function () {
-        reason.value = "Battlefield account must be verified in MAUL";
-        explain.value =
-            "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, in MAUL hover over the home link in the top left, \
-click help, then follow the instructions for Battlefield. Once you have done so, please reply to this post!";
-    });
+        addPreset("Battlefield Verification", div, function () {
+            reason.value = "Battlefield account must be verified in MAUL";
+            explain.value =
+                "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, in MAUL hover over the home link in the top left, \
+    click help, then follow the instructions for Battlefield. Once you have done so, please reply to this post!";
+        });
 
-    addPreset("Discord Verification", div, function () {
-        reason.value = "Discord ID must be verfied in MAUL";
-        explain.value =
-            'In order for you to fix this you\'ll need to click the MAUL link at the top of the page in the navbar, click "Edit Game IDs," \
-then click the sign in through Discord button under the discord ID section. Once you have done so, please reply to this post!';
-    });
+        addPreset("Discord Verification", div, function () {
+            reason.value = "Discord ID must be verfied in MAUL";
+            explain.value =
+                'In order for you to fix this you\'ll need to click the MAUL link at the top of the page in the navbar, click "Edit Game IDs," \
+    then click the sign in through Discord button under the discord ID section. Once you have done so, please reply to this post!';
+        });
 
-    addPreset("Inappropriate Name", div, function () {
-        reason.value = "Inappropriate Name";
-        explain.value =
-            "As for your name, Please click [URL='https://www.edgegamers.com/account/username']here[/URL] and fill out a name change request. \
-After you fill it out, please wait while your name change request is finalized and the change is completed. \
-Once it is done your application process will resume. If you want to have an understanding on our naming policy inside of eGO please click [URL='https://www.edgegamers.com/threads/378540/']here[/URL].";
-    });
-}
+        addPreset("Inappropriate Name", div, function () {
+            reason.value = "Inappropriate Name";
+            explain.value =
+                "As for your name, Please click [URL='https://www.edgegamers.com/account/username']here[/URL] and fill out a name change request. \
+    After you fill it out, please wait while your name change request is finalized and the change is completed. \
+    Once it is done your application process will resume. If you want to have an understanding on our naming policy inside of eGO please click [URL='https://www.edgegamers.com/threads/378540/']here[/URL].";
+        });
+    }
+});
 
-/**
- * Adds a button to open the script config in the user dropdown menu
- * @param {HTMLElementEventMap} event
- * @returns void
- */
-function handleProfileDropdown(event) {
-    if (
-        event.target.nodeName != "UL" ||
-        !event.target.classList.contains("tabPanes")
-    )
-        return;
-    var btn = document.createElement("a");
-    btn.classList.add("menu-linkRow");
-    btn.innerHTML = "Forum Enhancement Script Config";
-    btn.style.cursor = "pointer";
-    btn.onclick = function () {
-        GM_config.open();
-    };
-    event.target
-        .querySelector("li.is-active")
-        .insertBefore(
-            btn,
-            event.target.querySelector("li.is-active > a.menu-linkRow")
-        );
-}
+const handleProfileDropdown = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+        if (!mutation.target) continue;
+        const target = mutation.target as HTMLElement;
+        if (
+            target.nodeName != "UL" ||
+            !target.classList.contains("tabPanes")
+        )
+            return;
+        var btn = document.createElement("a");
+        btn.classList.add("menu-linkRow");
+        btn.innerHTML = "Forum Enhancement Script Config";
+        btn.style.cursor = "pointer";
+        btn.onclick = function () {
+            GM_config.open();
+        };
+        target
+            .querySelector("li.is-active")?.insertBefore(
+                btn,
+                target.querySelector("li.is-active > a.menu-linkRow")
+            );
+    }
+});
 
 /**
  * Adds Confidential banners on top and bottom of page
@@ -786,8 +764,8 @@ function handleLeadership() {
  * @returns void
  */
 function handleApplicationPage() {
-    var children = document.querySelector(".dataList-row > .dataList-cell > a")
-        .parentElement.children;
+    var children = (document.querySelector(".dataList-row > .dataList-cell > a") as HTMLAnchorElement).parentElement?.children;
+    if (!children) return;
     Array.from(children).forEach(function (button) {
         button.setAttribute("target", "_blank");
     });
@@ -799,28 +777,27 @@ function handleApplicationPage() {
  */
 function handleUserAwardPage() {
     if (document.querySelector("div.contentRow-snippet")) return; // This is our own award page, don't add the button
-    var username = document
-        .querySelector(".p-title-value")
-        .textContent.match(/^(.*)'s Awards$/)[1];
-    var blocks = document.querySelector(".blocks");
+    var username = (document.querySelector(".p-title-value") as HTMLHeadingElement).textContent?.match(/^(.*)'s Awards$/)![1];
+    var blocks = document.querySelector(".blocks") as HTMLDivElement;
     Array.from(blocks.children).forEach(function (block) {
-        var awardContainer = block.querySelector("div > .userAwardsContainer");
+        var awardContainer = block.querySelector("div > .userAwardsContainer") as HTMLOListElement;
         Array.from(awardContainer.children).forEach(function (award) {
-            var contentDiv = award.querySelector("div");
+            var contentDiv = award.querySelector("div") as HTMLDivElement;
             if (contentDiv.classList.contains("showAsDeleted")) {
                 return;
             }
 
             var awardImageClasses = contentDiv.querySelector(
                 ".contentRow-figure > span > img"
-            ).classList[1];
-            var awardId = awardImageClasses.substring(
+            )?.classList[1];
+            var awardId = awardImageClasses?.substring(
                 awardImageClasses.indexOf("--") + 2
             );
+            if (!awardId) return;
             createButton(
                 "/award-system/" + awardId + "/recent?username=" + username,
                 "Find Issue Reason",
-                contentDiv.querySelector(".contentRow-main"),
+                contentDiv.querySelector(".contentRow-main") as HTMLDivElement,
                 "_blank",
                 true
             );
@@ -836,7 +813,7 @@ function handleRecentAwardPage() {
     var url = window.location.href;
     var awardId = url.match(
         /^https:\/\/www\.edgegamers\.com\/award-system\/(\d+)\/recent\/?$/
-    )[1];
+    )![1];
     var form = document.createElement("form");
     form.setAttribute("action", "/award-system/" + awardId + "/recent");
     form.setAttribute("method", "get");
@@ -844,7 +821,7 @@ function handleRecentAwardPage() {
     form.innerHTML =
         '<div class="block-container"><h3 class="block-minorHeader">Find User Award</h3><div class="block-body block-row"><input type="text" class="input" data-xf-init="auto-complete" data-single="true" name="username" data-autosubmit="true" maxlength="50" placeholder="Name…" autocomplete="off"></div></div>';
     var pageWrapper = document.querySelector(".p-pageWrapper");
-    pageWrapper.insertBefore(form, pageWrapper.querySelector(".p-body"));
+    pageWrapper?.insertBefore(form, pageWrapper.querySelector(".p-body"));
 }
 
 /**
@@ -855,12 +832,12 @@ function handleFindAwardPage() {
     var url = window.location.href;
     var match = url.match(
         /^https:\/\/www\.edgegamers\.com\/award-system\/(\d+)\/recent\?username=(.+)$/
-    );
+    )!;
     var awardId = match[1];
     var userToFind = match[2];
     var maxPagesA = document.querySelector(".pageNav-main > :last-child > a");
     if (maxPagesA != null) {
-        var maxPages = maxPagesA.innerHTML;
+        var maxPages = parseInt(maxPagesA.innerHTML);
     } else {
         var maxPages = 1;
     }
@@ -875,14 +852,14 @@ function handleFindAwardPage() {
  * @param {string} userToFind the username to find
  * @param {string} awardId the id of the award to find
  */
-function parseAwardPage(pageNum, userToFind, awardId) {
+function parseAwardPage(pageNum: number, userToFind: string, awardId: string) {
     var pageHtml = document.createElement("html");
     fetch("/award-system/" + awardId + "/recent?page=" + pageNum).then(
         function (response) {
             response.text().then(
-                (result = function (text) {
+                (function (text) {
                     pageHtml.innerHTML = text;
-                    var bodyDiv = pageHtml.querySelector(".block-body");
+                    var bodyDiv = pageHtml.querySelector(".block-body")!;
                     Array.from(bodyDiv.children).forEach(function (div) {
                         if (div.getAttribute("data-author") == userToFind) {
                             window.location.href =
@@ -907,7 +884,7 @@ function handleAwardSpotlight() {
     var url = window.location.href;
     var userToFind = url.match(
         /^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?page=\d+\&spotlight=(.+)$/
-    )[1];
+    )![1];
     document
         .querySelectorAll('[data-author="' + userToFind + '"]')[0]
         .scrollIntoView({ behavior: "smooth" });
@@ -921,15 +898,16 @@ function blockSignatures() {
     document.querySelectorAll("div.message-inner").forEach((post) => {
         if (
             signatureBlockList.includes(
-                post.querySelector("a.username[data-user-id]").dataset.userId
+                (post.querySelector("a.username[data-user-id]") as HTMLAnchorElement).dataset.userId!
             )
         ) {
-            var signature = post.querySelector("aside.message-signature > div");
+            var signature = post.querySelector("aside.message-signature > div") as HTMLDivElement;
             // iframe's are added after page load, using a DOMNodeInserted event to work around that
-            function signatureEvent(event) {
-                if (!event.target.nodeName === "IFRAME") return;
-                event.target.dataset.src = event.target.src;
-                event.target.src = "about:blank";
+            function signatureEvent(event: Event) {
+                if (event.target == null) return;
+                if (!((event.target as HTMLElement).nodeName === "IFRAME")) return;
+                (event.target as HTMLIFrameElement).dataset.src = (event.target as HTMLIFrameElement).src;
+                (event.target as HTMLIFrameElement).src = "about:blank";
             }
             signature.addEventListener(
                 "DOMNodeInserted",
@@ -939,14 +917,14 @@ function blockSignatures() {
             // Set the SRC of content to nothing (data:,), empty string is not used as it may cause additional requests to the page
             // Issue originated back in 2009, unsure if it is still a problem but best to lean on the safe side.
             // Was fixed in FireFox a while ago, not sure about Chrome
-            signature
-                .querySelectorAll("img[src]")
+            (signature
+                .querySelectorAll("img[src]") as NodeListOf<HTMLImageElement>)
                 .forEach((img) => (img.src = "data:,"));
-            signature.querySelectorAll("video[poster]").forEach((video) => {
+            (signature.querySelectorAll("video[poster]") as NodeListOf<HTMLVideoElement>).forEach((video) => {
                 video.dataset.poster = video.poster;
                 video.poster = "data:,";
             });
-            signature.querySelectorAll("source[src]").forEach((source) => {
+            (signature.querySelectorAll("source[src]") as NodeListOf<HTMLSourceElement>).forEach((source) => {
                 source.dataset.src = source.src;
                 source.src = "data:,";
             });
@@ -955,27 +933,27 @@ function blockSignatures() {
             // Button to restore everything
             btn.onclick = function () {
                 signature.style.display = "";
-                signature
-                    .querySelectorAll("img[src][data-url]")
+                (signature
+                    .querySelectorAll("img[src][data-url]") as NodeListOf<HTMLImageElement>)
                     .forEach((img) => {
-                        img.src = img.dataset.url;
+                        img.src = img.dataset.url as string;
                     });
-                signature
-                    .querySelectorAll("iframe[src][data-src]")
+                (signature
+                    .querySelectorAll("iframe[src][data-src]") as NodeListOf<HTMLIFrameElement>)
                     .forEach((iframe) => {
-                        iframe.src = iframe.dataset.src;
+                        iframe.src = iframe.dataset.src as string;
                         delete iframe.dataset.src;
                     });
-                signature
-                    .querySelectorAll("video[poster][data-poster]")
+                (signature
+                    .querySelectorAll("video[poster][data-poster]") as NodeListOf<HTMLVideoElement>)
                     .forEach((video) => {
-                        video.poster = video.dataset.poster;
+                        video.poster = video.dataset.poster as string;
                         delete video.dataset.poster;
                     });
-                signature
-                    .querySelectorAll("source[src][data-src]")
+                (signature
+                    .querySelectorAll("source[src][data-src]") as NodeListOf<HTMLSourceElement>)
                     .forEach((source) => {
-                        source.src = source.dataset.src;
+                        source.src = source.dataset.src as string;
                         delete source.dataset.src;
                     });
                 signature.removeEventListener(
@@ -990,7 +968,7 @@ function blockSignatures() {
             btn.style.cursor = "pointer";
             btn.style.display = "block";
             btn.style.margin = "auto";
-            signature.parentElement.appendChild(btn);
+            signature.parentElement?.appendChild(btn);
         }
     });
 }
@@ -1004,15 +982,11 @@ function blockSignatures() {
     // Determine what page we're on
     var url = window.location.href;
 
-    document.body.addEventListener(
-        "DOMNodeInserted",
-        tooltipMAULListener,
-        false
-    );
-    document.body.addEventListener("DOMNodeInserted", handleOnHold, false);
+    tooltipMAULListener.observe(document.body, { childList: true, subtree: true });
+    handleOnHold.observe(document.body, { childList: true, subtree: true })
 
     // Add Helpful Links to the Navigation Bar
-    var nav_list = document.querySelector(".p-nav-list");
+    var nav_list = document.querySelector(".p-nav-list") as HTMLUListElement;
     addMAULNav(nav_list);
     // Reauthenthicate with MAUL if need be
     autoMAULAuth();
@@ -1023,8 +997,8 @@ function blockSignatures() {
     if (url.match(/^https:\/\/www\.edgegamers\.com\/members\/\d+/))
         // Members Page
         addMAULProfileButton(
-            document.querySelector(".memberHeader-buttons"),
-            window.location.pathname.match(/\/members\/(\d+)/)[1]
+            document.querySelector(".memberHeader-buttons") as HTMLDivElement,
+            window.location.pathname.match(/\/members\/(\d+)/)![1]
         );
     else if (
         url.match(

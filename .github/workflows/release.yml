@@ -1,0 +1,54 @@
+name: Release
+on:
+  push:
+    branches:
+      - '*.*.*'
+      - '*.*.*-beta'
+      - '*.*.*-alpha'
+      - '*.*.*-draft'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Modules
+      run: npm install
+    - name: Compile TypeScript
+      run: npm run build
+    - name: Minify JavaScript
+      run: |
+        for file in dist/*.js do
+          npx uglifyjs "$file" -o "${file%.js}.js --compress --mangle toplevel --mangle-props "keep_quoted" --comments "/\s(==\/?UserScript==|@.+$)/"
+        done
+    - name: Move Files
+      run: |
+        for file in dist/*.js do
+          mv "$file" .
+        done
+    - name: Rename Files to UserScript
+      run: |
+        for file in *.js do
+          mv "$file" "${file%.js}.user.js"
+        done
+    - name: Apply Environment Variables
+      run: |
+        for file in *.user.js do
+          sed -i "s/%DOWNLOAD_URL%/https:\/\/github.com\/$GITHUB_ACTION_REPOSITORY\/releases\/latest\/download\/$file/g" "$file"
+        done
+    - name: Create Release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: "*.user.js"
+        tag: ${{ env.RELEASE_VERSION }}
+        makeLatest: true
+        allowUpdates: true
+        generateReleaseNotes: true
+        prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
+        draft: ${{ contains(github.ref_name, 'draft') }}
+
+env:
+  RELEASE_VERSION: ${{ github.ref_name }}

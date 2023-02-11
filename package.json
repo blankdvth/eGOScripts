@@ -1,0 +1,21 @@
+{
+    "name": "egoscripts",
+    "version": "%RELEASE_VERSION%",
+    "description": "Various userscripts to improve the experience of the eGO (and related) sites.",
+    "author": "blank_dvth",
+    "license": "GPL-3.0",
+    "homepage": "https://github.com/blankdvth/eGOScripts#readme",
+    "bugs": {
+        "url": "https://github.com/blankdvth/eGOScripts/issues"
+    },
+    "scripts": {
+        "build": "tsc",
+        "prettify": "prettier --tab-width 4 --write \"src/**/*.ts\""
+    },
+    "devDependencies": {
+        "@types/tampermonkey": "^4.0.10",
+        "prettier": "^2.8.4",
+        "typescript": "^4.9.4",
+        "uglify-js": "^3.17.4"
+    }
+}

@@ -1,6 +1,8 @@
 // ==UserScript==
 // @name         GameME Space Render
-// @namespace    https://github.com/blankdvth/eGOScripts/blob/master/GameME%20Space%20Render.user.js
+// @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/GameME%20Space%20Render.ts
+// @downloadURL  %DOWNLOAD_URL%
+// @updateURL    %DOWNLOAD_URL%
 // @version      1.0.1
 // @description  Renders additional whitespace between words in GameME Chat History (and fixes console spam)
 // @author       blank_dvth
@@ -8,6 +10,12 @@
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=gameme.com
 // @grant        none
 // ==/UserScript==
+
+
+interface Window {
+    Tip: () => void;
+    UnTip: () => void;
+}
 
 // The Global Chat page on GameME calls these two functions non-stop when hovering over messages and spams console. I got annoyed...
 window.Tip = function () {};
