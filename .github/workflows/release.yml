@@ -21,7 +21,7 @@ jobs:
       run: npm run build
     - name: Move Files
       run: |
-        for file in dist/*.js do
+        for file in dist/*.js; do
           mv "$file" .
         done
     - name: Rename Files to UserScript
@@ -31,7 +31,7 @@ jobs:
         done
     - name: Apply Environment Variables
       run: |
-        for file in *.user.js do
+        for file in *.user.js; do
           sed -i "s/%DOWNLOAD_URL%/https:\/\/github.com\/$GITHUB_ACTION_REPOSITORY\/releases\/latest\/download\/$file/g" "$file"
         done
     - name: Remove defineProperty
@@ -39,8 +39,8 @@ jobs:
         sed -i '/Object.defineProperty(exports, "__esModule", { value: true });/d' *.user.js
     - name: Minify JavaScript
       run: |
-        for file in *.user.js do
-          npx uglifyjs "$file" -o "${file%.user.js}.user.js --compress --mangle toplevel --mangle-props "keep_quoted" --comments "/\s(==\/?UserScript==|@.+$)/"
+        for file in *.user.js; do
+          npx uglifyjs "$file" -o "${file%.user.js}.user.js" --compress --mangle toplevel --mangle-props "keep_quoted" --comments "/\s(==\/?UserScript==|@.+$)/"
         done
     - name: Create Release
       uses: ncipollo/release-action@v1
