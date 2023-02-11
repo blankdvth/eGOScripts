@@ -34,9 +34,10 @@ jobs:
         for file in *.user.js; do
           sed -i "s/%DOWNLOAD_URL%/https:\/\/github.com\/$GITHUB_ACTION_REPOSITORY\/releases\/latest\/download\/$file/g" "$file"
         done
-    - name: Remove defineProperty
-      run: |
+    - name: Remove Broken Lines
+      run: | # Object.defineProperty is left over from export = {} (to prevent function overlap errors). ("use strict") is duplicated for some reason and breaks UglifyJS (only when Object.defineProperty is removed for some reason).
         sed -i '/Object.defineProperty(exports, "__esModule", { value: true });/d' *.user.js
+        sed -i '("use strict");/d' *.user.js
     - name: Minify JavaScript
       run: |
         for file in *.user.js; do
