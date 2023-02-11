@@ -47,8 +47,10 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         artifacts: "*.user.js"
-        name: ${{ env.RELEASE_VERSION }}
+        name: Batch Release ${{ env.RELEASE_VERSION }}
         tag: ${{ env.RELEASE_VERSION }}-${{ github.sha }}
+        body: |
+          This is an automated release of the latest versions of the scripts in this repository. Each script has it's own version number (seen in the Script's @version tag in the header). The release number shown is this release is just a batch number for the entire repository. It has nothing to do with the individual scripts.
         makeLatest: true
         allowUpdates: true
         generateReleaseNotes: true
