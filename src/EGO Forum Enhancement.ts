@@ -31,8 +31,8 @@ interface Completed_Map {
 declare var SteamIDConverter: any;
 
 ("use strict");
-let completedMap: Completed_Map[] = [];
-let signatureBlockList: string[] = [];
+const completedMap: Completed_Map[] = [];
+const signatureBlockList: string[] = [];
 
 /**
  * Creates a preset button
@@ -44,7 +44,7 @@ function createPresetButton(
     text: string,
     callback: (event: MouseEvent) => void
 ): HTMLSpanElement {
-    var button = document.createElement("span");
+    const button = document.createElement("span");
     button.classList.add("button");
     button.innerHTML = text;
     button.onclick = callback;
@@ -82,12 +82,12 @@ function createButton(
     target = "_blank",
     append = false
 ) {
-    var button = document.createElement("a");
+    const button = document.createElement("a");
     button.href = href;
     button.target = target;
     button.classList.add("button--link", "button");
 
-    var button_text = document.createElement("span"); // Create button text
+    const button_text = document.createElement("span"); // Create button text
     button_text.classList.add("button-text");
     button_text.innerHTML = text;
 
@@ -199,7 +199,7 @@ function setupConfig() {
                 ].node?.addEventListener(
                     "change",
                     function () {
-                        var maps = GM_config.get(
+                        const maps = GM_config.get(
                             "move-to-completed-unchecked",
                             true
                         ) as string;
@@ -215,7 +215,7 @@ function setupConfig() {
                 GM_config.fields[
                     "signature-block-unchecked"
                 ].node?.addEventListener("change", function () {
-                    var ids = GM_config.get(
+                    const ids = GM_config.get(
                         "signature-block-unchecked",
                         true
                     ) as string;
@@ -243,7 +243,7 @@ function setupConfig() {
         css: "textarea {width: 100%; height: 160px; resize: vertical;}",
     });
 
-    var profileMenu = document.querySelector("div.js-visitorMenuBody");
+    const profileMenu = document.querySelector("div.js-visitorMenuBody");
     if (profileMenu)
         profileMenu.addEventListener(
             "DOMNodeInserted",
@@ -257,10 +257,10 @@ function setupConfig() {
  */
 function autoMAULAuth() {
     if (!GM_config.get("maul-reauth-enable")) return;
-    var lastAuth = GM_getValue("lastMAULAuth", 0);
+    const lastAuth = GM_getValue("lastMAULAuth", 0);
     if (Date.now() - lastAuth < (GM_config.get("maul-reauth") as number))
         return;
-    var authLink = document.querySelector(
+    const authLink = document.querySelector(
         'a.p-navEl-link[href^="/maul"]'
     ) as HTMLAnchorElement;
     if (!authLink) return;
@@ -277,9 +277,9 @@ function autoMAULAuth() {
  * Loads completed threads map from config
  */
 function loadCompletedMap() {
-    var completedMapRaw = GM_config.get("move-to-completed") as string;
+    const completedMapRaw = GM_config.get("move-to-completed") as string;
     completedMapRaw.split(/\r?\n/).forEach((map) => {
-        var parts = map.split(";");
+        const parts = map.split(";");
         if (parts.length != 2) {
             alert("Invalid map: " + map);
             return;
@@ -295,7 +295,7 @@ function loadCompletedMap() {
  * Loads the signature block list IDs from config
  */
 function loadSignatureBlockList() {
-    var signatureBlockListRaw = GM_config.get("signature-block") as string;
+    const signatureBlockListRaw = GM_config.get("signature-block") as string;
     signatureBlockListRaw.split(/\r?\n/).forEach((id) => {
         signatureBlockList.push(id);
     });
@@ -335,7 +335,7 @@ function addBansButton(div: HTMLDivElement, steam_id_64: number) {
  * @param {string} post_title Title of the post
  */
 function addLookupButton(div: HTMLDivElement, post_title: string) {
-    var steam_id_unknown = post_title.match(
+    const steam_id_unknown = post_title.match(
         /^.* - .* - (?<game_id>[\w\d\/\[\]\-\.:]*)$/
     );
     if (steam_id_unknown)
@@ -359,7 +359,7 @@ function addMoveButton(
     text = "Move to Completed",
     id = "to_completed"
 ) {
-    var post_id = url.match(/threads\/(?<post_id>\d+)/);
+    const post_id = url.match(/threads\/(?<post_id>\d+)/);
     if (post_id)
         createButton(
             "https://www.edgegamers.com/threads/" +
@@ -377,8 +377,8 @@ function addMoveButton(
  * @param {HTMLDivElement} before Element to add button before
  */
 function addTrashButton(before: HTMLDivElement) {
-    var trashButton = document.createElement("a");
-    var post_id = window.location.href.match(/threads\/(?<post_id>\d+)/);
+    const trashButton = document.createElement("a");
+    const post_id = window.location.href.match(/threads\/(?<post_id>\d+)/);
     if (!post_id) return;
     trashButton.innerHTML = "Trash thread";
     trashButton.style.cursor = "pointer";
@@ -401,9 +401,9 @@ function addTrashButton(before: HTMLDivElement) {
  * @returns void
  */
 function addNav(href: string, text: string, nav: HTMLElement) {
-    var li = document.createElement("li");
-    var div = document.createElement("div");
-    var a = document.createElement("a");
+    const li = document.createElement("li");
+    const div = document.createElement("div");
+    const a = document.createElement("a");
     a.href = href;
     a.innerHTML = text;
     a.target = "_blank";
@@ -422,9 +422,9 @@ function addNav(href: string, text: string, nav: HTMLElement) {
 function addMAULNav(nav_list: HTMLUListElement) {
     if (GM_config.get("maul-dropdown")) {
         // MAUL DIV
-        var maul_div = nav_list.childNodes[11].childNodes[1] as HTMLElement;
+        const maul_div = nav_list.childNodes[11].childNodes[1] as HTMLElement;
         maul_div.setAttribute("data-has-children", "true");
-        var dropdown = document.createElement("a");
+        const dropdown = document.createElement("a");
 
         dropdown.setAttribute("data-xf-key", "3");
         dropdown.setAttribute("data-xf-click", "menu");
@@ -438,12 +438,12 @@ function addMAULNav(nav_list: HTMLUListElement) {
 
         maul_div.append(dropdown);
 
-        var maul_dropdown = document.createElement("div");
+        const maul_dropdown = document.createElement("div");
         maul_dropdown.setAttribute("class", "menu menu--structural");
         maul_dropdown.setAttribute("data-menu", "menu");
         maul_dropdown.setAttribute("aria-hidden", "true");
 
-        var dropdownhtml =
+        const dropdownhtml =
             '<div class="menu-content"> \
         <a href="https://maul.edgegamers.com/index.php?page=bans" target="_blank" class="menu-linkRow u-indentDepth0 js-offCanvasCopy " data-nav-id="maulBans">Bans</a> \
         <a href="https://maul.edgegamers.com/index.php?page=users" target="_blank" class="menu-linkRow u-indentDepth0 js-offCanvasCopy " data-nav-id="newProfilePosts">Users</a> \
@@ -472,7 +472,7 @@ function addMAULNav(nav_list: HTMLUListElement) {
  * @param {string} str Text to display
  */
 function generateRedText(top: string, str: string = "Confidential") {
-    var text = document.createElement("div");
+    const text = document.createElement("div");
     document.body.appendChild(text);
 
     text.innerHTML = str;
@@ -502,7 +502,7 @@ function tooltipMAULListener(event: Event) {
         return;
 
     // The buttongroup containing the "Follow" button
-    var buttenGroupOne = target.querySelector(
+    const buttenGroupOne = target.querySelector(
         ".memberTooltip > .memberTooltip-actions > :nth-child(1)"
     ) as HTMLDivElement;
     buttenGroupOne
@@ -510,7 +510,7 @@ function tooltipMAULListener(event: Event) {
         ?.href.match(
             /^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/
         );
-    var matches = buttenGroupOne
+    const matches = buttenGroupOne
         .querySelector("a")
         ?.href.match(
             /^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/
@@ -518,9 +518,9 @@ function tooltipMAULListener(event: Event) {
     // Make sure matches were found, exit gracefully if not.
     if (!matches) return;
 
-    var id = matches[1];
+    const id = matches[1];
     // The buttongroup containing the "Start conversation" button
-    var buttonGroupTwo = target.querySelector(
+    const buttonGroupTwo = target.querySelector(
         ".memberTooltip > .memberTooltip-actions > :nth-child(2)"
     ) as HTMLDivElement;
     // If the user is banned, buttonGroupTwo will be null. Default to buttonGroupOne.
@@ -539,12 +539,12 @@ function tooltipMAULListener(event: Event) {
  * @returns void
  */
 function handleThreadMovePage(url: string) {
-    var completedId = url.match(/\?move_(\d+)$/);
+    const completedId = url.match(/\?move_(\d+)$/);
     if (!completedId) return;
-    var form = document.forms[1];
-    var drop = form.querySelector("select.js-nodeList") as HTMLSelectElement;
-    var checkArr = Array.from(form.querySelectorAll(".inputChoices-choice"));
-    var optArr = Array.from(drop.options);
+    const form = document.forms[1];
+    const drop = form.querySelector("select.js-nodeList") as HTMLSelectElement;
+    const checkArr = Array.from(form.querySelectorAll(".inputChoices-choice"));
+    const optArr = Array.from(drop.options);
     drop.selectedIndex = optArr.indexOf(
         optArr.find((el) => el.value == completedId![1]) as HTMLOptionElement
     );
@@ -590,18 +590,18 @@ function isLeadership(str: string) {
  * Adds misc. threads to main thread list
  */
 function handleForumsList() {
-    var private_category = document.querySelector(
+    const private_category = document.querySelector(
         ".block--category1240 > .block-container > .block-body"
     );
 
-    var subforum = document.createElement("div");
+    const subforum = document.createElement("div");
     subforum.classList.add("node", "node--forum", "node--id685");
 
-    var forumHtml = document.createElement("html");
+    const forumHtml = document.createElement("html");
     fetch("https://www.edgegamers.com/forums/685/").then(function (response) {
         response.text().then(function (text) {
             forumHtml.innerHTML = text;
-            var thread = forumHtml.querySelector(
+            const thread = forumHtml.querySelector(
                 ".js-threadList > :first-child"
             );
 
@@ -609,16 +609,16 @@ function handleForumsList() {
             if (thread?.classList.contains("is-unread")) {
                 subforum.classList.add("node--unread");
             }
-            var userHref = thread?.querySelector(
+            const userHref = thread?.querySelector(
                 ".structItem-cell--main > .structItem-minor > .structItem-parts > li > a"
             )?.outerHTML;
-            var threadTitle = thread?.querySelector(
+            const threadTitle = thread?.querySelector(
                 ".structItem-cell--main > .structItem-title"
-            )?.innerHTML; // Queryselector gets the parent and var references all children in case of prefixes
-            var date = thread?.querySelector(
+            )?.innerHTML; // Queryselector gets the parent and const references all children in case of prefixes
+            const date = thread?.querySelector(
                 ".structItem-cell--latest > a > time"
             )?.outerHTML;
-            var icon = thread?.querySelector(
+            const icon = thread?.querySelector(
                 ".structItem-cell--icon > .structItem-iconContainer > a"
             )?.outerHTML;
 
@@ -641,7 +641,7 @@ function handleForumsList() {
  * Handles generic/nonspecific threads
  */
 function handleGenericThread() {
-    var breadcrumbs = (
+    const breadcrumbs = (
         document.querySelector(".p-breadcrumbs") as HTMLUListElement
     ).innerText;
     if (
@@ -656,7 +656,7 @@ function handleGenericThread() {
         // LE Forums
         handleLeadership();
 
-    var button_group = document.querySelector("div.buttonGroup");
+    const button_group = document.querySelector("div.buttonGroup");
     for (var i = 0; i < completedMap.length; i++) {
         if (breadcrumbs.match(completedMap[i].regex)) {
             addMoveButton(
@@ -684,9 +684,9 @@ function handleGenericThread() {
  * TODO: Add support for other game IDs
  */
 function handleBanReportContest() {
-    var post_title = (document.querySelector(".p-title") as HTMLDivElement)
+    const post_title = (document.querySelector(".p-title") as HTMLDivElement)
         .innerText;
-    var button_group = document.querySelector(
+    const button_group = document.querySelector(
         "div.buttonGroup"
     ) as HTMLDivElement;
     addMAULProfileButton(
@@ -698,13 +698,13 @@ function handleBanReportContest() {
         ).href.substring(35)
     );
 
-    var steam_id = post_title.match(
+    const steam_id = post_title.match(
         /^.* - .* - ([^\d]*?(?<game_id>(\d+)|(STEAM_\d:\d:\d+)|(\[U:\d:\d+\])).*)$/
     );
     if (steam_id) {
-        var unparsed_id = steam_id.groups!.game_id;
+        const unparsed_id = steam_id.groups!.game_id;
         try {
-            var steam_id_64 = SteamIDConverter.isSteamID64(unparsed_id)
+            const steam_id_64 = SteamIDConverter.isSteamID64(unparsed_id)
                 ? unparsed_id
                 : SteamIDConverter.toSteamID64(unparsed_id);
             addBansButton(button_group, steam_id_64);
@@ -744,15 +744,15 @@ function handleOnHold(event: Event) {
         return;
 
     // Event may fire twice - add a mark the first time it fires, and ignore the rest
-    var mark = document.createElement("input");
+    const mark = document.createElement("input");
     mark.type = "hidden";
     target.append(mark);
     if (target.childNodes.length > 2) return;
 
-    var body = target.querySelector(
+    const body = target.querySelector(
         ".overlay > .overlay-content > form > .block-container > .block-body"
     ) as HTMLDivElement;
-    var reason = body.querySelector(
+    const reason = body.querySelector(
         ":nth-child(1) > dd > input"
     ) as HTMLInputElement;
     var explain = body.querySelector(
@@ -764,7 +764,7 @@ function handleOnHold(event: Event) {
     explain = body.querySelector(":nth-child(2) > dd > textarea")!;
     explain.style.height = "200px";
     explain.setAttribute("maxlength", "1024");
-    var div = body.querySelector(
+    const div = body.querySelector(
         ":nth-child(4) > dd > div > .formSubmitRow-controls"
     ) as HTMLDivElement;
 
@@ -822,7 +822,7 @@ function handleProfileDropdown(event: Event) {
     const target = event.target as HTMLElement;
     if (target.nodeName != "UL" || !target.classList.contains("tabPanes"))
         return;
-    var btn = document.createElement("a");
+    const btn = document.createElement("a");
     btn.classList.add("menu-linkRow");
     btn.innerHTML = "Forum Enhancement Script Config";
     btn.style.cursor = "pointer";
@@ -851,7 +851,7 @@ function handleLeadership() {
  * @returns void
  */
 function handleApplicationPage() {
-    var children = (
+    const children = (
         document.querySelector(
             ".dataList-row > .dataList-cell > a"
         ) as HTMLAnchorElement
@@ -868,24 +868,24 @@ function handleApplicationPage() {
  */
 function handleUserAwardPage() {
     if (document.querySelector("div.contentRow-snippet")) return; // This is our own award page, don't add the button
-    var username = (
+    const username = (
         document.querySelector(".p-title-value") as HTMLHeadingElement
     ).textContent?.match(/^(.*)'s Awards$/)![1];
-    var blocks = document.querySelector(".blocks") as HTMLDivElement;
+    const blocks = document.querySelector(".blocks") as HTMLDivElement;
     Array.from(blocks.children).forEach(function (block) {
-        var awardContainer = block.querySelector(
+        const awardContainer = block.querySelector(
             "div > .userAwardsContainer"
         ) as HTMLOListElement;
         Array.from(awardContainer.children).forEach(function (award) {
-            var contentDiv = award.querySelector("div") as HTMLDivElement;
+            const contentDiv = award.querySelector("div") as HTMLDivElement;
             if (contentDiv.classList.contains("showAsDeleted")) {
                 return;
             }
 
-            var awardImageClasses = contentDiv.querySelector(
+            const awardImageClasses = contentDiv.querySelector(
                 ".contentRow-figure > span > img"
             )?.classList[1];
-            var awardId = awardImageClasses?.substring(
+            const awardId = awardImageClasses?.substring(
                 awardImageClasses.indexOf("--") + 2
             );
             if (!awardId) return;
@@ -905,17 +905,17 @@ function handleUserAwardPage() {
  * @returns void
  */
 function handleRecentAwardPage() {
-    var url = window.location.href;
-    var awardId = url.match(
+    const url = window.location.href;
+    const awardId = url.match(
         /^https:\/\/www\.edgegamers\.com\/award-system\/(\d+)\/recent\/?$/
     )![1];
-    var form = document.createElement("form");
+    const form = document.createElement("form");
     form.setAttribute("action", "/award-system/" + awardId + "/recent");
     form.setAttribute("method", "get");
     form.setAttribute("class", "block");
     form.innerHTML =
         '<div class="block-container"><h3 class="block-minorHeader">Find User Award</h3><div class="block-body block-row"><input type="text" class="input" data-xf-init="auto-complete" data-single="true" name="username" data-autosubmit="true" maxlength="50" placeholder="Name…" autocomplete="off"></div></div>';
-    var pageWrapper = document.querySelector(".p-pageWrapper");
+    const pageWrapper = document.querySelector(".p-pageWrapper");
     pageWrapper?.insertBefore(form, pageWrapper.querySelector(".p-body"));
 }
 
@@ -924,13 +924,13 @@ function handleRecentAwardPage() {
  * @returns void
  */
 function handleFindAwardPage() {
-    var url = window.location.href;
-    var match = url.match(
+    const url = window.location.href;
+    const match = url.match(
         /^https:\/\/www\.edgegamers\.com\/award-system\/(\d+)\/recent\?username=(.+)$/
     )!;
-    var awardId = match[1];
-    var userToFind = match[2];
-    var maxPagesA = document.querySelector(".pageNav-main > :last-child > a");
+    const awardId = match[1];
+    const userToFind = match[2];
+    const maxPagesA = document.querySelector(".pageNav-main > :last-child > a");
     if (maxPagesA != null) {
         var maxPages = parseInt(maxPagesA.innerHTML);
     } else {
@@ -948,12 +948,12 @@ function handleFindAwardPage() {
  * @param {string} awardId the id of the award to find
  */
 function parseAwardPage(pageNum: number, userToFind: string, awardId: string) {
-    var pageHtml = document.createElement("html");
+    const pageHtml = document.createElement("html");
     fetch("/award-system/" + awardId + "/recent?page=" + pageNum).then(
         function (response) {
             response.text().then(function (text) {
                 pageHtml.innerHTML = text;
-                var bodyDiv = pageHtml.querySelector(".block-body")!;
+                const bodyDiv = pageHtml.querySelector(".block-body")!;
                 Array.from(bodyDiv.children).forEach(function (div) {
                     if (div.getAttribute("data-author") == userToFind) {
                         window.location.href =
@@ -974,8 +974,8 @@ function parseAwardPage(pageNum: number, userToFind: string, awardId: string) {
  * Handles Award Spotlight pages, scrolling to the spotlight
  */
 function handleAwardSpotlight() {
-    var url = window.location.href;
-    var userToFind = url.match(
+    const url = window.location.href;
+    const userToFind = url.match(
         /^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?page=\d+\&spotlight=(.+)$/
     )![1];
     document
@@ -995,7 +995,7 @@ function blockSignatures() {
                 | undefined
         )?.dataset.userId;
         if (userId != null && signatureBlockList.includes(userId)) {
-            var signature = post.querySelector(
+            const signature = post.querySelector(
                 "aside.message-signature > div"
             ) as HTMLDivElement;
             // iframe's are added after page load, using a DOMNodeInserted event to work around that
@@ -1038,7 +1038,7 @@ function blockSignatures() {
                 source.src = "data:,";
             });
             signature.style.display = "none";
-            var btn = document.createElement("button");
+            const btn = document.createElement("button");
             // Button to restore everything
             btn.onclick = function () {
                 signature.style.display = "";
@@ -1097,7 +1097,7 @@ function blockSignatures() {
     loadSignatureBlockList();
 
     // Determine what page we're on
-    var url = window.location.href;
+    const url = window.location.href;
 
     document.body.addEventListener(
         "DOMNodeInserted",
@@ -1107,7 +1107,7 @@ function blockSignatures() {
     document.body.addEventListener("DOMNodeInserted", handleOnHold, false);
 
     // Add Helpful Links to the Navigation Bar
-    var nav_list = document.querySelector(".p-nav-list") as HTMLUListElement;
+    const nav_list = document.querySelector(".p-nav-list") as HTMLUListElement;
     addMAULNav(nav_list);
     // Reauthenthicate with MAUL if need be
     autoMAULAuth();

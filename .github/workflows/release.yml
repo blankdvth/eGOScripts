@@ -19,11 +19,6 @@ jobs:
       run: npm install
     - name: Compile TypeScript
       run: npm run build
-    - name: Minify JavaScript
-      run: |
-        for file in dist/*.js do
-          npx uglifyjs "$file" -o "${file%.js}.js --compress --mangle toplevel --mangle-props "keep_quoted" --comments "/\s(==\/?UserScript==|@.+$)/"
-        done
     - name: Move Files
       run: |
         for file in dist/*.js do
@@ -42,6 +37,11 @@ jobs:
     - name: Remove defineProperty
       run: |
         sed -i '/Object.defineProperty(exports, "__esModule", { value: true });/d' *.user.js
+    - name: Minify JavaScript
+      run: |
+        for file in *.user.js do
+          npx uglifyjs "$file" -o "${file%.user.js}.user.js --compress --mangle toplevel --mangle-props "keep_quoted" --comments "/\s(==\/?UserScript==|@.+$)/"
+        done
     - name: Create Release
       uses: ncipollo/release-action@v1
       with:
