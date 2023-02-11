@@ -245,10 +245,11 @@ function setupConfig() {
 
     var profileMenu = document.querySelector("div.js-visitorMenuBody");
     if (profileMenu)
-        handleProfileDropdown.observe(profileMenu, {
-            childList: true,
-            subtree: true,
-        });
+        profileMenu.addEventListener(
+            "DOMNodeInserted",
+            handleProfileDropdown,
+            false
+        );
 }
 
 /**
@@ -485,47 +486,52 @@ function generateRedText(top: string, str: string = "Confidential") {
     text.style.zIndex = "999";
 }
 
-const tooltipMAULListener = new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-        if (!mutation.target) continue;
-        const target = mutation.target as HTMLElement;
-        if (
-            target.nodeName !== "DIV" ||
-            !target.classList.contains("tooltip-content")
-        )
-            continue;
-        const buttonGroupOne = target.querySelector(
-            ".memberTooltip > .memberTooltip-actions > :nth-child(1)"
-        ) as HTMLElement;
-        if (!buttonGroupOne) continue;
-        buttonGroupOne
-            .querySelector("a")
-            ?.href.match(
-                /^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/
-            );
-        const matches = buttonGroupOne
-            .querySelector("a")
-            ?.href.match(
-                /^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/
-            );
-        // Make sure matches were found, exit gracefully if not.
-        if (!matches) continue;
+/**
+ * Listens to and appends MAUL button when user hovers over a profile
+ * @param {HTMLElementEventMap} event
+ * @returns void
+ */
+function tooltipMAULListener(event: Event) {
+    // Make sure this specific event is the node we want
+    if (event.target == null) return;
+    const target = event.target as HTMLElement;
+    if (
+        target.nodeName != "DIV" ||
+        !target.classList.contains("tooltip-content-inner")
+    )
+        return;
 
-        const id = matches[1];
-        // The buttongroup containing the "Start conversation" button
-        const buttonGroupTwo = target.querySelector(
-            ".memberTooltip > .memberTooltip-actions > :nth-child(2)"
+    // The buttongroup containing the "Follow" button
+    var buttenGroupOne = target.querySelector(
+        ".memberTooltip > .memberTooltip-actions > :nth-child(1)"
+    ) as HTMLDivElement;
+    buttenGroupOne
+        .querySelector("a")
+        ?.href.match(
+            /^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/
         );
-        // If the user is banned, buttonGroupTwo will be null. Default to buttonGroupOne.
-        createButton(
-            "https://maul.edgegamers.com/index.php?page=home&id=" + id,
-            GM_config.get("maul-button-text") as string,
-            (buttonGroupTwo ?? buttonGroupOne) as HTMLDivElement,
-            "_blank",
-            true
+    var matches = buttenGroupOne
+        .querySelector("a")
+        ?.href.match(
+            /^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/
         );
-    }
-});
+    // Make sure matches were found, exit gracefully if not.
+    if (!matches) return;
+
+    var id = matches[1];
+    // The buttongroup containing the "Start conversation" button
+    var buttonGroupTwo = target.querySelector(
+        ".memberTooltip > .memberTooltip-actions > :nth-child(2)"
+    ) as HTMLDivElement;
+    // If the user is banned, buttonGroupTwo will be null. Default to buttonGroupOne.
+    createButton(
+        "https://maul.edgegamers.com/index.php?page=home&id=" + id,
+        GM_config.get("maul-button-text") as string,
+        buttonGroupTwo ?? buttenGroupOne,
+        "_blank",
+        true
+    );
+}
 
 /**
  * Moves and auto-fills out the moving prompt for a thread.
@@ -720,111 +726,116 @@ function handleBanReportContest() {
     }
 }
 
-const handleOnHold = new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-        const target = mutation.target as HTMLElement;
-        if (
-            target.nodeName !== "DIV" ||
-            !target.classList.contains("overlay-container") ||
-            !(
-                target.querySelector(
-                    ".overlay > .overlay-title"
-                ) as HTMLDivElement
-            ).innerText.includes("on hold")
-        )
-            continue;
+/**
+ * Adds "On Hold" templates to the menu and increases the size of the explain box.
+ * @param {HTMLElementEventMap} event
+ * @returns void
+ */
+function handleOnHold(event: Event) {
+    if (event.target == null) return;
+    const target = event.target as HTMLElement;
+    if (
+        target.nodeName != "DIV" ||
+        !target.classList.contains("overlay-container") ||
+        !(
+            target.querySelector(".overlay > .overlay-title") as HTMLDivElement
+        ).innerText.includes("on hold")
+    )
+        return;
 
-        // Event may fire twice - add a mark the first time it fires, and ignore the rest
-        var mark = document.createElement("input");
-        mark.type = "hidden";
-        target.append(mark);
-        if (target.childNodes.length > 2) return;
+    // Event may fire twice - add a mark the first time it fires, and ignore the rest
+    var mark = document.createElement("input");
+    mark.type = "hidden";
+    target.append(mark);
+    if (target.childNodes.length > 2) return;
 
-        var body = target.querySelector(
-            ".overlay > .overlay-content > form > .block-container > .block-body"
-        ) as HTMLDivElement;
-        var reason = body.querySelector(
-            ":nth-child(1) > dd > input"
-        ) as HTMLInputElement;
-        var explain = body.querySelector(
-            ":nth-child(2) > dd > input"
-        ) as HTMLInputElement;
-        // Convert the explain input into a textarea
-        explain.outerHTML = explain.outerHTML.replace("input", "textarea");
-        // Variable gets dereferenced - reference it again
-        explain = body.querySelector(":nth-child(2) > dd > textarea")!;
-        explain.style.height = "200px";
-        explain.setAttribute("maxlength", "1024");
-        var div = body.querySelector(
-            ":nth-child(4) > dd > div > .formSubmitRow-controls"
-        ) as HTMLDivElement;
+    var body = target.querySelector(
+        ".overlay > .overlay-content > form > .block-container > .block-body"
+    ) as HTMLDivElement;
+    var reason = body.querySelector(
+        ":nth-child(1) > dd > input"
+    ) as HTMLInputElement;
+    var explain = body.querySelector(
+        ":nth-child(2) > dd > input"
+    ) as HTMLInputElement;
+    // Convert the explain input into a textarea
+    explain.outerHTML = explain.outerHTML.replace("input", "textarea");
+    // Variable gets dereferenced - reference it again
+    explain = body.querySelector(":nth-child(2) > dd > textarea")!;
+    explain.style.height = "200px";
+    explain.setAttribute("maxlength", "1024");
+    var div = body.querySelector(
+        ":nth-child(4) > dd > div > .formSubmitRow-controls"
+    ) as HTMLDivElement;
 
-        addPreset("No MAUL Account", div, function () {
-            reason.value = "MAUL account must be created and verified";
-            explain.value =
-                "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
-    then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!";
-        });
+    addPreset("No MAUL Account", div, function () {
+        reason.value = "MAUL account must be created and verified";
+        explain.value =
+            "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
+then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!";
+    });
 
-        addPreset("Steam Verification", div, function () {
-            reason.value = "Steam account must be verified in MAUL";
-            explain.value =
-                "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
-    then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!";
-        });
+    addPreset("Steam Verification", div, function () {
+        reason.value = "Steam account must be verified in MAUL";
+        explain.value =
+            "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
+then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!";
+    });
 
-        addPreset("Minecraft Verification", div, function () {
-            reason.value = "Minecraft ID must be verified in MAUL";
-            explain.value =
-                "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
-    then under ID for Minecraft, input your Minecraft username, click Convert to Game ID, then log onto our Minecraft server. Once you've done so, please reply to this post!";
-        });
+    addPreset("Minecraft Verification", div, function () {
+        reason.value = "Minecraft ID must be verified in MAUL";
+        explain.value =
+            "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
+then under ID for Minecraft, input your Minecraft username, click Convert to Game ID, then log onto our Minecraft server. Once you've done so, please reply to this post!";
+    });
 
-        addPreset("Battlefield Verification", div, function () {
-            reason.value = "Battlefield account must be verified in MAUL";
-            explain.value =
-                "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, in MAUL hover over the home link in the top left, \
-    click help, then follow the instructions for Battlefield. Once you have done so, please reply to this post!";
-        });
+    addPreset("Battlefield Verification", div, function () {
+        reason.value = "Battlefield account must be verified in MAUL";
+        explain.value =
+            "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, in MAUL hover over the home link in the top left, \
+click help, then follow the instructions for Battlefield. Once you have done so, please reply to this post!";
+    });
 
-        addPreset("Discord Verification", div, function () {
-            reason.value = "Discord ID must be verfied in MAUL";
-            explain.value =
-                'In order for you to fix this you\'ll need to click the MAUL link at the top of the page in the navbar, click "Edit Game IDs," \
-    then click the sign in through Discord button under the discord ID section. Once you have done so, please reply to this post!';
-        });
+    addPreset("Discord Verification", div, function () {
+        reason.value = "Discord ID must be verfied in MAUL";
+        explain.value =
+            'In order for you to fix this you\'ll need to click the MAUL link at the top of the page in the navbar, click "Edit Game IDs," \
+then click the sign in through Discord button under the discord ID section. Once you have done so, please reply to this post!';
+    });
 
-        addPreset("Inappropriate Name", div, function () {
-            reason.value = "Inappropriate Name";
-            explain.value =
-                "As for your name, Please click [URL='https://www.edgegamers.com/account/username']here[/URL] and fill out a name change request. \
-    After you fill it out, please wait while your name change request is finalized and the change is completed. \
-    Once it is done your application process will resume. If you want to have an understanding on our naming policy inside of eGO please click [URL='https://www.edgegamers.com/threads/378540/']here[/URL].";
-        });
-    }
-});
+    addPreset("Inappropriate Name", div, function () {
+        reason.value = "Inappropriate Name";
+        explain.value =
+            "As for your name, Please click [URL='https://www.edgegamers.com/account/username']here[/URL] and fill out a name change request. \
+After you fill it out, please wait while your name change request is finalized and the change is completed. \
+Once it is done your application process will resume. If you want to have an understanding on our naming policy inside of eGO please click [URL='https://www.edgegamers.com/threads/378540/']here[/URL].";
+    });
+}
 
-const handleProfileDropdown = new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-        if (!mutation.target) continue;
-        const target = mutation.target as HTMLElement;
-        if (target.nodeName != "UL" || !target.classList.contains("tabPanes"))
-            return;
-        var btn = document.createElement("a");
-        btn.classList.add("menu-linkRow");
-        btn.innerHTML = "Forum Enhancement Script Config";
-        btn.style.cursor = "pointer";
-        btn.onclick = function () {
-            GM_config.open();
-        };
-        target
-            .querySelector("li.is-active")
-            ?.insertBefore(
-                btn,
-                target.querySelector("li.is-active > a.menu-linkRow")
-            );
-    }
-});
+/**
+ * Adds a button to open the script config in the user dropdown menu
+ * @param {HTMLElementEventMap} event
+ * @returns void
+ */
+function handleProfileDropdown(event: Event) {
+    if (event.target == null) return;
+    const target = event.target as HTMLElement;
+    if (target.nodeName != "UL" || !target.classList.contains("tabPanes"))
+        return;
+    var btn = document.createElement("a");
+    btn.classList.add("menu-linkRow");
+    btn.innerHTML = "Forum Enhancement Script Config";
+    btn.style.cursor = "pointer";
+    btn.onclick = function () {
+        GM_config.open();
+    };
+    target
+        .querySelector("li.is-active")
+        ?.insertBefore(
+            btn,
+            target.querySelector("li.is-active > a.menu-linkRow")
+        );
+}
 
 /**
  * Adds Confidential banners on top and bottom of page
@@ -1091,11 +1102,12 @@ function blockSignatures() {
     // Determine what page we're on
     var url = window.location.href;
 
-    tooltipMAULListener.observe(document.body, {
-        childList: true,
-        subtree: true,
-    });
-    handleOnHold.observe(document.body, { childList: true, subtree: true });
+    document.body.addEventListener(
+        "DOMNodeInserted",
+        tooltipMAULListener,
+        false
+    );
+    document.body.addEventListener("DOMNodeInserted", handleOnHold, false);
 
     // Add Helpful Links to the Navigation Bar
     var nav_list = document.querySelector(".p-nav-list") as HTMLUListElement;
