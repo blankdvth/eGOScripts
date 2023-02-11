@@ -46,7 +46,7 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         artifacts: "*.user.js"
-        name: ${{ env.RELEASE_VERSION }} (${{ git rev-parse --short HEAD }})
+        name: ${{ env.RELEASE_VERSION }} (${{ github.sha }})
         tag: ${{ env.RELEASE_VERSION }}
         makeLatest: true
         allowUpdates: true
