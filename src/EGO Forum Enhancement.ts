@@ -18,10 +18,6 @@
 // ==/UserScript==
 /// <reference path="../config_types/index.d.ts" />
 
-// Prevents function conflict error in TS, as this is not a problem in user scripts
-// Note: Must remove the generated line (Object.defineProperty(exports, "__esModule", { value: true });) in the compiled JS file or errors occur in the browser
-export {};
-
 // Declare TypeScript types
 interface Completed_Map {
     regex: RegExp;
@@ -30,7 +26,6 @@ interface Completed_Map {
 
 declare var SteamIDConverter: any;
 
-("use strict");
 const completedMap: Completed_Map[] = [];
 const signatureBlockList: string[] = [];
 
@@ -40,7 +35,7 @@ const signatureBlockList: string[] = [];
  * @param {function(HTMLElementEventMap)} callback Function to call on click
  * @returns {HTMLSpanElement} Button
  */
-function createPresetButton(
+function createForumsPresetButton(
     text: string,
     callback: (event: MouseEvent) => void
 ): HTMLSpanElement {
@@ -59,12 +54,12 @@ function createPresetButton(
  * @param {HTMLDivElement} div Div to add to
  * @param {function(HTMLElementEventMap)} func Function to call on click
  */
-function addPreset(
+function addForumsPreset(
     name: string,
     div: HTMLDivElement,
     func: (event: MouseEvent) => void
 ) {
-    div.appendChild(createPresetButton(name, func));
+    div.appendChild(createForumsPresetButton(name, func));
 }
 
 /**
@@ -79,8 +74,8 @@ function createButton(
     href: string,
     text: string,
     div: HTMLDivElement,
-    target = "_blank",
-    append = false
+    target: string = "_blank",
+    append: boolean = false
 ) {
     const button = document.createElement("a");
     button.href = href;
@@ -101,7 +96,7 @@ function createButton(
 /**
  * Setup the configuration manager and create an event to find and add a button to open it
  */
-function setupConfig() {
+function setupForumsConfig() {
     // Initialize the configuration manager
     GM_config.init({
         id: "forums-config",
@@ -768,42 +763,42 @@ function handleOnHold(event: Event) {
         ":nth-child(4) > dd > div > .formSubmitRow-controls"
     ) as HTMLDivElement;
 
-    addPreset("No MAUL Account", div, function () {
+    addForumsPreset("No MAUL Account", div, function () {
         reason.value = "MAUL account must be created and verified";
         explain.value =
             "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
 then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!";
     });
 
-    addPreset("Steam Verification", div, function () {
+    addForumsPreset("Steam Verification", div, function () {
         reason.value = "Steam account must be verified in MAUL";
         explain.value =
             "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
 then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!";
     });
 
-    addPreset("Minecraft Verification", div, function () {
+    addForumsPreset("Minecraft Verification", div, function () {
         reason.value = "Minecraft ID must be verified in MAUL";
         explain.value =
             "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
 then under ID for Minecraft, input your Minecraft username, click Convert to Game ID, then log onto our Minecraft server. Once you've done so, please reply to this post!";
     });
 
-    addPreset("Battlefield Verification", div, function () {
+    addForumsPreset("Battlefield Verification", div, function () {
         reason.value = "Battlefield account must be verified in MAUL";
         explain.value =
             "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, in MAUL hover over the home link in the top left, \
 click help, then follow the instructions for Battlefield. Once you have done so, please reply to this post!";
     });
 
-    addPreset("Discord Verification", div, function () {
+    addForumsPreset("Discord Verification", div, function () {
         reason.value = "Discord ID must be verfied in MAUL";
         explain.value =
             'In order for you to fix this you\'ll need to click the MAUL link at the top of the page in the navbar, click "Edit Game IDs," \
 then click the sign in through Discord button under the discord ID section. Once you have done so, please reply to this post!';
     });
 
-    addPreset("Inappropriate Name", div, function () {
+    addForumsPreset("Inappropriate Name", div, function () {
         reason.value = "Inappropriate Name";
         explain.value =
             "As for your name, Please click [URL='https://www.edgegamers.com/account/username']here[/URL] and fill out a name change request. \
@@ -1092,7 +1087,7 @@ function blockSignatures() {
 
 (function () {
     // Setup configuration
-    setupConfig();
+    setupForumsConfig();
     loadCompletedMap();
     loadSignatureBlockList();
 

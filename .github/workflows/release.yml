@@ -24,24 +24,20 @@ jobs:
         for file in dist/*.js; do
           mv "$file" .
         done
+    - name: Minify JavaScript
+      run: |
+        for file in *.js; do
+          npx uglifyjs "$file" -o "${file%.js}.js" --compress --mangle toplevel --mangle-props "keep_quoted" --comments "/\s(==\/?UserScript==|@.+$)/"
+        done
+    - name: Apply Environment Variables
+      run: |
+        for file in *.js; do
+          sed -i "s/%DOWNLOAD_URL%/https:\/\/github.com\/$GITHUB_ACTION_REPOSITORY\/releases\/latest\/download\/$file/g" "$file"
+        done
     - name: Rename Files to UserScript
       run: |
         for file in *.js; do
           mv "$file" "${file%.js}.user.js"
-        done
-    - name: Apply Environment Variables
-      run: |
-        for file in *.user.js; do
-          sed -i "s/%DOWNLOAD_URL%/https:\/\/github.com\/$GITHUB_ACTION_REPOSITORY\/releases\/latest\/download\/$file/g" "$file"
-        done
-    - name: Remove Broken Lines
-      run: | # Object.defineProperty is left over from export = {} (to prevent function overlap errors). ("use strict") is duplicated for some reason and breaks UglifyJS (only when Object.defineProperty is removed for some reason).
-        sed -i '/Object.defineProperty(exports, "__esModule", { value: true });/d' *.user.js
-        sed -i '/("use strict");/d' *.user.js
-    - name: Minify JavaScript
-      run: |
-        for file in *.user.js; do
-          npx uglifyjs "$file" -o "${file%.user.js}.user.js" --compress --mangle toplevel --mangle-props "keep_quoted" --comments "/\s(==\/?UserScript==|@.+$)/"
         done
     - name: Create Release
       uses: ncipollo/release-action@v1

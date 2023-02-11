@@ -18,10 +18,6 @@
 // ==/UserScript==
 /// <reference path="../config_types/index.d.ts" />
 
-// Prevents function conflict error in TS, as this is not a problem in user scripts
-// Note: Must remove the generated line (Object.defineProperty(exports, "__esModule", { value: true });) in the compiled JS file or errors occur in the browser
-export {};
-
 // Declare TypeScript types
 interface Add_Preset {
     name: string;
@@ -43,7 +39,6 @@ interface Edit_Preset {
 
 declare var SteamIDConverter: any;
 
-("use strict");
 const knownAdmins: { [key: string]: string } = {}; // Known admin list
 const presetsAdd: Add_Preset[] = []; // Presets for adding bans
 const presetsEdit: Edit_Preset[] = []; // Presets for editing bans
@@ -56,13 +51,13 @@ let USERNAME = ""; // Current username
  * @param {HTMLDivElement} div Div to add to
  * @param {function} func Function to call on click
  */
-function addPreset(
+function addMAULPreset(
     name: string,
     id: string,
     div: HTMLDivElement,
     func: (event: MouseEvent) => void
 ) {
-    div.appendChild(createPresetButton(name, id, func));
+    div.appendChild(createMAULPresetButton(name, id, func));
 }
 
 /**
@@ -92,7 +87,7 @@ function createPresetDiv(): HTMLDivElement {
  * @param {function} callback Function to call on click
  * @returns {HTMLButtonElement} Button
  */
-function createPresetButton(
+function createMAULPresetButton(
     text: string,
     id: string,
     callback: (event: MouseEvent) => void
@@ -142,7 +137,7 @@ function generateForumsURL(threadId: any, postId: any): string {
 /**
  * Setup the configuration manager and add a button to open it
  */
-function setupConfig() {
+function setupMAULConfig() {
     // Initialize the configuration manager
     GM_config.init({
         id: "maul-config",
@@ -369,7 +364,7 @@ function handleAddBan() {
 
     // Insert presets
     for (var i = 0; i < presetsAdd.length; i++) {
-        addPreset(
+        addMAULPreset(
             presetsAdd[i].name,
             i.toString(),
             div,
@@ -417,7 +412,7 @@ function handleEditBan() {
 
     // Insert presets
     for (var i = 0; i < presetsEdit.length; i++) {
-        addPreset(
+        addMAULPreset(
             presetsEdit[i].name,
             i.toString(),
             div,
@@ -624,7 +619,7 @@ function updateBanNoteURLs() {
 
 (function () {
     // Setup configuration stuff
-    setupConfig();
+    setupMAULConfig();
     loadPresets();
 
     // Determine what page we're on

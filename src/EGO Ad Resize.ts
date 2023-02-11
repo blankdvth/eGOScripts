@@ -11,8 +11,6 @@
 // @grant        none
 // ==/UserScript==
 
-"use strict";
-
 (function () {
     // Remove banners
     document
