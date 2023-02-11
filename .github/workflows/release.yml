@@ -39,6 +39,9 @@ jobs:
         for file in *.user.js do
           sed -i "s/%DOWNLOAD_URL%/https:\/\/github.com\/$GITHUB_ACTION_REPOSITORY\/releases\/latest\/download\/$file/g" "$file"
         done
+    - name: Remove defineProperty
+      run: |
+        sed -i '/Object.defineProperty(exports, "__esModule", { value: true });/d' *.user.js
     - name: Create Release
       uses: ncipollo/release-action@v1
       with:

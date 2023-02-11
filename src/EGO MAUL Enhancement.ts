@@ -18,7 +18,9 @@
 // ==/UserScript==
 /// <reference path="../config_types/index.d.ts" />
 
-export {}; // Prevents function conflicts (duplicate functions), as this is not a problem in user scripts
+// Prevents function conflict error in TS, as this is not a problem in user scripts
+// Note: Must remove the generated line (Object.defineProperty(exports, "__esModule", { value: true });) in the compiled JS file or errors occur in the browser
+export {};
 
 // Declare TypeScript types
 interface Add_Preset {
