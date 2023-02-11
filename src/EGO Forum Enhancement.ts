@@ -989,9 +989,7 @@ function handleAwardSpotlight() {
 function blockSignatures() {
     if (signatureBlockList.length == 0) return;
     document.querySelectorAll("div.message-inner").forEach((post) => {
-        const userId = (
-            post.querySelector("a.username[data-user-id]") as HTMLAnchorElement
-        ).dataset.userId;
+        const userId = (post.querySelector("a.username[data-user-id]") as HTMLAnchorElement | undefined)?.dataset.userId;
         if (userId != null && signatureBlockList.includes(userId)) {
             var signature = post.querySelector(
                 "aside.message-signature > div"
