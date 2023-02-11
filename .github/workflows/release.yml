@@ -26,7 +26,7 @@ jobs:
         done
     - name: Rename Files to UserScript
       run: |
-        for file in *.js do
+        for file in *.js; do
           mv "$file" "${file%.js}.user.js"
         done
     - name: Apply Environment Variables
