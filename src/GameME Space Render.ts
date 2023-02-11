@@ -11,7 +11,6 @@
 // @grant        none
 // ==/UserScript==
 
-
 interface Window {
     Tip: () => void;
     UnTip: () => void;

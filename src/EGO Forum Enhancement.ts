@@ -28,7 +28,7 @@ interface Completed_Map {
 
 declare var SteamIDConverter: any;
 
-"use strict";
+("use strict");
 let completedMap: Completed_Map[] = [];
 let signatureBlockList: string[] = [];
 
@@ -38,7 +38,10 @@ let signatureBlockList: string[] = [];
  * @param {function(HTMLElementEventMap)} callback Function to call on click
  * @returns {HTMLSpanElement} Button
  */
-function createPresetButton(text: string, callback: (event: MouseEvent) => void): HTMLSpanElement {
+function createPresetButton(
+    text: string,
+    callback: (event: MouseEvent) => void
+): HTMLSpanElement {
     var button = document.createElement("span");
     button.classList.add("button");
     button.innerHTML = text;
@@ -54,7 +57,11 @@ function createPresetButton(text: string, callback: (event: MouseEvent) => void)
  * @param {HTMLDivElement} div Div to add to
  * @param {function(HTMLElementEventMap)} func Function to call on click
  */
-function addPreset(name: string, div: HTMLDivElement, func: (event: MouseEvent) => void) {
+function addPreset(
+    name: string,
+    div: HTMLDivElement,
+    func: (event: MouseEvent) => void
+) {
     div.appendChild(createPresetButton(name, func));
 }
 
@@ -66,7 +73,13 @@ function addPreset(name: string, div: HTMLDivElement, func: (event: MouseEvent) 
  * @param {string} target Meta target for button
  * @param {boolean} append True to append, false to insert
  */
-function createButton(href: string, text: string, div: HTMLDivElement, target = "_blank", append = false) {
+function createButton(
+    href: string,
+    text: string,
+    div: HTMLDivElement,
+    target = "_blank",
+    append = false
+) {
     var button = document.createElement("a");
     button.href = href;
     button.target = target;
@@ -200,7 +213,10 @@ function setupConfig() {
                 GM_config.fields[
                     "signature-block-unchecked"
                 ].node?.addEventListener("change", function () {
-                    var ids = GM_config.get("signature-block-unchecked", true) as string;
+                    var ids = GM_config.get(
+                        "signature-block-unchecked",
+                        true
+                    ) as string;
                     if (ids.split(/\r?\n/).every((id) => id.match(/^\d+$/)))
                         GM_config.set("signature-block", ids);
                 });
@@ -227,7 +243,10 @@ function setupConfig() {
 
     var profileMenu = document.querySelector("div.js-visitorMenuBody");
     if (profileMenu)
-        handleProfileDropdown.observe(profileMenu, { childList: true, subtree: true });
+        handleProfileDropdown.observe(profileMenu, {
+            childList: true,
+            subtree: true,
+        });
 }
 
 /**
@@ -236,8 +255,11 @@ function setupConfig() {
 function autoMAULAuth() {
     if (!GM_config.get("maul-reauth-enable")) return;
     var lastAuth = GM_getValue("lastMAULAuth", 0);
-    if (Date.now() - lastAuth < (GM_config.get("maul-reauth") as number)) return;
-    var authLink = document.querySelector('a.p-navEl-link[href^="/maul"]') as HTMLAnchorElement;
+    if (Date.now() - lastAuth < (GM_config.get("maul-reauth") as number))
+        return;
+    var authLink = document.querySelector(
+        'a.p-navEl-link[href^="/maul"]'
+    ) as HTMLAnchorElement;
     if (!authLink) return;
     GM_xmlhttpRequest({
         method: "GET",
@@ -465,21 +487,41 @@ const tooltipMAULListener = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
         if (!mutation.target) continue;
         const target = mutation.target as HTMLElement;
-        if (target.nodeName !== "DIV" || !target.classList.contains("tooltip-content")) continue;
-        const buttonGroupOne = target.querySelector(".memberTooltip > .memberTooltip-actions > :nth-child(1)") as HTMLElement;
-        if (!buttonGroupOne)
+        if (
+            target.nodeName !== "DIV" ||
+            !target.classList.contains("tooltip-content")
+        )
             continue;
-        buttonGroupOne.querySelector("a")?.href.match(/^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/);
-        const matches = buttonGroupOne.querySelector("a")?.href.match(/^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/);
+        const buttonGroupOne = target.querySelector(
+            ".memberTooltip > .memberTooltip-actions > :nth-child(1)"
+        ) as HTMLElement;
+        if (!buttonGroupOne) continue;
+        buttonGroupOne
+            .querySelector("a")
+            ?.href.match(
+                /^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/
+            );
+        const matches = buttonGroupOne
+            .querySelector("a")
+            ?.href.match(
+                /^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/
+            );
         // Make sure matches were found, exit gracefully if not.
-        if (!matches)
-            continue;
+        if (!matches) continue;
 
         const id = matches[1];
         // The buttongroup containing the "Start conversation" button
-        const buttonGroupTwo = target.querySelector(".memberTooltip > .memberTooltip-actions > :nth-child(2)");
+        const buttonGroupTwo = target.querySelector(
+            ".memberTooltip > .memberTooltip-actions > :nth-child(2)"
+        );
         // If the user is banned, buttonGroupTwo will be null. Default to buttonGroupOne.
-        createButton("https://maul.edgegamers.com/index.php?page=home&id=" + id, GM_config.get("maul-button-text") as string, (buttonGroupTwo ?? buttonGroupOne) as HTMLDivElement, "_blank", true);
+        createButton(
+            "https://maul.edgegamers.com/index.php?page=home&id=" + id,
+            GM_config.get("maul-button-text") as string,
+            (buttonGroupTwo ?? buttonGroupOne) as HTMLDivElement,
+            "_blank",
+            true
+        );
     }
 });
 
@@ -503,18 +545,24 @@ function handleThreadMovePage(url: string) {
     }
     try {
         // These buttons may not exist if you created the post yourself, this is just to prevent edge cases.
-        (checkArr
-            .find(
-                (el) =>
-                    el.textContent ===
-                    "Notify members watching the destination forum"
-            )?.querySelector("label > input") as HTMLInputElement).checked = false;
-        (checkArr
-            .find((el) =>
-                el.textContent?.startsWith(
-                    "Notify thread starter of this action."
+        (
+            checkArr
+                .find(
+                    (el) =>
+                        el.textContent ===
+                        "Notify members watching the destination forum"
                 )
-            )?.querySelector("label > input") as HTMLInputElement).checked = false;
+                ?.querySelector("label > input") as HTMLInputElement
+        ).checked = false;
+        (
+            checkArr
+                .find((el) =>
+                    el.textContent?.startsWith(
+                        "Notify thread starter of this action."
+                    )
+                )
+                ?.querySelector("label > input") as HTMLInputElement
+        ).checked = false;
     } catch {}
     form.submit();
 }
@@ -585,7 +633,9 @@ function handleForumsList() {
  * Handles generic/nonspecific threads
  */
 function handleGenericThread() {
-    var breadcrumbs = (document.querySelector(".p-breadcrumbs") as HTMLUListElement).innerText;
+    var breadcrumbs = (
+        document.querySelector(".p-breadcrumbs") as HTMLUListElement
+    ).innerText;
     if (
         breadcrumbs.match(
             /((Contest (a Ban|Completed))|(Report (a Player|Completed))) ?$/
@@ -626,11 +676,18 @@ function handleGenericThread() {
  * TODO: Add support for other game IDs
  */
 function handleBanReportContest() {
-    var post_title = (document.querySelector(".p-title") as HTMLDivElement).innerText;
-    var button_group = document.querySelector("div.buttonGroup") as HTMLDivElement;
+    var post_title = (document.querySelector(".p-title") as HTMLDivElement)
+        .innerText;
+    var button_group = document.querySelector(
+        "div.buttonGroup"
+    ) as HTMLDivElement;
     addMAULProfileButton(
         button_group,
-        (document.querySelector(".message-name > a.username") as HTMLAnchorElement).href.substring(35)
+        (
+            document.querySelector(
+                ".message-name > a.username"
+            ) as HTMLAnchorElement
+        ).href.substring(35)
     );
 
     var steam_id = post_title.match(
@@ -645,12 +702,18 @@ function handleBanReportContest() {
             addBansButton(button_group, steam_id_64);
         } catch (TypeError) {
             if (GM_config.get("show-list-bans-unknown"))
-                addBansButton(button_group, post_title.split(" - ")[2] as unknown as number);
+                addBansButton(
+                    button_group,
+                    post_title.split(" - ")[2] as unknown as number
+                );
             addLookupButton(button_group, post_title);
         }
     } else {
         if (GM_config.get("show-list-bans-unknown"))
-            addBansButton(button_group, post_title.split(" - ")[2] as unknown as number);
+            addBansButton(
+                button_group,
+                post_title.split(" - ")[2] as unknown as number
+            );
         addLookupButton(button_group, post_title);
     }
 }
@@ -658,7 +721,16 @@ function handleBanReportContest() {
 const handleOnHold = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
         const target = mutation.target as HTMLElement;
-        if (target.nodeName !== "DIV" || !target.classList.contains("overlay-container") || !(target.querySelector(".overlay > .overlay-title") as HTMLDivElement).innerText.includes("on hold")) continue;
+        if (
+            target.nodeName !== "DIV" ||
+            !target.classList.contains("overlay-container") ||
+            !(
+                target.querySelector(
+                    ".overlay > .overlay-title"
+                ) as HTMLDivElement
+            ).innerText.includes("on hold")
+        )
+            continue;
 
         // Event may fire twice - add a mark the first time it fires, and ignore the rest
         var mark = document.createElement("input");
@@ -669,8 +741,12 @@ const handleOnHold = new MutationObserver((mutations) => {
         var body = target.querySelector(
             ".overlay > .overlay-content > form > .block-container > .block-body"
         ) as HTMLDivElement;
-        var reason = body.querySelector(":nth-child(1) > dd > input") as HTMLInputElement;
-        var explain = body.querySelector(":nth-child(2) > dd > input") as HTMLInputElement;
+        var reason = body.querySelector(
+            ":nth-child(1) > dd > input"
+        ) as HTMLInputElement;
+        var explain = body.querySelector(
+            ":nth-child(2) > dd > input"
+        ) as HTMLInputElement;
         // Convert the explain input into a textarea
         explain.outerHTML = explain.outerHTML.replace("input", "textarea");
         // Variable gets dereferenced - reference it again
@@ -730,10 +806,7 @@ const handleProfileDropdown = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
         if (!mutation.target) continue;
         const target = mutation.target as HTMLElement;
-        if (
-            target.nodeName != "UL" ||
-            !target.classList.contains("tabPanes")
-        )
+        if (target.nodeName != "UL" || !target.classList.contains("tabPanes"))
             return;
         var btn = document.createElement("a");
         btn.classList.add("menu-linkRow");
@@ -743,7 +816,8 @@ const handleProfileDropdown = new MutationObserver((mutations) => {
             GM_config.open();
         };
         target
-            .querySelector("li.is-active")?.insertBefore(
+            .querySelector("li.is-active")
+            ?.insertBefore(
                 btn,
                 target.querySelector("li.is-active > a.menu-linkRow")
             );
@@ -764,7 +838,11 @@ function handleLeadership() {
  * @returns void
  */
 function handleApplicationPage() {
-    var children = (document.querySelector(".dataList-row > .dataList-cell > a") as HTMLAnchorElement).parentElement?.children;
+    var children = (
+        document.querySelector(
+            ".dataList-row > .dataList-cell > a"
+        ) as HTMLAnchorElement
+    ).parentElement?.children;
     if (!children) return;
     Array.from(children).forEach(function (button) {
         button.setAttribute("target", "_blank");
@@ -777,10 +855,14 @@ function handleApplicationPage() {
  */
 function handleUserAwardPage() {
     if (document.querySelector("div.contentRow-snippet")) return; // This is our own award page, don't add the button
-    var username = (document.querySelector(".p-title-value") as HTMLHeadingElement).textContent?.match(/^(.*)'s Awards$/)![1];
+    var username = (
+        document.querySelector(".p-title-value") as HTMLHeadingElement
+    ).textContent?.match(/^(.*)'s Awards$/)![1];
     var blocks = document.querySelector(".blocks") as HTMLDivElement;
     Array.from(blocks.children).forEach(function (block) {
-        var awardContainer = block.querySelector("div > .userAwardsContainer") as HTMLOListElement;
+        var awardContainer = block.querySelector(
+            "div > .userAwardsContainer"
+        ) as HTMLOListElement;
         Array.from(awardContainer.children).forEach(function (award) {
             var contentDiv = award.querySelector("div") as HTMLDivElement;
             if (contentDiv.classList.contains("showAsDeleted")) {
@@ -856,23 +938,21 @@ function parseAwardPage(pageNum: number, userToFind: string, awardId: string) {
     var pageHtml = document.createElement("html");
     fetch("/award-system/" + awardId + "/recent?page=" + pageNum).then(
         function (response) {
-            response.text().then(
-                (function (text) {
-                    pageHtml.innerHTML = text;
-                    var bodyDiv = pageHtml.querySelector(".block-body")!;
-                    Array.from(bodyDiv.children).forEach(function (div) {
-                        if (div.getAttribute("data-author") == userToFind) {
-                            window.location.href =
-                                "/award-system/" +
-                                awardId +
-                                "/recent?page=" +
-                                pageNum +
-                                "&spotlight=" +
-                                userToFind;
-                        }
-                    });
-                })
-            );
+            response.text().then(function (text) {
+                pageHtml.innerHTML = text;
+                var bodyDiv = pageHtml.querySelector(".block-body")!;
+                Array.from(bodyDiv.children).forEach(function (div) {
+                    if (div.getAttribute("data-author") == userToFind) {
+                        window.location.href =
+                            "/award-system/" +
+                            awardId +
+                            "/recent?page=" +
+                            pageNum +
+                            "&spotlight=" +
+                            userToFind;
+                    }
+                });
+            });
         }
     );
 }
@@ -898,15 +978,24 @@ function blockSignatures() {
     document.querySelectorAll("div.message-inner").forEach((post) => {
         if (
             signatureBlockList.includes(
-                (post.querySelector("a.username[data-user-id]") as HTMLAnchorElement).dataset.userId!
+                (
+                    post.querySelector(
+                        "a.username[data-user-id]"
+                    ) as HTMLAnchorElement
+                ).dataset.userId!
             )
         ) {
-            var signature = post.querySelector("aside.message-signature > div") as HTMLDivElement;
+            var signature = post.querySelector(
+                "aside.message-signature > div"
+            ) as HTMLDivElement;
             // iframe's are added after page load, using a DOMNodeInserted event to work around that
             function signatureEvent(event: Event) {
                 if (event.target == null) return;
-                if (!((event.target as HTMLElement).nodeName === "IFRAME")) return;
-                (event.target as HTMLIFrameElement).dataset.src = (event.target as HTMLIFrameElement).src;
+                if (!((event.target as HTMLElement).nodeName === "IFRAME"))
+                    return;
+                (event.target as HTMLIFrameElement).dataset.src = (
+                    event.target as HTMLIFrameElement
+                ).src;
                 (event.target as HTMLIFrameElement).src = "about:blank";
             }
             signature.addEventListener(
@@ -917,14 +1006,24 @@ function blockSignatures() {
             // Set the SRC of content to nothing (data:,), empty string is not used as it may cause additional requests to the page
             // Issue originated back in 2009, unsure if it is still a problem but best to lean on the safe side.
             // Was fixed in FireFox a while ago, not sure about Chrome
-            (signature
-                .querySelectorAll("img[src]") as NodeListOf<HTMLImageElement>)
-                .forEach((img) => (img.src = "data:,"));
-            (signature.querySelectorAll("video[poster]") as NodeListOf<HTMLVideoElement>).forEach((video) => {
+            (
+                signature.querySelectorAll(
+                    "img[src]"
+                ) as NodeListOf<HTMLImageElement>
+            ).forEach((img) => (img.src = "data:,"));
+            (
+                signature.querySelectorAll(
+                    "video[poster]"
+                ) as NodeListOf<HTMLVideoElement>
+            ).forEach((video) => {
                 video.dataset.poster = video.poster;
                 video.poster = "data:,";
             });
-            (signature.querySelectorAll("source[src]") as NodeListOf<HTMLSourceElement>).forEach((source) => {
+            (
+                signature.querySelectorAll(
+                    "source[src]"
+                ) as NodeListOf<HTMLSourceElement>
+            ).forEach((source) => {
                 source.dataset.src = source.src;
                 source.src = "data:,";
             });
@@ -933,29 +1032,37 @@ function blockSignatures() {
             // Button to restore everything
             btn.onclick = function () {
                 signature.style.display = "";
-                (signature
-                    .querySelectorAll("img[src][data-url]") as NodeListOf<HTMLImageElement>)
-                    .forEach((img) => {
-                        img.src = img.dataset.url as string;
-                    });
-                (signature
-                    .querySelectorAll("iframe[src][data-src]") as NodeListOf<HTMLIFrameElement>)
-                    .forEach((iframe) => {
-                        iframe.src = iframe.dataset.src as string;
-                        delete iframe.dataset.src;
-                    });
-                (signature
-                    .querySelectorAll("video[poster][data-poster]") as NodeListOf<HTMLVideoElement>)
-                    .forEach((video) => {
-                        video.poster = video.dataset.poster as string;
-                        delete video.dataset.poster;
-                    });
-                (signature
-                    .querySelectorAll("source[src][data-src]") as NodeListOf<HTMLSourceElement>)
-                    .forEach((source) => {
-                        source.src = source.dataset.src as string;
-                        delete source.dataset.src;
-                    });
+                (
+                    signature.querySelectorAll(
+                        "img[src][data-url]"
+                    ) as NodeListOf<HTMLImageElement>
+                ).forEach((img) => {
+                    img.src = img.dataset.url as string;
+                });
+                (
+                    signature.querySelectorAll(
+                        "iframe[src][data-src]"
+                    ) as NodeListOf<HTMLIFrameElement>
+                ).forEach((iframe) => {
+                    iframe.src = iframe.dataset.src as string;
+                    delete iframe.dataset.src;
+                });
+                (
+                    signature.querySelectorAll(
+                        "video[poster][data-poster]"
+                    ) as NodeListOf<HTMLVideoElement>
+                ).forEach((video) => {
+                    video.poster = video.dataset.poster as string;
+                    delete video.dataset.poster;
+                });
+                (
+                    signature.querySelectorAll(
+                        "source[src][data-src]"
+                    ) as NodeListOf<HTMLSourceElement>
+                ).forEach((source) => {
+                    source.src = source.dataset.src as string;
+                    delete source.dataset.src;
+                });
                 signature.removeEventListener(
                     "DOMNodeInserted",
                     signatureEvent,
@@ -982,8 +1089,11 @@ function blockSignatures() {
     // Determine what page we're on
     var url = window.location.href;
 
-    tooltipMAULListener.observe(document.body, { childList: true, subtree: true });
-    handleOnHold.observe(document.body, { childList: true, subtree: true })
+    tooltipMAULListener.observe(document.body, {
+        childList: true,
+        subtree: true,
+    });
+    handleOnHold.observe(document.body, { childList: true, subtree: true });
 
     // Add Helpful Links to the Navigation Bar
     var nav_list = document.querySelector(".p-nav-list") as HTMLUListElement;

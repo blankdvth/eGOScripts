@@ -41,7 +41,7 @@ interface Edit_Preset {
 
 declare var SteamIDConverter: any;
 
-"use strict";
+("use strict");
 const knownAdmins: { [key: string]: string } = {}; // Known admin list
 const presetsAdd: Add_Preset[] = []; // Presets for adding bans
 const presetsEdit: Edit_Preset[] = []; // Presets for editing bans
@@ -54,7 +54,12 @@ let USERNAME = ""; // Current username
  * @param {HTMLDivElement} div Div to add to
  * @param {function} func Function to call on click
  */
-function addPreset(name: string, id: string, div: HTMLDivElement, func: (event: MouseEvent) => void) {
+function addPreset(
+    name: string,
+    id: string,
+    div: HTMLDivElement,
+    func: (event: MouseEvent) => void
+) {
     div.appendChild(createPresetButton(name, id, func));
 }
 
@@ -62,7 +67,7 @@ function addPreset(name: string, id: string, div: HTMLDivElement, func: (event: 
  * Creates a preset div
  * @returns {HTMLDivElement} Div to add presets to
  */
-function createPresetDiv() : HTMLDivElement {
+function createPresetDiv(): HTMLDivElement {
     const div = document.createElement("div");
     const subtitle = document.createElement("h4");
     const child_container = document.getElementById("child_container");
@@ -85,7 +90,11 @@ function createPresetDiv() : HTMLDivElement {
  * @param {function} callback Function to call on click
  * @returns {HTMLButtonElement} Button
  */
-function createPresetButton(text: string, id: string, callback: (event: MouseEvent) => void): HTMLButtonElement {
+function createPresetButton(
+    text: string,
+    id: string,
+    callback: (event: MouseEvent) => void
+): HTMLButtonElement {
     const button = document.createElement("button");
     button.classList.add("btn", "btn-default");
     button.innerHTML = text;
@@ -101,7 +110,11 @@ function createPresetButton(text: string, id: string, callback: (event: MouseEve
  * @param {string} link Link to open
  * @returns {HTMLAnchorElement} Button
  */
-function createLinkButton(text: string, link: string, target = "_blank") : HTMLAnchorElement {
+function createLinkButton(
+    text: string,
+    link: string,
+    target = "_blank"
+): HTMLAnchorElement {
     const a = document.createElement("a");
     a.classList.add("btn", "btn-default");
     a.href = link;
@@ -117,7 +130,7 @@ function createLinkButton(text: string, link: string, target = "_blank") : HTMLA
  * @param {*} postId Post ID
  * @returns Formatted link
  */
-function generateForumsURL(threadId: any, postId: any) : string {
+function generateForumsURL(threadId: any, postId: any): string {
     return (
         `https://edgegamers.com/threads/${threadId}/` +
         (postId ? `#post-${postId}` : "")
@@ -188,7 +201,9 @@ function setupConfig() {
                 );
             },
             open: function (doc) {
-                GM_config.fields["presets-add-unchecked"].node?.addEventListener(
+                GM_config.fields[
+                    "presets-add-unchecked"
+                ].node?.addEventListener(
                     "change",
                     function () {
                         const presets = GM_config.get(
@@ -289,9 +304,10 @@ function loadAdmins() {
  */
 function loadUsername() {
     if (USERNAME) return;
-    const dropdown = document.querySelector("a.dropdown-toggle") as HTMLAnchorElement;
-    if (dropdown)
-        USERNAME = dropdown.innerText.trim();
+    const dropdown = document.querySelector(
+        "a.dropdown-toggle"
+    ) as HTMLAnchorElement;
+    if (dropdown) USERNAME = dropdown.innerText.trim();
 }
 
 /**
@@ -341,31 +357,53 @@ function handleAddBan() {
     const div = createPresetDiv();
 
     // Set default dropdown options
-    (document.getElementById("division") as HTMLSelectElement).selectedIndex = GM_config.get(
-        "autoselect-division"
-    ) as number;
+    (document.getElementById("division") as HTMLSelectElement).selectedIndex =
+        GM_config.get("autoselect-division") as number;
     (document.getElementById("idTypeId") as HTMLSelectElement).selectedIndex =
         GM_config.get("autoselect-gameid") as number;
     if (GM_config.get("autoselect-gameid") != 0)
-        (document.getElementById("gameId") as HTMLInputElement).disabled = false;
+        (document.getElementById("gameId") as HTMLInputElement).disabled =
+            false;
 
     // Insert presets
     for (var i = 0; i < presetsAdd.length; i++) {
-        addPreset(presetsAdd[i].name, i.toString(), div, function (this: HTMLElement) {
-            const preset = presetsAdd[this.dataset.presetId as unknown as number];
-            if (preset.handle)
-                (document.getElementById("handle") as HTMLInputElement).value = preset.handle;
-            if (typeof preset.length === "number") {
-                (document.getElementById("length") as HTMLInputElement).value = preset.length as unknown as string;
-                if (preset.length == 0)
-                    (document.getElementById("length") as HTMLInputElement).disabled = true;
+        addPreset(
+            presetsAdd[i].name,
+            i.toString(),
+            div,
+            function (this: HTMLElement) {
+                const preset =
+                    presetsAdd[this.dataset.presetId as unknown as number];
+                if (preset.handle)
+                    (
+                        document.getElementById("handle") as HTMLInputElement
+                    ).value = preset.handle;
+                if (typeof preset.length === "number") {
+                    (
+                        document.getElementById("length") as HTMLInputElement
+                    ).value = preset.length as unknown as string;
+                    if (preset.length == 0)
+                        (
+                            document.getElementById(
+                                "length"
+                            ) as HTMLInputElement
+                        ).disabled = true;
+                }
+                if (preset.reason)
+                    (
+                        document.getElementById("reason") as HTMLInputElement
+                    ).value = preset.reason;
+                if (preset.notes)
+                    (
+                        document.getElementById("notes") as HTMLTextAreaElement
+                    ).value = preset.notes;
+                (
+                    document.getElementById(
+                        "preventAmnesty"
+                    ) as HTMLInputElement
+                ).checked = preset.pa;
             }
-            if (preset.reason)
-                (document.getElementById("reason") as HTMLInputElement).value = preset.reason;
-            if (preset.notes)
-                (document.getElementById("notes") as HTMLTextAreaElement).value = preset.notes;
-            (document.getElementById("preventAmnesty") as HTMLInputElement).checked = preset.pa;
-        });
+        );
     }
 }
 
@@ -377,22 +415,42 @@ function handleEditBan() {
 
     // Insert presets
     for (var i = 0; i < presetsEdit.length; i++) {
-        addPreset(presetsEdit[i].name, i.toString(), div, function (this: HTMLElement) {
-            const preset = presetsEdit[this.dataset.presetId as unknown as number];
-            if (typeof preset.length === "number") {
-                (document.getElementById("length") as HTMLInputElement).value = preset.length as unknown as string;
-                if (preset.length == 0)
-                    (document.getElementById("length") as HTMLInputElement).disabled = true;
+        addPreset(
+            presetsEdit[i].name,
+            i.toString(),
+            div,
+            function (this: HTMLElement) {
+                const preset =
+                    presetsEdit[this.dataset.presetId as unknown as number];
+                if (typeof preset.length === "number") {
+                    (
+                        document.getElementById("length") as HTMLInputElement
+                    ).value = preset.length as unknown as string;
+                    if (preset.length == 0)
+                        (
+                            document.getElementById(
+                                "length"
+                            ) as HTMLInputElement
+                        ).disabled = true;
+                }
+                if (preset.reason)
+                    (
+                        document.getElementById("reason") as HTMLInputElement
+                    ).value = preset.reason;
+                if (preset.notes)
+                    (
+                        document.getElementById("notes") as HTMLTextAreaElement
+                    ).value +=
+                        "\n\n" +
+                        preset.notes +
+                        (preset.addUsername ? " " + USERNAME : "");
+                (
+                    document.getElementById(
+                        "preventAmnesty"
+                    ) as HTMLInputElement
+                ).checked = preset.pa;
             }
-            if (preset.reason)
-                (document.getElementById("reason") as HTMLInputElement).value = preset.reason;
-            if (preset.notes)
-                (document.getElementById("notes") as HTMLTextAreaElement).value +=
-                    "\n\n" +
-                    preset.notes +
-                    (preset.addUsername ? " " + USERNAME : "");
-            (document.getElementById("preventAmnesty") as HTMLInputElement).checked = preset.pa;
-        });
+        );
     }
 
     // Steam ID buttons
@@ -406,10 +464,7 @@ function handleEditBan() {
     idDiv.style.paddingTop = "10px";
     idGroup?.appendChild(idDiv);
     idDiv.appendChild(
-        createLinkButton(
-            "Steam",
-            "https://steamcommunity.com/profiles/" + id
-        )
+        createLinkButton("Steam", "https://steamcommunity.com/profiles/" + id)
     );
     idDiv.appendChild(
         createLinkButton(
@@ -419,22 +474,16 @@ function handleEditBan() {
         )
     );
     idDiv.appendChild(
-        createLinkButton(
-            "SteamID (IO)",
-            "https://steamid.io/lookup/" + id
-        )
+        createLinkButton("SteamID (IO)", "https://steamid.io/lookup/" + id)
     );
     idDiv.appendChild(
-        createLinkButton(
-            "SteamID (UK)",
-            "https://steamid.uk/profile/" + id
-        )
+        createLinkButton("SteamID (UK)", "https://steamid.uk/profile/" + id)
     );
 
     // IP buttons
-    const ipGroup = Array.from(document.querySelectorAll(".control-label")).find(
-        (el) => el.textContent === "IP"
-    )?.parentElement; // BECAUSE MAUL HAS THE IP LABELED WITH THE WRONG FOR
+    const ipGroup = Array.from(
+        document.querySelectorAll(".control-label")
+    ).find((el) => el.textContent === "IP")?.parentElement; // BECAUSE MAUL HAS THE IP LABELED WITH THE WRONG FOR
     const ip = ipGroup?.querySelector("p")?.innerText;
     const ip_div = document.createElement("div");
     ip_div.style.display = "flex";
@@ -521,7 +570,9 @@ function assignAdminsOnlineHyperlink(str: string) {
  */
 function convertBanningAdmins() {
     if (Object.keys(knownAdmins).length === 0) loadAdmins();
-    const headers = document.querySelectorAll(".expand > td > span.pull-left") as NodeListOf<HTMLSpanElement>;
+    const headers = document.querySelectorAll(
+        ".expand > td > span.pull-left"
+    ) as NodeListOf<HTMLSpanElement>;
     let wasAdminOnline = false;
     for (const header of headers) {
         if (header.innerText === "Admins Online:") {
@@ -549,16 +600,23 @@ function updateBanNoteURLs() {
         // Replace the text with a linkified version
         banNote.innerHTML = replaced;
         // Add an event listener to the edit button to restore the original text. The edit notes button takes the text from the span, and we need to avoid having the linkified text in the edit box.
-        const editNotes = (banNote as HTMLSpanElement).parentElement?.querySelector(
-            "span.edit_note_button"
-        );
+        const editNotes = (
+            banNote as HTMLSpanElement
+        ).parentElement?.querySelector("span.edit_note_button");
         // We're using mousedown instead of click because the click event fires too late, and the textarea is already populated with the linkified text. The textarea is populated during click/mouseup, so mousedown fires before that.
         function handleEditNotesClick(event: MouseEvent) {
-            banNote.innerHTML = (banNote as HTMLSpanElement).dataset.original as string;
-            event.target?.removeEventListener("mousedown", handleEditNotesClick as EventListener);
+            banNote.innerHTML = (banNote as HTMLSpanElement).dataset
+                .original as string;
+            event.target?.removeEventListener(
+                "mousedown",
+                handleEditNotesClick as EventListener
+            );
             delete (banNote as HTMLSpanElement).dataset.original;
         }
-        editNotes?.addEventListener("mousedown", handleEditNotesClick as EventListener);
+        editNotes?.addEventListener(
+            "mousedown",
+            handleEditNotesClick as EventListener
+        );
     });
 }
 
