@@ -614,7 +614,7 @@ function handleForumsList() {
             )?.outerHTML;
             const threadTitle = thread?.querySelector(
                 ".structItem-cell--main > .structItem-title"
-            )?.innerHTML; // Queryselector gets the parent and const references all children in case of prefixes
+            )?.innerHTML; // Queryselector gets the parent and var references all children in case of prefixes
             const date = thread?.querySelector(
                 ".structItem-cell--latest > a > time"
             )?.outerHTML;
