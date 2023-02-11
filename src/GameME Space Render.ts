@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/GameME%20Space%20Render.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      1.0.1
+// @version      2.0.0
 // @description  Renders additional whitespace between words in GameME Chat History (and fixes console spam)
 // @author       blank_dvth
 // @match        http*://*.gameme.com/*chat*
