@@ -190,12 +190,14 @@ function setupForumsConfig() {
                 ],
                 type: "textarea",
                 save: false,
-                default: "GitLab;https://gitlab.edgegamers.io/\nGameME;https://edgegamers.gameme.com/",
+                default:
+                    "GitLab;https://gitlab.edgegamers.io/\nGameME;https://edgegamers.gameme.com/",
             },
             "navbar-urls": {
                 type: "hidden",
-                default: "GitLab;https://gitlab.edgegamers.io/\nGameME;https://edgegamers.gameme.com/",
-            }
+                default:
+                    "GitLab;https://gitlab.edgegamers.io/\nGameME;https://edgegamers.gameme.com/",
+            },
         },
         events: {
             init: function () {
@@ -248,7 +250,15 @@ function setupForumsConfig() {
                         "navbar-urls-unchecked",
                         true
                     ) as string;
-                    if (urls.split(/\r?\n/).every((url) => url.match(/^[^;\r\n]*;https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(?:\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/)))
+                    if (
+                        urls
+                            .split(/\r?\n/)
+                            .every((url) =>
+                                url.match(
+                                    /^[^;\r\n]*;https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(?:\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/
+                                )
+                            )
+                    )
                         GM_config.set("navbar-urls", urls);
                 });
             },
