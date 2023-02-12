@@ -41,6 +41,7 @@ const completedMap: Completed_Map[] = [];
 const signatureBlockList: string[] = [];
 const navbarURLs: NavbarURL_Map[] = [];
 const onHoldTemplates: OnHold_Map[] = [];
+const opPrepopRegex: RegExp[] = [];
 
 /**
  * Creates a preset button
@@ -224,6 +225,12 @@ function setupForumsConfig() {
                 default:
                     "No MAUL Account (Reason);MAUL account must be created and verified;\nSteam Verification;Steam account must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!\nMinecraft Verification;Minecraft ID must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" then under ID for Minecraft, input your Minecraft username, click Convert to Game ID, then log onto our Minecraft server. Once you've done so, please reply to this post!\"\nBattlefield Verification;Battlefield account must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, in MAUL hover over the home link in the top left, click help, then follow the instructions for Battlefield. Once you have done so, please reply to this post!\nDiscord Verification;Discord ID must be verfied in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" then click the sign in through Discord button under the discord ID section. Once you have done so, please reply to this post!\nInappropriate Name;Inappropriate Name;As for your name, Please click [URL='https://www.edgegamers.com/account/username']here[/URL] and fill out a name change request. After you fill it out, please wait while your name change request is finalized and the change is completed. Once it is done your application process will resume. If you want to have an understanding on our naming policy inside of eGO please click [URL='https://www.edgegamers.com/threads/378540/']here[/URL].",
             },
+            "op-prepopulate": {
+                label: "Prepopulate OP",
+                section: ["Prepopulate OP", "Breadcrumb regex for threads in which a mention of OP should be prepopulated in the reply box on click. Separated by newlines."],
+                type: "textarea",
+                default: "Contest a Ban ?$\nReport a Player ?$\nContact Leadership ?$"
+            }
         },
         events: {
             init: function () {
@@ -431,6 +438,16 @@ function loadOnHoldTemplates() {
             reason: parts[1],
             explain: parts[2],
         });
+    });
+}
+
+/**
+ * Loads the OP prepopulate Regexes from config
+ */
+function loadOPPrepopRegex() {
+    const opPrepopRegexRaw = GM_config.get("opprepop-regex") as string;
+    opPrepopRegexRaw.split(/\r?\n/).forEach((regex) => {
+        opPrepopRegex.push(RegExp(regex));
     });
 }
 
@@ -810,6 +827,13 @@ function handleGenericThread() {
             break;
         }
     }
+
+    // TODO: Neither changing the textarea nor it's "mirror" change the text. Need to figure this out
+    // for (var i = 0; i < opPrepopRegex.length; i++) {
+    //     if (breadcrumbs.match(opPrepopRegex[i])) {
+            
+    //     }
+    // }
 
     if (!breadcrumbs.match(/Moderator Trash Bin ?$/))
         addTrashButton(
