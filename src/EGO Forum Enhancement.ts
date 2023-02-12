@@ -565,7 +565,9 @@ function addMAULNav(nav_list: HTMLUListElement) {
     if (GM_config.get("maul-dropdown")) {
         // MAUL DIV
         const maul_div = nav_list.childNodes[11].childNodes[1] as HTMLElement;
-        maul_div.parentElement?.classList.add("p-navEl-link--splitMenu");
+        (maul_div.childNodes[11].childNodes[1] as HTMLElement)
+            .querySelector("a.p-navEl-link")
+            ?.classList.add("p-navEl-link--splitMenu");
         maul_div.setAttribute("data-has-children", "true");
         const dropdown = document.createElement("a");
 
