@@ -27,7 +27,7 @@ jobs:
     - name: Minify JavaScript
       run: |
         for file in *.js; do
-          npx uglifyjs "$file" -o "${file%.js}.js" --compress --mangle toplevel "keep_quoted" --comments "/\s(==\/?UserScript==|@.+$)/"
+          npx uglifyjs "$file" -o "${file%.js}.js" --compress --mangle toplevel --comments "/\s(==\/?UserScript==|@.+$)/"
         done
     - name: Apply Environment Variables
       run: |
