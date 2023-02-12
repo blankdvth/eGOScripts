@@ -12,6 +12,9 @@
 // ==/UserScript==
 
 // An extra line, UglifyJS seems to remove the UserScript comment without it.
+if (false) {
+}
+
 (function () {
     // Remove banners
     document
