@@ -10,8 +10,9 @@ body:
   - type: dropdown
     id: script
     attributes:
-      label: "Script"
-      description: "Select which script you are encountering the bug with."
+      label: "Script(s)"
+      description: "Select which script(s) you are encountering the bug with."
+      multiple: true
       options:
         - EGO Ad Resize
         - EGO Forum Enhancement
@@ -76,8 +77,9 @@ body:
   - type: dropdown
     id: browser
     attributes:
-      label: "Browser"
-      description: "Please select the browser you are using."
+      label: "Browser(s)"
+      description: "What browser(s) does this issue occur in? Only select the browsers you have tested on, do not feel obligated to test on all browsers."
+      multiple: true
       options:
         - Mozilla Firefox
         - Google Chrome
@@ -90,7 +92,8 @@ body:
     id: os
     attributes:
       label: "Operating System"
-      description: "Please select the operating system you are using."
+      description: "What operating system(s) does this issue occur in? Only select the operating systems you have tested on, do not feel obligated to test on all operating systems."
+      multiple: true
       options:
         - Windows
         - macOS
