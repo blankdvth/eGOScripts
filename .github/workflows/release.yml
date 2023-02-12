@@ -52,6 +52,7 @@ jobs:
         makeLatest: true
         allowUpdates: true
         generateReleaseNotes: true
+        removeArtifacts: true
         prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
         draft: ${{ contains(github.ref_name, 'draft') }}
 
