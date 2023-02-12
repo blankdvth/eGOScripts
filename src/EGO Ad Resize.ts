@@ -11,7 +11,7 @@
 // @grant        none
 // ==/UserScript==
 
-// An extra line, UglifyJS seems to remove the UserScript comment without it.
+// An extra line, UglifyJS seems to remove the UserScript comment without it. It removes this line automatically anyhow.
 if (false) {
 }
 
