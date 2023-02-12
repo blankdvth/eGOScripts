@@ -1,0 +1,33 @@
+name: Feature Request
+description: Want a feature added? Let me know!
+labels: ["enhancement", "triage"]
+body:
+  - type: checkboxes
+    id: existing
+    attributes:
+      label: "Existing Feature/Issue"
+      options:
+        - label: "I have checked that this feature does not already exist in the script(s) [ensure you are on the latest version]."
+          required: true
+        - label: "I have checked that there is not already an open issue for this feature."
+          required: true
+  - type: checkboxes
+    id: script
+    attributes:
+      label: "Script(s)"
+      description: "Select which script(s) this feature request applies to"
+      options:
+        - EGO Ad Resize
+        - EGO Forum Enhancement
+        - EGO MAUL Enhancement
+        - GameME Space Render
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: "Description"
+      description: "Describe what you would like to see added to the script(s)."
+      placeholder: "Enter your description here"
+    validations:
+      required: true
