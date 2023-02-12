@@ -46,7 +46,7 @@ jobs:
         name: Batch Release ${{ env.RELEASE_VERSION }}
         tag: ${{ env.RELEASE_VERSION }}-release
         body: |
-          This is an automated release of the all the scripts in this repository. Each script has it's own version number (seen in the Script's `@version` tag in the header), not all of them may have been updated with this batch release (it might only be one or two). The release number shown is this release is just a batch number for the entire repository. It has nothing to do with the individual scripts.
+          This is an automated release of all the scripts in this repository. Each script has it's own version number (seen in the Script's `@version` tag in the header), not all of them may have been updated with this batch release (it might only be one or two). The release number shown is this release is just a batch number for the entire repository. It has nothing to do with the individual scripts.
 
           The easiest way to determine if you need to update is to click each of the Assets and see if Tampermonkey prompts you to update. Alternatively, see if you can determine it from the release notes below.
         makeLatest: true
