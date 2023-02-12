@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20MAUL%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.0.1
+// @version      4.1.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS
 // @match        https://maul.edgegamers.com/*
@@ -586,10 +586,15 @@ function updateBanNoteURLs() {
     const banNotes = document.querySelectorAll("span[id*=notes].col-xs-10");
     banNotes.forEach((banNote) => {
         // Replace the text with a linkified version
-        const replaced = banNote.innerHTML.replaceAll(
-            /https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)/g,
-            '<a href="$&" target="_blank">$&</a>'
-        );
+        const replaced = banNote.innerHTML
+            .replaceAll(
+                /https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)/g,
+                '<a href="$&" target="_blank" rel="external">$&</a>'
+            )
+            .replaceAll(
+                /([^\/]|^)(\d{17})([^\/]|$)/g,
+                '$1<a href="https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=$2" target="_blank">$2</a>$3'
+            );
         // If the text hasn't been changed, move on
         if (replaced === banNote.innerHTML) return;
         // Store the original text as a data attribute
