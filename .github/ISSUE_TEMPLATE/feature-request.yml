@@ -11,8 +11,9 @@ body:
           required: true
         - label: "I have checked that there is not already an open issue for this feature."
           required: true
-  - type: checkboxes
+  - type: dropdown
     id: script
+    multiple: true
     attributes:
       label: "Script(s)"
       description: "Select which script(s) this feature request applies to"
