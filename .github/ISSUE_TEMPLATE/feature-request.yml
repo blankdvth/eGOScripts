@@ -13,10 +13,10 @@ body:
           required: true
   - type: dropdown
     id: script
-    multiple: true
     attributes:
       label: "Script(s)"
       description: "Select which script(s) this feature request applies to"
+      multiple: true
       options:
         - EGO Ad Resize
         - EGO Forum Enhancement
