@@ -29,11 +29,18 @@ interface NavbarURL_Map {
     url: string;
 }
 
+interface OnHold_Map {
+    name: string;
+    reason: string;
+    explain: string;
+}
+
 declare var SteamIDConverter: any;
 
 const completedMap: Completed_Map[] = [];
 const signatureBlockList: string[] = [];
 const navbarURLs: NavbarURL_Map[] = [];
+const onHoldTemplates: OnHold_Map[] = [];
 
 /**
  * Creates a preset button
@@ -43,6 +50,7 @@ const navbarURLs: NavbarURL_Map[] = [];
  */
 function createForumsPresetButton(
     text: string,
+    id: string,
     callback: (event: MouseEvent) => void
 ): HTMLSpanElement {
     const button = document.createElement("span");
@@ -51,6 +59,7 @@ function createForumsPresetButton(
     button.onclick = callback;
     button.style.marginLeft = "4px";
     button.style.marginTop = "4px";
+    button.dataset.presetId = id;
     return button;
 }
 
@@ -62,10 +71,11 @@ function createForumsPresetButton(
  */
 function addForumsPreset(
     name: string,
+    id: string,
     div: HTMLDivElement,
     func: (event: MouseEvent) => void
 ) {
-    div.appendChild(createForumsPresetButton(name, func));
+    div.appendChild(createForumsPresetButton(name, id, func));
 }
 
 /**
@@ -198,6 +208,34 @@ function setupForumsConfig() {
                 default:
                     "GitLab;https://gitlab.edgegamers.io/\nGameME;https://edgegamers.gameme.com/",
             },
+            "on-hold-unchecked": {
+                label: "On Hold Templates",
+                section: [
+                    "On Hold Templates",
+                    "See <a  href='https://gist.github.com/blankdvth/45c5d89f19bb74703488c57035e8acf3' target='_blank'>this guide</a> on how to format your templates.",
+                ],
+                type: "textarea",
+                save: false,
+                default:
+                    "No MAUL Account (Reason);MAUL account must be created and verified;\nSteam Verification;Steam account must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
+                then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!\nMinecraft Verification;Minecraft ID must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
+                then under ID for Minecraft, input your Minecraft username, click Convert to Game ID, then log onto our Minecraft server. Once you've done so, please reply to this post!\"\nBattlefield Verification;Battlefield account must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, in MAUL hover over the home link in the top left, \
+                click help, then follow the instructions for Battlefield. Once you have done so, please reply to this post!\nDiscord Verification;Discord ID must be verfied in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
+                then click the sign in through Discord button under the discord ID section. Once you have done so, please reply to this post!\nInappropriate Name;Inappropriate Name;As for your name, Please click [URL='https://www.edgegamers.com/account/username']here[/URL] and fill out a name change request. \
+                After you fill it out, please wait while your name change request is finalized and the change is completed. \
+                Once it is done your application process will resume. If you want to have an understanding on our naming policy inside of eGO please click [URL='https://www.edgegamers.com/threads/378540/']here[/URL].",
+            },
+            "on-hold": {
+                type: "hidden",
+                default:
+                    "No MAUL Account (Reason);MAUL account must be created and verified;\nSteam Verification;Steam account must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
+                then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!\nMinecraft Verification;Minecraft ID must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
+                then under ID for Minecraft, input your Minecraft username, click Convert to Game ID, then log onto our Minecraft server. Once you've done so, please reply to this post!\"\nBattlefield Verification;Battlefield account must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, in MAUL hover over the home link in the top left, \
+                click help, then follow the instructions for Battlefield. Once you have done so, please reply to this post!\nDiscord Verification;Discord ID must be verfied in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
+                then click the sign in through Discord button under the discord ID section. Once you have done so, please reply to this post!\nInappropriate Name;Inappropriate Name;As for your name, Please click [URL='https://www.edgegamers.com/account/username']here[/URL] and fill out a name change request. \
+                After you fill it out, please wait while your name change request is finalized and the change is completed. \
+                Once it is done your application process will resume. If you want to have an understanding on our naming policy inside of eGO please click [URL='https://www.edgegamers.com/threads/378540/']here[/URL].",
+            },
         },
         events: {
             init: function () {
@@ -213,6 +251,7 @@ function setupForumsConfig() {
                     "navbar-urls-unchecked",
                     GM_config.get("navbar-urls")
                 );
+                GM_config.set("on-hold-unchecked", GM_config.get("on-hold"));
             },
             open: function (doc) {
                 GM_config.fields[
@@ -261,6 +300,25 @@ function setupForumsConfig() {
                     )
                         GM_config.set("navbar-urls", urls);
                 });
+                GM_config.fields["on-hold-unchecked"].node?.addEventListener(
+                    "change",
+                    function () {
+                        const onHold = GM_config.get(
+                            "on-hold-unchecked",
+                            true
+                        ) as string;
+                        if (
+                            onHold
+                                .split(/\r?\n/)
+                                .every((line) =>
+                                    line.match(
+                                        /^[^;\r\n]+;[^;\r\n]*;[^;\r\n]*$/
+                                    )
+                                )
+                        )
+                            GM_config.set("on-hold", onHold);
+                    }
+                );
             },
             save: function (forgotten) {
                 if (
@@ -283,6 +341,10 @@ function setupForumsConfig() {
                 )
                     alert(
                         "Invalid navbar URL list. Ensure each URL is valid, on it's own line, and all URLs are in the format 'text;url'."
+                    );
+                if (forgotten["on-hold-unchecked"] !== GM_config.get("on-hold"))
+                    alert(
+                        "Invalid on hold list. Ensure each line is in the format 'name;reason;explain' and that no field contains a semicolon."
                     );
             },
         },
@@ -361,6 +423,25 @@ function loadNavbarURLs() {
         navbarURLs.push({
             text: parts[0],
             url: parts[1],
+        });
+    });
+}
+
+/**
+ * Loads the on hold templates from config
+ */
+function loadOnHoldTemplates() {
+    const onHoldTemplatesRaw = GM_config.get("on-hold") as string;
+    onHoldTemplatesRaw.split(/\r?\n/).forEach((line) => {
+        const parts = line.split(";");
+        if (parts.length != 3) {
+            alert("Invalid on hold line: " + line);
+            return;
+        }
+        onHoldTemplates.push({
+            name: parts[0],
+            reason: parts[1],
+            explain: parts[2],
         });
     });
 }
@@ -841,48 +922,20 @@ function handleOnHold(event: Event) {
         ":nth-child(4) > dd > div > .formSubmitRow-controls"
     ) as HTMLDivElement;
 
-    addForumsPreset("No MAUL Account", div, function () {
-        reason.value = "MAUL account must be created and verified";
-        explain.value =
-            "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
-then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!";
-    });
-
-    addForumsPreset("Steam Verification", div, function () {
-        reason.value = "Steam account must be verified in MAUL";
-        explain.value =
-            "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
-then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!";
-    });
-
-    addForumsPreset("Minecraft Verification", div, function () {
-        reason.value = "Minecraft ID must be verified in MAUL";
-        explain.value =
-            "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" \
-then under ID for Minecraft, input your Minecraft username, click Convert to Game ID, then log onto our Minecraft server. Once you've done so, please reply to this post!";
-    });
-
-    addForumsPreset("Battlefield Verification", div, function () {
-        reason.value = "Battlefield account must be verified in MAUL";
-        explain.value =
-            "In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, in MAUL hover over the home link in the top left, \
-click help, then follow the instructions for Battlefield. Once you have done so, please reply to this post!";
-    });
-
-    addForumsPreset("Discord Verification", div, function () {
-        reason.value = "Discord ID must be verfied in MAUL";
-        explain.value =
-            'In order for you to fix this you\'ll need to click the MAUL link at the top of the page in the navbar, click "Edit Game IDs," \
-then click the sign in through Discord button under the discord ID section. Once you have done so, please reply to this post!';
-    });
-
-    addForumsPreset("Inappropriate Name", div, function () {
-        reason.value = "Inappropriate Name";
-        explain.value =
-            "As for your name, Please click [URL='https://www.edgegamers.com/account/username']here[/URL] and fill out a name change request. \
-After you fill it out, please wait while your name change request is finalized and the change is completed. \
-Once it is done your application process will resume. If you want to have an understanding on our naming policy inside of eGO please click [URL='https://www.edgegamers.com/threads/378540/']here[/URL].";
-    });
+    // Insert presets
+    for (var i = 0; i < onHoldTemplates.length; i++) {
+        addForumsPreset(
+            onHoldTemplates[i].name,
+            i.toString(),
+            div,
+            function (this: HTMLElement) {
+                const preset =
+                    onHoldTemplates[this.dataset.presetId as unknown as number];
+                if (preset.reason) reason.value = preset.reason;
+                if (preset.explain) explain.value = preset.explain;
+            }
+        );
+    }
 }
 
 /**
@@ -1169,6 +1222,7 @@ function blockSignatures() {
     loadCompletedMap();
     loadSignatureBlockList();
     loadNavbarURLs();
+    loadOnHoldTemplates();
 
     // Determine what page we're on
     const url = window.location.href;
