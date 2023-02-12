@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.0.0
+// @version      4.1.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -24,10 +24,16 @@ interface Completed_Map {
     completedId: string;
 }
 
+interface NavbarURL_Map {
+    text: string;
+    url: string;
+}
+
 declare var SteamIDConverter: any;
 
 const completedMap: Completed_Map[] = [];
 const signatureBlockList: string[] = [];
+const navbarURLs: NavbarURL_Map[] = [];
 
 /**
  * Creates a preset button
@@ -176,6 +182,20 @@ function setupForumsConfig() {
                 type: "hidden",
                 default: "",
             },
+            "navbar-urls-unchecked": {
+                label: "Navigation Bar URLs",
+                section: [
+                    "Navigation Bar URLs",
+                    "List of URLs to add to the navigation bar, separated by newlines. Each line should be in the format 'text;url'. Your URLs cannot have a semicolon in them.",
+                ],
+                type: "textarea",
+                save: false,
+                default: "GitLab;https://gitlab.edgegamers.io/\nGameME;https://edgegamers.gameme.com/",
+            },
+            "navbar-urls": {
+                type: "hidden",
+                default: "GitLab;https://gitlab.edgegamers.io/\nGameME;https://edgegamers.gameme.com/",
+            }
         },
         events: {
             init: function () {
@@ -186,6 +206,10 @@ function setupForumsConfig() {
                 GM_config.set(
                     "signature-block-unchecked",
                     GM_config.get("signature-block")
+                );
+                GM_config.set(
+                    "navbar-urls-unchecked",
+                    GM_config.get("navbar-urls")
                 );
             },
             open: function (doc) {
@@ -217,6 +241,16 @@ function setupForumsConfig() {
                     if (ids.split(/\r?\n/).every((id) => id.match(/^\d+$/)))
                         GM_config.set("signature-block", ids);
                 });
+                GM_config.fields[
+                    "navbar-urls-unchecked"
+                ].node?.addEventListener("change", function () {
+                    const urls = GM_config.get(
+                        "navbar-urls-unchecked",
+                        true
+                    ) as string;
+                    if (urls.split(/\r?\n/).every((url) => url.match(/^[^;\r\n]*;https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(?:\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/)))
+                        GM_config.set("navbar-urls", urls);
+                });
             },
             save: function (forgotten) {
                 if (
@@ -232,6 +266,13 @@ function setupForumsConfig() {
                 )
                     alert(
                         "Invalid signature block ID list. Ensure each ID is on it's own line and all IDs are numerical."
+                    );
+                if (
+                    forgotten["navbar-urls-unchecked"] !==
+                    GM_config.get("navbar-urls")
+                )
+                    alert(
+                        "Invalid navbar URL list. Ensure each URL is valid, on it's own line, and all URLs are in the format 'text;url'."
                     );
             },
         },
@@ -293,6 +334,24 @@ function loadSignatureBlockList() {
     const signatureBlockListRaw = GM_config.get("signature-block") as string;
     signatureBlockListRaw.split(/\r?\n/).forEach((id) => {
         signatureBlockList.push(id);
+    });
+}
+
+/**
+ * Loads the navbar URL list from config
+ */
+function loadNavbarURLs() {
+    const navbarURLsRaw = GM_config.get("navbar-urls") as string;
+    navbarURLsRaw.split(/\r?\n/).forEach((url) => {
+        const parts = url.split(";");
+        if (parts.length != 2) {
+            alert("Invalid URL: " + url);
+            return;
+        }
+        navbarURLs.push({
+            text: parts[0],
+            url: parts[1],
+        });
     });
 }
 
@@ -407,6 +466,15 @@ function addNav(href: string, text: string, nav: HTMLElement) {
     div.appendChild(a);
     li.appendChild(div);
     nav.insertBefore(li, nav.childNodes[nav.childNodes.length - 5]);
+}
+
+/**
+ * Adds all nav buttons to the navbar
+ */
+function addNavButtons(urls: NavbarURL_Map[], nav: HTMLElement) {
+    urls.forEach((url) => {
+        addNav(url.url, url.text, nav);
+    });
 }
 
 /**
@@ -1090,6 +1158,7 @@ function blockSignatures() {
     setupForumsConfig();
     loadCompletedMap();
     loadSignatureBlockList();
+    loadNavbarURLs();
 
     // Determine what page we're on
     const url = window.location.href;
@@ -1107,8 +1176,7 @@ function blockSignatures() {
     // Reauthenthicate with MAUL if need be
     autoMAULAuth();
 
-    addNav("https://gitlab.edgegamers.io/", "GitLab", nav_list);
-    addNav("https://edgegamers.gameme.com/", "GameME", nav_list);
+    addNavButtons(navbarURLs, nav_list);
 
     if (url.match(/^https:\/\/www\.edgegamers\.com\/members\/\d+/))
         // Members Page
