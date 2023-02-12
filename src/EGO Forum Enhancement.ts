@@ -212,7 +212,7 @@ function setupForumsConfig() {
                 label: "On Hold Templates",
                 section: [
                     "On Hold Templates",
-                    "See <a  href='https://gist.github.com/blankdvth/45c5d89f19bb74703488c57035e8acf3' target='_blank'>this guide</a> on how to format your templates.",
+                    "See <a  href='https://github.com/blankdvth/eGOScripts/wiki/On-Hold-Templates' target='_blank'>this guide</a> on how to format your templates.",
                 ],
                 type: "textarea",
                 save: false,
