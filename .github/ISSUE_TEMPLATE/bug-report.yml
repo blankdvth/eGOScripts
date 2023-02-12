@@ -1,0 +1,114 @@
+name: Bug Report
+description: Is something not working as intended? Let me know!
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to fill out this bug report!
+        Please make sure to follow the template and provide as much information as possible. This will ensure your issue is dealt with as fast as possible.
+  - type: dropdown
+    id: script
+    attributes:
+      label: "Script"
+      description: "Select which script you are encountering the bug with."
+      options:
+        - EGO Ad Resize
+        - EGO Forum Enhancement
+        - EGO MAUL Enhancement
+        - GameME Space Render
+    validations:
+      required: true
+  - type: input
+    id: script-version
+    attributes:
+      label: "Script Version"
+      description: "Please enter the version of the script you are using."
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: "Description"
+      description: "Please enter an explicit description of your issue. The more information the better!"
+      placeholder: "Enter your description here"
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: "URL"
+      description: "If applicable, please enter the URL of the page you encountered this problem on."
+      placeholder: "https://example.com/path/to/page"
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Steps to Reproduce"
+      description: "Please enter the steps needed to reproduce the issue."
+      value: |
+        1. Click on '...'
+        2. Scroll to '...'
+        3. etc.
+    validations:
+      required: true
+  - type: input
+    id: expected
+    attributes:
+      label: "Expected Behavior"
+      description: "Please enter the expected behavior of the script."
+      placeholder: "The script should..."
+    validations:
+      required: true
+  - type: textarea
+    id: console
+    attributes:
+      label: "Console Output"
+      description: "Please enter the output of your browser's console (if applicable). If this is long, you may want to use [a paste service](https://hastebin.blankdvth.com/)"
+      placeholder: "Enter your console output here"
+      render: text
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: "Screenshots"
+      description: "If applicable, please add screenshots to help explain your problem."
+      placeholder: "Add your screenshots here"
+  - type: dropdown
+    id: browser
+    attributes:
+      label: "Browser"
+      description: "Please select the browser you are using."
+      options:
+        - Mozilla Firefox
+        - Google Chrome
+        - Microsoft Edge
+        - Safari
+        - Opera
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: "Operating System"
+      description: "Please select the operating system you are using."
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Android
+        - iOS
+        - Other (Add to Additional Information)
+    validations:
+      required: true
+  - type: input
+    id: tampermonkey-version
+    attributes:
+      label: "Tampermonkey Version"
+      description: "Please enter the version of Tampermonkey you are using."
+      placeholder: "4.18.1"
+  - type: textarea
+    id: additional
+    attributes:
+      label: "Additional Information"
+      description: "If you have any additional information, please enter it here."
+      placeholder: "Enter your additional information here"

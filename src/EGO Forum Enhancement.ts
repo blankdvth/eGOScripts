@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.2.0
+// @version      4.2.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -212,7 +212,7 @@ function setupForumsConfig() {
                 label: "On Hold Templates",
                 section: [
                     "On Hold Templates",
-                    "See <a  href='https://gist.github.com/blankdvth/45c5d89f19bb74703488c57035e8acf3' target='_blank'>this guide</a> on how to format your templates.",
+                    "See <a  href='https://github.com/blankdvth/eGOScripts/wiki/On-Hold-Templates' target='_blank'>this guide</a> on how to format your templates.",
                 ],
                 type: "textarea",
                 save: false,

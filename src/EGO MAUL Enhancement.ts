@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20MAUL%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.0.0
+// @version      4.0.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS
 // @match        https://maul.edgegamers.com/*
@@ -147,7 +147,7 @@ function setupMAULConfig() {
                 label: "Division Index",
                 section: [
                     "Autoselect",
-                    'See <a href="https://gist.github.com/blankdvth/d998d60990f77cc32b986d3b3029c208" target="_blank">this guide</a> if you don\'t know how to get the indexes. Set to 0 for no autoselect.',
+                    'See <a href="https://github.com/blankdvth/eGOScripts/wiki/Autoselect-Indexes" target="_blank">this guide</a> if you don\'t know how to get the indexes. Set to 0 for no autoselect.',
                 ],
                 type: "int",
                 min: 0,
@@ -163,7 +163,7 @@ function setupMAULConfig() {
                 label: "Add Ban Presets",
                 section: [
                     "Ban Presets",
-                    'See <a href="https://gist.github.com/blankdvth/c4389725de81465560b59ae57dbee570" target="_blank">this guide</a> on how to format and setup presets.<br>Note: This will not apply until the page is refreshed (your updated presets also won\'t show if you reopen the config popup until you refresh).',
+                    'See <a href="https://github.com/blankdvth/eGOScripts/wiki/Config-Presets" target="_blank">this guide</a> on how to format and setup presets.<br>Note: This will not apply until the page is refreshed (your updated presets also won\'t show if you reopen the config popup until you refresh).',
                 ],
                 type: "textarea",
                 save: false,
