@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.2.1
+// @version      4.2.3
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -565,6 +565,7 @@ function addMAULNav(nav_list: HTMLUListElement) {
     if (GM_config.get("maul-dropdown")) {
         // MAUL DIV
         const maul_div = nav_list.childNodes[11].childNodes[1] as HTMLElement;
+        maul_div.parentElement?.classList.add("p-navEl-link--splitMenu");
         maul_div.setAttribute("data-has-children", "true");
         const dropdown = document.createElement("a");
 
