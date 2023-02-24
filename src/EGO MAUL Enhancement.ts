@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20MAUL%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.1.0
+// @version      4.1.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS
 // @match        https://maul.edgegamers.com/*
@@ -592,7 +592,7 @@ function updateBanNoteURLs() {
                 '<a href="$&" target="_blank" rel="external">$&</a>'
             )
             .replaceAll(
-                /([^\/]|^)(\d{17})([^\/]|$)/g,
+                /([^\/\d]|^)(\d{17})([^\/\d]|$)/g,
                 '$1<a href="https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=$2" target="_blank">$2</a>$3'
             );
         // If the text hasn't been changed, move on
