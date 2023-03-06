@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20MAUL%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.2.1
+// @version      4.3.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS
 // @match        https://maul.edgegamers.com/*
@@ -557,6 +557,7 @@ function handleProfile() {
  */
 function handleBanList() {
     convertBanningAdmins();
+    convertGameIDs();
     updateBanNoteURLs();
 }
 
@@ -597,6 +598,27 @@ function convertBanningAdmins() {
     }
 }
 
+/**
+ * Changes Game IDs wo/ MAUL accounts to link to their personal List Bans page
+ */
+function convertGameIDs() {
+    const banIDs = Array.from(
+        document.querySelectorAll(
+            "table.table-bordered td:not([class]):nth-child(3)"
+        )
+    ).filter((el) => !el.querySelector("a")) as HTMLTableCellElement[];
+    banIDs.forEach((el) => {
+        const id =
+            el.childElementCount == 1 && el.firstChild!.nodeName === "SPAN"
+                ? (el.firstChild! as HTMLSpanElement).title
+                : el.innerText;
+        el.innerHTML = `<i><a href="https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=${id}" target="_blank" style="color: inherit">${el.innerHTML}</a></i>`;
+    });
+}
+
+/**
+ * Adds hyperlinks to the Ban Notes fields (both Steam IDs and URLs)
+ */
 function updateBanNoteURLs() {
     const banNotes = document.querySelectorAll("span[id*=notes].col-xs-10");
     banNotes.forEach((banNote) => {
