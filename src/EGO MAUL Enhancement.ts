@@ -507,8 +507,13 @@ function handleProfile() {
         ...document.querySelectorAll("div.col-xs-6 > div > div:nth-child(3)"),
     ];
     userNotes.forEach((userNote) => {
-        if (!userNote.textContent) return;
-        userNote.textContent = userNote.textContent
+        if (
+            !userNote.textContent ||
+            userNote.textContent.includes("<") ||
+            userNote.textContent.includes(">")
+        ) // Empty or possible HTML injection
+            return;
+        userNote.innerHTML = userNote.textContent
             .replaceAll(
                 /(?:https?:\/\/)?(?:www\.)?edge-gamers\.com\/forums\/showthread\.php\?p=(\d+)(?:#?post(\d+))?/g,
                 function (match, threadId, postId) {
