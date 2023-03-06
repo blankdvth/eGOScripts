@@ -509,8 +509,8 @@ function handleProfile() {
     userNotes.forEach((userNote) => {
         if (
             !userNote.textContent ||
-            userNote.innerHTML.includes("<") ||
-            userNote.innerHTML.includes(">")
+            (userNote.innerHTML.includes("<") &&
+                userNote.innerHTML.includes(">"))
         )
             // Empty or possible HTML injection
             return;
