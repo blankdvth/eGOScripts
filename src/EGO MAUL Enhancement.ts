@@ -508,18 +508,27 @@ function handleProfile() {
     ];
     userNotes.forEach((userNote) => {
         if (!userNote.textContent) return;
-        userNote.textContent = userNote.textContent.replaceAll(
-            /(?:https?:\/\/)?(?:www\.)?edge-gamers\.com\/forums\/showthread\.php\?p=(\d+)(?:#?post(\d+))?/g,
-            function (match, threadId, postId) {
-                return generateForumsURL(threadId, postId);
-            }
-        );
-        userNote.textContent = userNote.textContent.replaceAll(
-            /(?:https?:\/\/)?(?:www\.)?edge-gamers\.com\/forums\/showthread\.php\?(\d+)[\-a-zA-Z]*/g,
-            function (match, threadId) {
-                return generateForumsURL(threadId, null);
-            }
-        );
+        userNote.textContent = userNote.textContent
+            .replaceAll(
+                /(?:https?:\/\/)?(?:www\.)?edge-gamers\.com\/forums\/showthread\.php\?p=(\d+)(?:#?post(\d+))?/g,
+                function (match, threadId, postId) {
+                    return generateForumsURL(threadId, postId);
+                }
+            )
+            .replaceAll(
+                /(?:https?:\/\/)?(?:www\.)?edge-gamers\.com\/forums\/showthread\.php\?(\d+)[\-a-zA-Z]*/g,
+                function (match, threadId) {
+                    return generateForumsURL(threadId, null);
+                }
+            )
+            .replaceAll(
+                /https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)/g,
+                '<a href="$&" target="_blank" rel="external">$&</a>'
+            )
+            .replaceAll(
+                /([^\/\d]|^)(\d{17})([^\/\d]|$)/g,
+                '$1<a href="https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=$2" target="_blank">$2</a>$3'
+            );
     });
 
     // Attempt to get Source ID
