@@ -511,7 +511,8 @@ function handleProfile() {
             !userNote.textContent ||
             userNote.textContent.includes("<") ||
             userNote.textContent.includes(">")
-        ) // Empty or possible HTML injection
+        )
+            // Empty or possible HTML injection
             return;
         userNote.innerHTML = userNote.textContent
             .replaceAll(
