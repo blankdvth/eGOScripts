@@ -612,7 +612,7 @@ function convertGameIDs() {
             el.childElementCount == 1 && el.firstChild!.nodeName === "SPAN"
                 ? (el.firstChild! as HTMLSpanElement).title
                 : el.innerText;
-        el.innerHTML = `<i><a href="https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=${id}" target="_blank" style="color: inherit">${el.innerHTML}</a></i>`;
+        el.innerHTML = `<i><a href="https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=${id}" style="color: inherit">${el.innerHTML}</a></i>`;
     });
 }
 
