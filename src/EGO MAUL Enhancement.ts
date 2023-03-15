@@ -624,6 +624,7 @@ function updateBanNoteURLs() {
     banNotes.forEach((banNote) => {
         // Replace the text with a linkified version
         const replaced = banNote.innerHTML
+            .replace(/&amp;/g, "&") // Replace &amp; with &
             .replaceAll(
                 /https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)/g,
                 '<a href="$&" target="_blank" rel="external">$&</a>'
