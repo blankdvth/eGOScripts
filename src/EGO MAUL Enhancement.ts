@@ -529,7 +529,7 @@ function handleProfile() {
                 }
             )
             .replaceAll(
-                /https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)/g,
+                /https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)/g,
                 '<a href="$&" target="_blank" rel="external">$&</a>'
             )
             .replaceAll(
@@ -627,7 +627,7 @@ function updateBanNoteURLs() {
         // Replace the text with a linkified version
         const replaced = unescapedInnerHTML
             .replaceAll(
-                /https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)/g,
+                /https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)/g,
                 '<a href="$&" target="_blank" rel="external">$&</a>'
             )
             .replaceAll(
