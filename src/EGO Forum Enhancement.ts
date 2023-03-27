@@ -612,6 +612,23 @@ function addMAULNav(nav_list: HTMLUListElement) {
 }
 
 /**
+ * Add or append text to the post editor box
+ * @param text Text to add to post box
+ * @param append True to append text, false to replace
+ */
+function editPostBox(text: string, append: boolean = false) {
+    if (document.querySelector("#xfBbCode-1")?.classList.contains("fr-active")) { // BBCode Editor
+        const editors = document.querySelectorAll('textarea.input[name="message"]');
+        const editor = editors[editors.length - 1] as HTMLTextAreaElement;
+        editor.value = append ? editor.value + text : text;
+    } else { // Rich Editor
+        const editors = document.querySelectorAll('div.fr-element.fr-view');
+        const editor = editors[editors.length - 1] as HTMLDivElement;
+        editor.innerText = append ? editor.innerText + text : text;
+    }
+}
+
+/**
  * Generates large, transparent text (basically a watermark)
  * @param {string} top CSS Top Style
  * @param {string} str Text to display
