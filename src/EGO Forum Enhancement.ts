@@ -133,7 +133,7 @@ function setupForumsConfig() {
                 default: true,
             },
             "show-list-bans-unknown": {
-                label: "Show List Bans for Unknown Steam IDs",
+                label: "Show List Bans for unknown Steam IDs",
                 title: "Whether to show the List Bans button alongside Lookup ID if the Steam ID is in an unknown format.",
                 type: "checkbox",
                 default: true,
@@ -239,10 +239,15 @@ function setupForumsConfig() {
                 type: "hidden",
                 default: "",
             },
-            "auto-mention-focus": {
-                label: "Auto Focus after Mentioning",
+            "auto-mention-onclick": {
+                label: "Fill on click instead of on load",
                 type: "checkbox",
                 default: true,
+            },
+            "auto-mention-focus": {
+                label: "Autofocus after mentioning (only on load mode)",
+                type: "checkbox",
+                default: false,
             },
         },
         events: {
@@ -1114,21 +1119,35 @@ function handleLeadership() {
 }
 
 /**
- * Automatically mention the original poster in a thread
- * @param {MutationObserver} observer
+ * Mention the original poster in a thread
+ * @param focus Whether to focus the post box after mentioning the user
  */
-function handleAutoMention(observer: MutationObserver) {
-    const postBox = document.querySelector("div.fr-box") as HTMLDivElement;
-    if (!postBox) return;
-    observer.disconnect();
-    postBox.click();
+function autoMention(focus: boolean) {
     const user = document.querySelector("a.username") as HTMLAnchorElement;
     if (!user) return;
     const username = user.innerText;
     const userId = user.dataset.userId;
     if (username && userId && getPostBox()?.length == 0)
         editPostBox(`[USER=${userId}]@${username}[/USER]\n\n`);
-    if (GM_config.get("auto-mention-focus")) getPostBoxEl().focus();
+    if (focus) getPostBoxEl().focus();
+}
+
+/**
+ * Handles adding auto mention functionality to the post box
+ * @param {MutationObserver} observer
+ */
+function handleAutoMention(observer: MutationObserver) {
+    const postBox = document.querySelector("div.fr-box") as HTMLDivElement;
+    if (!postBox) return;
+    observer.disconnect();
+    if (GM_config.get("auto-mention-onclick")) {
+        postBox.addEventListener("click", function () {
+            autoMention(true);
+        });
+    } else {
+        postBox.click();
+        autoMention(GM_config.get("auto-mention-focus") as boolean);
+    }
 }
 
 /**
