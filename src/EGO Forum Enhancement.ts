@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.2.3
+// @version      4.3.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -41,6 +41,7 @@ const completedMap: Completed_Map[] = [];
 const signatureBlockList: string[] = [];
 const navbarURLs: NavbarURL_Map[] = [];
 const onHoldTemplates: OnHold_Map[] = [];
+const autoMentionForums: string[] = [];
 
 /**
  * Creates a preset button
@@ -132,7 +133,7 @@ function setupForumsConfig() {
                 default: true,
             },
             "show-list-bans-unknown": {
-                label: "Show List Bans for Unknown Steam IDs",
+                label: "Show List Bans for unknown Steam IDs",
                 title: "Whether to show the List Bans button alongside Lookup ID if the Steam ID is in an unknown format.",
                 type: "checkbox",
                 default: true,
@@ -224,6 +225,30 @@ function setupForumsConfig() {
                 default:
                     "No MAUL Account (Reason);MAUL account must be created and verified;\nSteam Verification;Steam account must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!\nMinecraft Verification;Minecraft ID must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" then under ID for Minecraft, input your Minecraft username, click Convert to Game ID, then log onto our Minecraft server. Once you've done so, please reply to this post!\"\nBattlefield Verification;Battlefield account must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, in MAUL hover over the home link in the top left, click help, then follow the instructions for Battlefield. Once you have done so, please reply to this post!\nDiscord Verification;Discord ID must be verfied in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" then click the sign in through Discord button under the discord ID section. Once you have done so, please reply to this post!\nInappropriate Name;Inappropriate Name;As for your name, Please click [URL='https://www.edgegamers.com/account/username']here[/URL] and fill out a name change request. After you fill it out, please wait while your name change request is finalized and the change is completed. Once it is done your application process will resume. If you want to have an understanding on our naming policy inside of eGO please click [URL='https://www.edgegamers.com/threads/378540/']here[/URL].",
             },
+            "auto-mention-unchecked": {
+                label: "Auto Mention (Subforum IDs)",
+                section: [
+                    "Autofill",
+                    "Autofill various content into the post editor.",
+                ],
+                type: "textarea",
+                save: false,
+                default: "",
+            },
+            "auto-mention": {
+                type: "hidden",
+                default: "",
+            },
+            "auto-mention-onclick": {
+                label: "Fill on click instead of on load",
+                type: "checkbox",
+                default: true,
+            },
+            "auto-mention-focus": {
+                label: "Autofocus after mentioning (only on load mode)",
+                type: "checkbox",
+                default: false,
+            },
         },
         events: {
             init: function () {
@@ -240,6 +265,10 @@ function setupForumsConfig() {
                     GM_config.get("navbar-urls")
                 );
                 GM_config.set("on-hold-unchecked", GM_config.get("on-hold"));
+                GM_config.set(
+                    "auto-mention-unchecked",
+                    GM_config.get("auto-mention")
+                );
             },
             open: function (doc) {
                 GM_config.fields[
@@ -307,6 +336,20 @@ function setupForumsConfig() {
                             GM_config.set("on-hold", onHold);
                     }
                 );
+                GM_config.fields[
+                    "auto-mention-unchecked"
+                ].node?.addEventListener("change", function () {
+                    const autoMention = GM_config.get(
+                        "auto-mention-unchecked",
+                        true
+                    ) as string;
+                    if (
+                        autoMention
+                            .split(/\r?\n/)
+                            .every((id) => id.match(/^\d+$/))
+                    )
+                        GM_config.set("auto-mention", autoMention);
+                });
             },
             save: function (forgotten) {
                 if (
@@ -333,6 +376,13 @@ function setupForumsConfig() {
                 if (forgotten["on-hold-unchecked"] !== GM_config.get("on-hold"))
                     alert(
                         "Invalid on hold list. Ensure each line is in the format 'name;reason;explain' and that no field contains a semicolon."
+                    );
+                if (
+                    forgotten["auto-mention-unchecked"] !==
+                    GM_config.get("auto-mention")
+                )
+                    alert(
+                        "Invalid auto mention list. Ensure each ID is on it's own line and all IDs are numerical."
                     );
             },
         },
@@ -431,6 +481,16 @@ function loadOnHoldTemplates() {
             reason: parts[1],
             explain: parts[2],
         });
+    });
+}
+
+/**
+ * Loads the auto mention list from config
+ */
+function loadAutoMentionList() {
+    const autoMentionListRaw = GM_config.get("auto-mention") as string;
+    autoMentionListRaw.split(/\r?\n/).forEach((id) => {
+        autoMentionForums.push(id);
     });
 }
 
@@ -612,6 +672,72 @@ function addMAULNav(nav_list: HTMLUListElement) {
 }
 
 /**
+ * Get the content of the post box
+ */
+function getPostBox() {
+    if (
+        document.querySelector("#xfBbCode-1")?.classList.contains("fr-active")
+    ) {
+        // BBCode Editor
+        const editors = document.querySelectorAll(
+            'textarea.input[name="message"]'
+        ) as NodeListOf<HTMLTextAreaElement>;
+        return editors[editors.length - 1]?.value;
+    } else {
+        // Rich Editor
+        const editors = document.querySelectorAll(
+            "div.fr-element.fr-view"
+        ) as NodeListOf<HTMLDivElement>;
+        return editors[editors.length - 1]?.innerText;
+    }
+}
+
+/**
+ * Get the post box element
+ * @returns The post box element
+ */
+function getPostBoxEl() {
+    if (
+        document.querySelector("#xfBbCode-1")?.classList.contains("fr-active")
+    ) {
+        // BBCode Editor
+        const editors = document.querySelectorAll(
+            'textarea.input[name="message"]'
+        ) as NodeListOf<HTMLTextAreaElement>;
+        return editors[editors.length - 1];
+    } else {
+        // Rich Editor
+        const editors = document.querySelectorAll(
+            "div.fr-element.fr-view"
+        ) as NodeListOf<HTMLDivElement>;
+        return editors[editors.length - 1];
+    }
+}
+
+/**
+ * Add or append text to the post editor box
+ * @param text Text to add to post box
+ * @param append True to append text, false to replace
+ */
+function editPostBox(text: string, append: boolean = false) {
+    if (
+        document.querySelector("#xfBbCode-1")?.classList.contains("fr-active")
+    ) {
+        // BBCode Editor
+        const editors = document.querySelectorAll(
+            'textarea.input[name="message"]'
+        );
+        const editor = editors[editors.length - 1] as HTMLTextAreaElement;
+        editor.value = append ? editor.value + text : text;
+    } else {
+        // Rich Editor
+        const editors = document.querySelectorAll("div.fr-element.fr-view");
+        const editor = editors[editors.length - 1] as HTMLDivElement;
+        editor.innerText = append ? editor.innerText + text : text;
+    }
+}
+
+/**
  * Generates large, transparent text (basically a watermark)
  * @param {string} top CSS Top Style
  * @param {string} str Text to display
@@ -632,13 +758,23 @@ function generateRedText(top: string, str: string = "Confidential") {
 }
 
 /**
+ * Get the ID of the current forum
+ * @returns {string} Forum ID
+ */
+function getForumId() {
+    return document
+        .getElementById("XF")!
+        .dataset.containerKey?.replace("node-", "");
+}
+
+/**
  * Listens to and appends MAUL button when user hovers over a profile
  * @param {HTMLElementEventMap} event
  * @returns void
  */
 function tooltipMAULListener(event: Event) {
     // Make sure this specific event is the node we want
-    if (event.target == null) return;
+    if (!event.target) return;
     const target = event.target as HTMLElement;
     if (
         target.nodeName != "DIV" ||
@@ -789,6 +925,7 @@ function handleGenericThread() {
     const breadcrumbs = (
         document.querySelector(".p-breadcrumbs") as HTMLUListElement
     ).innerText;
+    const forumId = getForumId();
     if (
         breadcrumbs.match(
             /((Contest (a Ban|Completed))|(Report (a Player|Completed))) ?$/
@@ -800,6 +937,24 @@ function handleGenericThread() {
     if (isLeadership(breadcrumbs))
         // LE Forums
         handleLeadership();
+    if (forumId && autoMentionForums.includes(forumId)) {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (!mutation.addedNodes) return;
+
+                for (let i = 0; i < mutation.addedNodes.length; i++) {
+                    const node = mutation.addedNodes[i];
+                    if (node.nodeName === "DIV") handleAutoMention(observer);
+                }
+            });
+        });
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: false,
+            characterData: false,
+        });
+    }
 
     const button_group = document.querySelector("div.buttonGroup");
     for (var i = 0; i < completedMap.length; i++) {
@@ -877,7 +1032,7 @@ function handleBanReportContest() {
  * @returns void
  */
 function handleOnHold(event: Event) {
-    if (event.target == null) return;
+    if (!event.target) return;
     const target = event.target as HTMLElement;
     if (
         target.nodeName != "DIV" ||
@@ -935,7 +1090,7 @@ function handleOnHold(event: Event) {
  * @returns void
  */
 function handleProfileDropdown(event: Event) {
-    if (event.target == null) return;
+    if (!event.target) return;
     const target = event.target as HTMLElement;
     if (target.nodeName != "UL" || !target.classList.contains("tabPanes"))
         return;
@@ -961,6 +1116,38 @@ function handleProfileDropdown(event: Event) {
 function handleLeadership() {
     generateRedText("5%");
     generateRedText("80%");
+}
+
+/**
+ * Mention the original poster in a thread
+ * @param focus Whether to focus the post box after mentioning the user
+ */
+function autoMention(focus: boolean) {
+    const user = document.querySelector("a.username") as HTMLAnchorElement;
+    if (!user) return;
+    const username = user.innerText;
+    const userId = user.dataset.userId;
+    if (username && userId && getPostBox()?.length == 0)
+        editPostBox(`[USER=${userId}]@${username}[/USER]\n\n`);
+    if (focus) getPostBoxEl().focus();
+}
+
+/**
+ * Handles adding auto mention functionality to the post box
+ * @param {MutationObserver} observer
+ */
+function handleAutoMention(observer: MutationObserver) {
+    const postBox = document.querySelector("div.fr-box") as HTMLDivElement;
+    if (!postBox) return;
+    observer.disconnect();
+    if (GM_config.get("auto-mention-onclick")) {
+        postBox.addEventListener("click", function () {
+            autoMention(true);
+        });
+    } else {
+        postBox.click();
+        autoMention(GM_config.get("auto-mention-focus") as boolean);
+    }
 }
 
 /**
@@ -1117,7 +1304,7 @@ function blockSignatures() {
             ) as HTMLDivElement;
             // iframe's are added after page load, using a DOMNodeInserted event to work around that
             function signatureEvent(event: Event) {
-                if (event.target == null) return;
+                if (!event.target) return;
                 if (!((event.target as HTMLElement).nodeName === "IFRAME"))
                     return;
                 (event.target as HTMLIFrameElement).dataset.src = (
@@ -1214,6 +1401,7 @@ function blockSignatures() {
     loadSignatureBlockList();
     loadNavbarURLs();
     loadOnHoldTemplates();
+    loadAutoMentionList();
 
     // Determine what page we're on
     const url = window.location.href;
