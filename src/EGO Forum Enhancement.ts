@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.3.0
+// @version      4.3.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -20,7 +20,7 @@
 
 // Declare TypeScript types
 interface Completed_Map {
-    regex: RegExp;
+    originId: string;
     completedId: string;
 }
 
@@ -42,6 +42,7 @@ const signatureBlockList: string[] = [];
 const navbarURLs: NavbarURL_Map[] = [];
 const onHoldTemplates: OnHold_Map[] = [];
 const autoMentionForums: string[] = [];
+const contestReportForums: string[] = ["1233", "1234", "1235", "1236"];
 
 /**
  * Creates a preset button
@@ -150,6 +151,12 @@ function setupForumsConfig() {
                 type: "text",
                 default: "MAUL",
             },
+            "append-profile": {
+                label: "Append profile buttons",
+                title: "When checked, a buttons added to profiles will be appended to their respective groups, else, they will be prepended. This does not apply to all buttons.",
+                type: "checkbox",
+                default: false,
+            },
             "maul-reauth-enable": {
                 label: "Enable MAUL Reauthenthication",
                 title: "When checked, the script will automatically reauthenthicate with MAUL in the background if it's been a while since the last authenthication (see timeout below).",
@@ -167,12 +174,11 @@ function setupForumsConfig() {
                 label: "Completed Forums Map",
                 section: [
                     "Move to Completed",
-                    'One map (forum -> completed) per line, use the format "regex;completed id". The ID is usually present in the URL bar when viewing that subforum list (/forums/ID here). For example: "Contest a Ban;1236".<br>Note: This will not apply until the page is refreshed (your updated maps also won\'t show if you reopen the config popup until you refresh).',
+                    'One map (forum -> completed) per line, use the format "origin id;completed id". The ID is usually present in the URL bar when viewing that subforum list (/forums/ID here), otherwise, open Inspect Element and look for the number after "node-" in "data-container-key" in the <html> tag. For example: "1234;1236".<br>Note: This will not apply until the page is refreshed (your updated maps also won\'t show if you reopen the config popup until you refresh).',
                 ],
                 type: "textarea",
                 save: false,
-                default:
-                    "Contest a Ban ?$;1236\nReport a Player ?$;1235\nContact Leadership ?$;853",
+                default: "1234;1236\n1233;1235\n852;853",
             },
             "move-to-completed": {
                 type: "hidden",
@@ -283,7 +289,7 @@ function setupForumsConfig() {
                         if (
                             maps
                                 .split(/\r?\n/)
-                                .every((map) => map.match(/^[^;\r\n]+;\d+$/))
+                                .every((map) => map.match(/^\d+;\d+$/))
                         )
                             GM_config.set("move-to-completed", maps);
                     },
@@ -357,7 +363,7 @@ function setupForumsConfig() {
                     GM_config.get("move-to-completed")
                 )
                     alert(
-                        'Invalid move to completed map, verify that all lines are in the format "regex:id".'
+                        'Invalid move to completed map, verify that all lines are in the format "origin id:completed id".'
                     );
                 if (
                     forgotten["signature-block-unchecked"] !==
@@ -429,9 +435,16 @@ function loadCompletedMap() {
         if (parts.length != 2) {
             alert("Invalid map: " + map);
             return;
+        } else if (!parts[1].match(/\d+/)) {
+            alert("Invalid ID: " + parts[1]);
+        } else if (!parts[0].match(/\d+/)) {
+            // Separate to provide update notice
+            alert(
+                `Invalid ID: ${parts[0]}.\nThe completed map format has been changed to use IDs instead of regexes. Please update your config.`
+            );
         }
         completedMap.push({
-            regex: new RegExp(parts[0]),
+            originId: parts[0],
             completedId: parts[1],
         });
     });
@@ -503,7 +516,9 @@ function addMAULProfileButton(div: HTMLDivElement, member_id: number | string) {
     createButton(
         "https://maul.edgegamers.com/index.php?page=home&id=" + member_id,
         GM_config.get("maul-button-text") as string,
-        div
+        div,
+        "_blank",
+        GM_config.get("append-profile") as boolean
     );
 }
 
@@ -518,7 +533,9 @@ function addBansButton(div: HTMLDivElement, steam_id_64: number) {
         "https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=" +
             steam_id_64,
         "List Bans",
-        div
+        div,
+        "_blank",
+        GM_config.get("append-profile") as boolean
     );
 }
 
@@ -810,7 +827,7 @@ function tooltipMAULListener(event: Event) {
         GM_config.get("maul-button-text") as string,
         buttonGroupTwo ?? buttenGroupOne,
         "_blank",
-        true
+        GM_config.get("append-profile") as boolean
     );
 }
 
@@ -926,55 +943,55 @@ function handleGenericThread() {
         document.querySelector(".p-breadcrumbs") as HTMLUListElement
     ).innerText;
     const forumId = getForumId();
-    if (
-        breadcrumbs.match(
-            /((Contest (a Ban|Completed))|(Report (a Player|Completed))) ?$/
-        )
-    ) {
-        // Ban Contest or Report
-        handleBanReportContest();
+    if (forumId) {
+        if (contestReportForums.includes(forumId))
+            // Ban Contest or Report
+            handleBanReportContest();
+
+        if (autoMentionForums.includes(forumId)) {
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (!mutation.addedNodes) return;
+
+                    for (let i = 0; i < mutation.addedNodes.length; i++) {
+                        const node = mutation.addedNodes[i];
+                        if (node.nodeName === "DIV")
+                            handleAutoMention(observer);
+                    }
+                });
+            });
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+                attributes: false,
+                characterData: false,
+            });
+        }
+
+        const button_group = document.querySelector("div.buttonGroup");
+        for (var i = 0; i < completedMap.length; i++) {
+            if (forumId == completedMap[i].originId) {
+                addMoveButton(
+                    button_group as HTMLDivElement,
+                    window.location.href,
+                    "Move to Completed",
+                    completedMap[i].completedId
+                );
+                break;
+            }
+        }
+
+        if (forumId === "685")
+            // Trash Bin
+            addTrashButton(
+                button_group?.querySelector(
+                    "div.menu > div.menu-content > a[href$=move]"
+                ) as HTMLDivElement
+            );
     }
     if (isLeadership(breadcrumbs))
         // LE Forums
         handleLeadership();
-    if (forumId && autoMentionForums.includes(forumId)) {
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (!mutation.addedNodes) return;
-
-                for (let i = 0; i < mutation.addedNodes.length; i++) {
-                    const node = mutation.addedNodes[i];
-                    if (node.nodeName === "DIV") handleAutoMention(observer);
-                }
-            });
-        });
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true,
-            attributes: false,
-            characterData: false,
-        });
-    }
-
-    const button_group = document.querySelector("div.buttonGroup");
-    for (var i = 0; i < completedMap.length; i++) {
-        if (breadcrumbs.match(completedMap[i].regex)) {
-            addMoveButton(
-                button_group as HTMLDivElement,
-                window.location.href,
-                "Move to Completed",
-                completedMap[i].completedId
-            );
-            break;
-        }
-    }
-
-    if (!breadcrumbs.match(/Moderator Trash Bin ?$/))
-        addTrashButton(
-            button_group?.querySelector(
-                "div.menu > div.menu-content > a[href$=move]"
-            ) as HTMLDivElement
-        );
 
     blockSignatures();
 }
@@ -1198,7 +1215,7 @@ function handleUserAwardPage() {
                 "Find Issue Reason",
                 contentDiv.querySelector(".contentRow-main") as HTMLDivElement,
                 "_blank",
-                true
+                GM_config.get("append-profile") as boolean
             );
         });
     });
