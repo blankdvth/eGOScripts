@@ -29,17 +29,17 @@ jobs:
         for file in *.js; do
           npx uglifyjs "$file" -o "${file%.js}.js" --compress --mangle toplevel --comments "/\s(==\/?UserScript==|@.+$)/"
         done
-    - name: Create Environment Variables
+    - name: Create Environment Variables (Prerelease)
       if: "contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha')"
-      run: echo "RELEASE_TYPE=$(echo ${{ github.ref_name }} | cut -d'-' -f 2 | sed -e 's/\b\(.\)/\u\1/g')" >> $GITHUB_ENV
-    - name: Create Environment Variables
+      run: echo "RELEASE_TYPE=- $(echo ${{ github.ref_name }} | cut -d'-' -f 2 | sed -e 's/\b\(.\)/\u\1/g')" >> $GITHUB_ENV
+    - name: Create Environment Variables (Release)
       if: "!(contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha'))"
       run: echo "RELEASE_TYPE=" >> $GITHUB_ENV
     - name: Apply Environment Variables
       run: |
         for file in *.js; do
           sed -i "s/%DOWNLOAD_URL%/https:\/\/github.com\/$GITHUB_ACTION_REPOSITORY\/releases\/latest\/download\/$file/g" "$file"
-          sed -i "s/%RELEASE_TYPE%/- ${{ env.RELEASE_TYPE }}/g" "$file"
+          sed -i "s/%RELEASE_TYPE%/${{ env.RELEASE_TYPE }}/g" "$file"
         done
     - name: Rename Files to UserScript
       run: |
