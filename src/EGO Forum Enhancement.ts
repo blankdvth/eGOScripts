@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.3.0
+// @version      4.3.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -150,6 +150,12 @@ function setupForumsConfig() {
                 title: "The text to display on the MAUL buttons that are displayed on profiles",
                 type: "text",
                 default: "MAUL",
+            },
+            "append-profile": {
+                label: "Append profile buttons",
+                title: "When checked, a buttons added to profiles will be appended to their respective groups, else, they will be prepended. This does not apply to all buttons.",
+                type: "checkbox",
+                default: false,
             },
             "maul-reauth-enable": {
                 label: "Enable MAUL Reauthenthication",
@@ -510,7 +516,9 @@ function addMAULProfileButton(div: HTMLDivElement, member_id: number | string) {
     createButton(
         "https://maul.edgegamers.com/index.php?page=home&id=" + member_id,
         GM_config.get("maul-button-text") as string,
-        div
+        div,
+        "_blank",
+        GM_config.get("append-profile") as boolean
     );
 }
 
@@ -525,7 +533,9 @@ function addBansButton(div: HTMLDivElement, steam_id_64: number) {
         "https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=" +
             steam_id_64,
         "List Bans",
-        div
+        div,
+        "_blank",
+        GM_config.get("append-profile") as boolean
     );
 }
 
@@ -817,7 +827,7 @@ function tooltipMAULListener(event: Event) {
         GM_config.get("maul-button-text") as string,
         buttonGroupTwo ?? buttenGroupOne,
         "_blank",
-        true
+        GM_config.get("append-profile") as boolean
     );
 }
 
@@ -1205,7 +1215,7 @@ function handleUserAwardPage() {
                 "Find Issue Reason",
                 contentDiv.querySelector(".contentRow-main") as HTMLDivElement,
                 "_blank",
-                true
+                GM_config.get("append-profile") as boolean
             );
         });
     });
