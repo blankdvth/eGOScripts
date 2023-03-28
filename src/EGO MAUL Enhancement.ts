@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         EdgeGamers MAUL Enhancement %RELEASE_TYPE%
+// @name         EdgeGamers MAUL Enhancement%RELEASE_TYPE%
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20MAUL%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%

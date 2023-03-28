@@ -31,7 +31,7 @@ jobs:
         done
     - name: Create Environment Variables (Prerelease)
       if: "contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha')"
-      run: echo "RELEASE_TYPE=- $(echo ${{ github.ref_name }} | cut -d'-' -f 2 | sed -e 's/\b\(.\)/\u\1/g')" >> $GITHUB_ENV
+      run: echo "RELEASE_TYPE= - $(echo ${{ github.ref_name }} | cut -d'-' -f 2 | sed -e 's/\b\(.\)/\u\1/g')" >> $GITHUB_ENV
     - name: Create Environment Variables (Release)
       if: "!(contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha'))"
       run: echo "RELEASE_TYPE=" >> $GITHUB_ENV
