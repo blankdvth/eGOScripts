@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         GameME Space Render
+// @name         GameME Space Render %RELEASE_TYPE%
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/GameME%20Space%20Render.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%

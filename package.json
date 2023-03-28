@@ -10,6 +10,7 @@
     },
     "scripts": {
         "build": "tsc",
+        "build-dev": "tsc && for file in dist/*.js; do sed -i \"s/%RELEASE_TYPE%/- Development/g\" \"$file\";done",
         "prettify": "prettier --tab-width 4 --write \"src/**/*.ts\""
     },
     "devDependencies": {

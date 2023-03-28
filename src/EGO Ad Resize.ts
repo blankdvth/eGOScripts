@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         EdgeGamers Ad Resize
+// @name         EdgeGamers Ad Resize %RELEASE_TYPE%
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Ad%20Resize.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
