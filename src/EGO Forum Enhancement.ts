@@ -283,7 +283,7 @@ function setupForumsConfig() {
                 label: "Attempt to trigger automention before inserting canned response",
                 type: "checkbox",
                 default: true,
-            }
+            },
         },
         events: {
             init: function () {
@@ -1081,7 +1081,8 @@ function handleGenericThread() {
         handleLeadership();
 
     const observer = new MutationObserver((mutations) => {
-        mutations.every((mutation) => { // Using every so that we can return false to stop observing
+        mutations.every((mutation) => {
+            // Using every so that we can return false to stop observing
             if (!mutation.addedNodes) return true;
 
             for (let i = 0; i < mutation.addedNodes.length; i++) {
@@ -1360,7 +1361,8 @@ function handleCannedResponses() {
                 const postBox = getPostBoxEl();
                 if (GM_config.get("canned-response-trigger-automention")) {
                     const forumId = getForumId();
-                    if (forumId && autoMentionForums.includes(forumId)) autoMention(false);
+                    if (forumId && autoMentionForums.includes(forumId))
+                        autoMention(false);
                 }
                 editPostBox(generateResponseText(response.response), true);
                 dropdown.dispatchEvent(new MouseEvent("mouseout"));
