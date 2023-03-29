@@ -1050,25 +1050,6 @@ function handleGenericThread() {
             // Ban Contest or Report
             handleBanReportContest();
 
-        if (autoMentionForums.includes(forumId)) {
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    if (!mutation.addedNodes) return;
-
-                    for (let i = 0; i < mutation.addedNodes.length; i++) {
-                        const node = mutation.addedNodes[i];
-                        if (node.nodeName === "DIV") handlePostBox(observer);
-                    }
-                });
-            });
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true,
-                attributes: false,
-                characterData: false,
-            });
-        }
-
         const button_group = document.querySelector("div.buttonGroup");
         for (var i = 0; i < completedMap.length; i++) {
             if (forumId == completedMap[i].originId) {
@@ -1094,7 +1075,28 @@ function handleGenericThread() {
         // LE Forums
         handleLeadership();
 
-    handleCannedResponses();
+    const observer = new MutationObserver((mutations) => {
+        mutations.every((mutation) => { // Using every so that we can return false to stop observing
+            if (!mutation.addedNodes) return true;
+
+            for (let i = 0; i < mutation.addedNodes.length; i++) {
+                const node = mutation.addedNodes[i];
+                if (node.nodeName === "DIV") {
+                    handlePostBox(observer);
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    });
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: false,
+        characterData: false,
+    });
+
     blockSignatures();
 }
 
@@ -1258,9 +1260,10 @@ function autoMention(focus: boolean) {
 function handlePostBox(observer: MutationObserver) {
     const postBox = document.querySelector("div.fr-box") as HTMLDivElement;
     if (!postBox) return;
+    const forumId = getForumId();
     observer.disconnect();
 
-    handleAutoMention();
+    if (forumId && autoMentionForums.includes(forumId)) handleAutoMention();
     handleCannedResponses();
 }
 
@@ -1286,7 +1289,10 @@ function handleCannedResponses() {
     const bar = document.querySelector(
         "div.formButtonGroup-extra"
     ) as HTMLDivElement;
-    if (!bar) console.warn("Could not find post box button bar");
+    if (!bar) {
+        console.warn("Could not find post box button bar");
+        return;
+    }
     Object.entries(cannedResponses).forEach((cannedResponse) => {
         const [category, responses] = cannedResponse;
         const dropdown = document.createElement("span");
