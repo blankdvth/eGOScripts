@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.3.1
+// @version      4.4.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -35,6 +35,12 @@ interface OnHold_Map {
     explain: string;
 }
 
+interface CannedResponses_Map {
+    name: string;
+    category?: string;
+    response: string;
+}
+
 declare var SteamIDConverter: any;
 
 const completedMap: Completed_Map[] = [];
@@ -42,6 +48,7 @@ const signatureBlockList: string[] = [];
 const navbarURLs: NavbarURL_Map[] = [];
 const onHoldTemplates: OnHold_Map[] = [];
 const autoMentionForums: string[] = [];
+const cannedResponses: CannedResponses_Map[] = [];
 const contestReportForums: string[] = ["1233", "1234", "1235", "1236"];
 
 /**
@@ -182,8 +189,7 @@ function setupForumsConfig() {
             },
             "move-to-completed": {
                 type: "hidden",
-                default:
-                    "Contest a Ban ?$;1236\nReport a Player ?$;1235\nContact Leadership ?$;853",
+                default: "1234;1236\n1233;1235\n852;853",
             },
             "signature-block-unchecked": {
                 label: "Signature Block List",
@@ -234,8 +240,8 @@ function setupForumsConfig() {
             "auto-mention-unchecked": {
                 label: "Auto Mention (Subforum IDs)",
                 section: [
-                    "Autofill",
-                    "Autofill various content into the post editor.",
+                    "Automention",
+                    "Automatically mention the OP in the editor in certain forums",
                 ],
                 type: "textarea",
                 save: false,
@@ -254,6 +260,20 @@ function setupForumsConfig() {
                 label: "Autofocus after mentioning (only on load mode)",
                 type: "checkbox",
                 default: false,
+            },
+            "canned-responses-unchecked": {
+                label: "Canned Responses",
+                section: [
+                    "Canned Responses",
+                    "See <a href='https://github.com/blankdvth/eGOScripts/wiki/Canned-Responses' target='_blank'>this guide</a> on how to format your canned responses.",
+                ],
+                type: "textarea",
+                save: false,
+                default: "",
+            },
+            "canned-responses": {
+                type: "hidden",
+                default: "",
             },
         },
         events: {
@@ -274,6 +294,10 @@ function setupForumsConfig() {
                 GM_config.set(
                     "auto-mention-unchecked",
                     GM_config.get("auto-mention")
+                );
+                GM_config.set(
+                    "canned-responses-unchecked",
+                    GM_config.get("canned-responses")
                 );
             },
             open: function (doc) {
@@ -356,6 +380,25 @@ function setupForumsConfig() {
                     )
                         GM_config.set("auto-mention", autoMention);
                 });
+                GM_config.fields[
+                    "canned-responses-unchecked"
+                ].node?.addEventListener("change", function () {
+                    const cannedResponses = GM_config.get(
+                        "canned-responses-unchecked",
+                        true
+                    ) as string;
+                    // Check if entire config matches the regex by matching all and rejoining the matches, then comparing to the original
+                    if (
+                        [
+                            ...cannedResponses.matchAll(
+                                /(?:===\n|^)- (?<name>.+)\n(?:- (?<category>.+)\n)?(?<response>(?:.|\n)+?)\n===/gm
+                            ),
+                        ]
+                            .map((i) => i[0])
+                            .join("\n") === cannedResponses
+                    )
+                        GM_config.set("canned-responses", cannedResponses);
+                });
             },
             save: function (forgotten) {
                 if (
@@ -389,6 +432,13 @@ function setupForumsConfig() {
                 )
                     alert(
                         "Invalid auto mention list. Ensure each ID is on it's own line and all IDs are numerical."
+                    );
+                if (
+                    forgotten["canned-responses-unchecked"] !==
+                    GM_config.get("canned-responses")
+                )
+                    alert(
+                        "Invalid canned responses list. Ensure each response is in the proper format (see the wiki for more information)."
                     );
             },
         },
@@ -504,6 +554,24 @@ function loadAutoMentionList() {
     const autoMentionListRaw = GM_config.get("auto-mention") as string;
     autoMentionListRaw.split(/\r?\n/).forEach((id) => {
         autoMentionForums.push(id);
+    });
+}
+
+/**
+ * Loads the canned responses from config
+ */
+function loadCannedResponses() {
+    const cannedResponsesRaw = GM_config.get("canned-responses") as string;
+    [
+        ...cannedResponsesRaw.matchAll(
+            /(?:===\n|^)- (?<name>.+)\n(?:- (?<category>.+)\n)?(?<response>(?:.|\n)+?)\n===/gm
+        ),
+    ].forEach((match) => {
+        cannedResponses.push({
+            name: match.groups!.name,
+            category: match.groups?.category,
+            response: match.groups!.response,
+        });
     });
 }
 
@@ -1419,6 +1487,7 @@ function blockSignatures() {
     loadNavbarURLs();
     loadOnHoldTemplates();
     loadAutoMentionList();
+    loadCannedResponses();
 
     // Determine what page we're on
     const url = window.location.href;
