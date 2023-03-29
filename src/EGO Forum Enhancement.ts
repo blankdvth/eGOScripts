@@ -278,7 +278,7 @@ function setupForumsConfig() {
                 label: "Refocus after inserting canned response",
                 type: "checkbox",
                 default: true,
-            }
+            },
         },
         events: {
             init: function () {
@@ -838,6 +838,26 @@ function getForumId() {
 }
 
 /**
+ * Get the username of the current user
+ * @returns {string} Username of current user
+ */
+function getUsername() {
+    return (
+        document.querySelector(
+            "a.p-navgroup-link--user > span.p-navgroup-linkText"
+        ) as HTMLSpanElement | null
+    )?.innerText;
+}
+
+/**
+ * Get the username of the OP of the current thread
+ * @returns {string} Username of the OP
+ */
+function getOP() {
+    return document.querySelector("a.username") as HTMLAnchorElement | null;
+}
+
+/**
  * Generates large, transparent text (basically a watermark)
  * @param {string} top CSS Top Style
  * @param {string} str Text to display
@@ -861,7 +881,9 @@ function generateRedText(top: string, str: string = "Confidential") {
  * Fills in placeholders in a canned response string with the proper data then returns it
  */
 function generateResponseText(response: string) {
-    return response;
+    return response
+        .replaceAll("{{{username}}}", getUsername() ?? "")
+        .replaceAll("{{{op username}}}", getOP()?.innerText ?? "");
 }
 
 /**
@@ -1220,7 +1242,7 @@ function handleLeadership() {
  * @param focus Whether to focus the post box after mentioning the user
  */
 function autoMention(focus: boolean) {
-    const user = document.querySelector("a.username") as HTMLAnchorElement;
+    const user = getOP();
     if (!user) return;
     const username = user.innerText;
     const userId = user.dataset.userId;
