@@ -279,6 +279,11 @@ function setupForumsConfig() {
                 type: "checkbox",
                 default: true,
             },
+            "canned-response-trigger-automention": {
+                label: "Attempt to trigger automention before inserting canned response",
+                type: "checkbox",
+                default: true,
+            }
         },
         events: {
             init: function () {
@@ -1352,9 +1357,13 @@ function handleCannedResponses() {
             btn.style.paddingTop = "1px";
             btn.style.paddingBottom = "1px";
             btn.addEventListener("click", function () {
+                const postBox = getPostBoxEl();
+                if (GM_config.get("canned-response-trigger-automention")) {
+                    const forumId = getForumId();
+                    if (forumId && autoMentionForums.includes(forumId)) autoMention(false);
+                }
                 editPostBox(generateResponseText(response.response), true);
                 dropdown.dispatchEvent(new MouseEvent("mouseout"));
-                const postBox = getPostBoxEl();
                 postBox.dispatchEvent(new Event("autosize:update"));
                 if (GM_config.get("canned-response-focus")) postBox.focus();
             });
