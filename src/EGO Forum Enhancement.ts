@@ -1279,9 +1279,11 @@ function handlePostBox(observer: MutationObserver) {
 function handleAutoMention() {
     const postBox = document.querySelector("div.fr-box") as HTMLDivElement;
     if (GM_config.get("auto-mention-onclick")) {
-        postBox.addEventListener("click", function () {
+        function autoMentionListener() {
             autoMention(true);
-        });
+            postBox.removeEventListener("click", autoMentionListener);
+        }
+        postBox.addEventListener("click", autoMentionListener);
     } else {
         postBox.click();
         autoMention(GM_config.get("auto-mention-focus") as boolean);
