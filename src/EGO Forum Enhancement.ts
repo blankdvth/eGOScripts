@@ -326,6 +326,7 @@ function setupForumsConfig() {
                             true
                         ) as string;
                         if (
+                            maps.length == 0 ||
                             maps
                                 .split(/\r?\n/)
                                 .every((map) => map.match(/^\d+;\d+$/))
@@ -352,6 +353,7 @@ function setupForumsConfig() {
                         true
                     ) as string;
                     if (
+                        urls.length == 0 ||
                         urls
                             .split(/\r?\n/)
                             .every((url) =>
@@ -370,6 +372,7 @@ function setupForumsConfig() {
                             true
                         ) as string;
                         if (
+                            onHold.length == 0 ||
                             onHold
                                 .split(/\r?\n/)
                                 .every((line) =>
@@ -389,6 +392,7 @@ function setupForumsConfig() {
                         true
                     ) as string;
                     if (
+                        autoMention.length == 0 ||
                         autoMention
                             .split(/\r?\n/)
                             .every((id) => id.match(/^\d+$/))
@@ -495,10 +499,11 @@ function autoMAULAuth() {
  */
 function loadCompletedMap() {
     const completedMapRaw = GM_config.get("move-to-completed") as string;
+    if (completedMapRaw.length == 0) return;
     completedMapRaw.split(/\r?\n/).forEach((map) => {
         const parts = map.split(";");
         if (parts.length != 2) {
-            alert("Invalid map: " + map);
+            alert("Invalid completed map: " + map);
             return;
         } else if (!parts[1].match(/\d+/)) {
             alert("Invalid ID: " + parts[1]);
@@ -530,6 +535,7 @@ function loadSignatureBlockList() {
  */
 function loadNavbarURLs() {
     const navbarURLsRaw = GM_config.get("navbar-urls") as string;
+    if (navbarURLsRaw.length == 0) return;
     navbarURLsRaw.split(/\r?\n/).forEach((url) => {
         const parts = url.split(";");
         if (parts.length != 2) {
@@ -548,6 +554,7 @@ function loadNavbarURLs() {
  */
 function loadOnHoldTemplates() {
     const onHoldTemplatesRaw = GM_config.get("on-hold") as string;
+    if (onHoldTemplatesRaw.length == 0) return;
     onHoldTemplatesRaw.split(/\r?\n/).forEach((line) => {
         const parts = line.split(";");
         if (parts.length != 3) {
