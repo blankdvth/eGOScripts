@@ -256,7 +256,7 @@ function setupForumsConfig() {
                 default: true,
             },
             "auto-mention-focus": {
-                label: "Autofocus after mentioning (only on load mode)",
+                label: "Focus after mentioning (only on load mode)",
                 type: "checkbox",
                 default: false,
             },
@@ -275,7 +275,7 @@ function setupForumsConfig() {
                 default: "",
             },
             "canned-response-focus": {
-                label: "Refocus after inserting canned response",
+                label: "Focus after inserting canned response",
                 type: "checkbox",
                 default: true,
             },
