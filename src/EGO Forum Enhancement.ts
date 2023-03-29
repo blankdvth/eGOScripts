@@ -274,6 +274,11 @@ function setupForumsConfig() {
                 type: "hidden",
                 default: "",
             },
+            "canned-response-focus": {
+                label: "Refocus after inserting canned response",
+                type: "checkbox",
+                default: true,
+            }
         },
         events: {
             init: function () {
@@ -1282,7 +1287,7 @@ function handleCannedResponses() {
         dropdownMenu.style.display = "none";
         dropdownMenu.style.position = "fixed";
         dropdownMenu.style.minWidth = "150px";
-        dropdownMenu.style.overflowY = "scroll";
+        dropdownMenu.style.overflowY = "auto";
         dropdownMenu.hidden = true;
 
         dropdown.append(dropdownMenu);
@@ -1321,6 +1326,9 @@ function handleCannedResponses() {
             btn.addEventListener("click", function () {
                 editPostBox(generateResponseText(response.response), true);
                 dropdown.dispatchEvent(new MouseEvent("mouseout"));
+                const postBox = getPostBoxEl();
+                postBox.dispatchEvent(new Event("autosize:update"));
+                if (GM_config.get("canned-response-focus")) postBox.focus();
             });
             dropdownContent.append(btn);
         });
