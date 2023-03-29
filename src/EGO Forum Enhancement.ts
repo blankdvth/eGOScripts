@@ -182,8 +182,7 @@ function setupForumsConfig() {
             },
             "move-to-completed": {
                 type: "hidden",
-                default:
-                    "Contest a Ban ?$;1236\nReport a Player ?$;1235\nContact Leadership ?$;853",
+                default: "1234;1236\n1233;1235\n852;853",
             },
             "signature-block-unchecked": {
                 label: "Signature Block List",
