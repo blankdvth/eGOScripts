@@ -240,7 +240,7 @@ function setupForumsConfig() {
                 label: "Auto Mention (Subforum IDs)",
                 section: [
                     "Automention",
-                    "Automatically mention the OP in the editor in certain forums",
+                    "Automatically mention the OP in the editor in certain forums. This is not guaranteed to work on the Rich Text editor (although it should).",
                 ],
                 type: "textarea",
                 save: false,
@@ -249,6 +249,13 @@ function setupForumsConfig() {
             "auto-mention": {
                 type: "hidden",
                 default: "",
+            },
+            "auto-mention-newlines": {
+                label: "Number of newlines to add after mention",
+                title: "This may be off by one when using the Rich Text editor.",
+                type: "int",
+                min: 0,
+                default: 2,
             },
             "auto-mention-onclick": {
                 label: "Fill on click instead of on load",
@@ -842,6 +849,7 @@ function editPostBox(text: string, append: boolean = false) {
         const editors = document.querySelectorAll("div.fr-element.fr-view");
         const editor = editors[editors.length - 1] as HTMLDivElement;
         editor.innerText = append ? editor.innerText + text : text;
+        editor.dispatchEvent(new Event("mouseup"));
     }
 }
 
@@ -1267,9 +1275,10 @@ function autoMention(focus: boolean) {
     if (!user) return;
     const username = user.innerText;
     const userId = user.dataset.userId;
-    if (username && userId && getPostBox()?.length == 0)
-        editPostBox(`[USER=${userId}]@${username}[/USER]\n\n`);
-    if (focus) getPostBoxEl().focus();
+    if (username && userId && getPostBox()?.trim().length == 0) {
+        editPostBox(`[USER=${userId}]@${username}[/USER]${"\n".repeat(GM_config.get("auto-mention-newlines") as number)}`);
+        if (focus) getPostBoxEl().focus();
+    }
 }
 
 /**
