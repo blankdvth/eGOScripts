@@ -274,6 +274,12 @@ function setupForumsConfig() {
                 type: "hidden",
                 default: "",
             },
+            "canned-response-min-width": {
+                label: "Minimum width of dropdown (in pixels)",
+                type: "int",
+                min: 0,
+                default: 125,
+            },
             "canned-response-focus": {
                 label: "Focus after inserting canned response",
                 type: "checkbox",
@@ -1322,8 +1328,9 @@ function handleCannedResponses() {
         dropdownMenu.style.zIndex = "800";
         dropdownMenu.style.display = "none";
         dropdownMenu.style.position = "fixed";
-        dropdownMenu.style.minWidth = "150px";
-        dropdownMenu.style.overflowY = "auto";
+        dropdownMenu.style.minWidth =
+            GM_config.get("canned-response-min-width") + "px";
+        dropdownMenu.style.overflow = "auto";
         dropdownMenu.hidden = true;
 
         dropdown.append(dropdownMenu);
@@ -1335,6 +1342,8 @@ function handleCannedResponses() {
             dropdownMenu.style.left = rect.left + "px";
             dropdownMenu.style.maxHeight =
                 window.innerHeight - rect.top - 25 + "px";
+            dropdownMenu.style.maxWidth =
+                window.innerWidth - rect.left - 25 + "px";
             dropdownContent.style.maxHeight = dropdownMenu.style.maxHeight;
             dropdownMenu.classList.add("is-active");
         });
@@ -1346,7 +1355,7 @@ function handleCannedResponses() {
 
         const dropdownContent = document.createElement("div");
         dropdownContent.classList.add("menu-content");
-        dropdownContent.style.overflowY = "none";
+        dropdownContent.style.overflow = "none";
         dropdownMenu.append(dropdownContent);
         bar.append(dropdown);
 
