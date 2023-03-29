@@ -35,9 +35,8 @@ interface OnHold_Map {
     explain: string;
 }
 
-interface CannedResponses_Map {
+interface CannedResponse {
     name: string;
-    category?: string;
     response: string;
 }
 
@@ -48,7 +47,8 @@ const signatureBlockList: string[] = [];
 const navbarURLs: NavbarURL_Map[] = [];
 const onHoldTemplates: OnHold_Map[] = [];
 const autoMentionForums: string[] = [];
-const cannedResponses: CannedResponses_Map[] = [];
+const cannedResponsesCategories: {[category: string] : CannedResponse[]} = {};
+const cannedResponses: CannedResponse[] = [];
 const contestReportForums: string[] = ["1233", "1234", "1235", "1236"];
 
 /**
@@ -567,9 +567,17 @@ function loadCannedResponses() {
             /(?:===\n|^)- (?<name>.+)\n(?:- (?<category>.+)\n)?(?<response>(?:.|\n)+?)\n===/gm
         ),
     ].forEach((match) => {
-        cannedResponses.push({
+        const category = match.groups?.category;
+        var toPush;
+        if (category) {
+            if (!cannedResponsesCategories[category])
+                cannedResponsesCategories[category] = [];
+            toPush = cannedResponsesCategories[category];
+        } else {
+            toPush = cannedResponses;
+        }
+        toPush.push({
             name: match.groups!.name,
-            category: match.groups?.category,
             response: match.groups!.response,
         });
     });
