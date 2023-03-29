@@ -1276,7 +1276,11 @@ function autoMention(focus: boolean) {
     const username = user.innerText;
     const userId = user.dataset.userId;
     if (username && userId && getPostBox()?.trim().length == 0) {
-        editPostBox(`[USER=${userId}]@${username}[/USER]${"\n".repeat(GM_config.get("auto-mention-newlines") as number)}`);
+        editPostBox(
+            `[USER=${userId}]@${username}[/USER]${"\n".repeat(
+                GM_config.get("auto-mention-newlines") as number
+            )}`
+        );
         if (focus) getPostBoxEl().focus();
     }
 }
