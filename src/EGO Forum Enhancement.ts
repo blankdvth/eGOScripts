@@ -47,8 +47,7 @@ const signatureBlockList: string[] = [];
 const navbarURLs: NavbarURL_Map[] = [];
 const onHoldTemplates: OnHold_Map[] = [];
 const autoMentionForums: string[] = [];
-const cannedResponsesCategories: {[category: string] : CannedResponse[]} = {};
-const cannedResponses: CannedResponse[] = [];
+const cannedResponses: { [category: string]: CannedResponse[] } = {};
 const contestReportForums: string[] = ["1233", "1234", "1235", "1236"];
 
 /**
@@ -391,7 +390,7 @@ function setupForumsConfig() {
                     if (
                         [
                             ...cannedResponses.matchAll(
-                                /(?:===\n|^)- (?<name>.+)\n(?:- (?<category>.+)\n)?(?<response>(?:.|\n)+?)\n===/gm
+                                /(?:===\n|^)- (?<name>.+)\n- (?<category>.+)\n(?<response>(?:.|\n)+?)\n===/gm
                             ),
                         ]
                             .map((i) => i[0])
@@ -564,19 +563,12 @@ function loadCannedResponses() {
     const cannedResponsesRaw = GM_config.get("canned-responses") as string;
     [
         ...cannedResponsesRaw.matchAll(
-            /(?:===\n|^)- (?<name>.+)\n(?:- (?<category>.+)\n)?(?<response>(?:.|\n)+?)\n===/gm
+            /(?:===\n|^)- (?<name>.+)\n- (?<category>.+)\n(?<response>(?:.|\n)+?)\n===/gm
         ),
     ].forEach((match) => {
-        const category = match.groups?.category;
-        var toPush;
-        if (category) {
-            if (!cannedResponsesCategories[category])
-                cannedResponsesCategories[category] = [];
-            toPush = cannedResponsesCategories[category];
-        } else {
-            toPush = cannedResponses;
-        }
-        toPush.push({
+        const category = match.groups!.category;
+        if (!cannedResponses[category]) cannedResponses[category] = [];
+        cannedResponses[category].push({
             name: match.groups!.name,
             response: match.groups!.response,
         });
@@ -831,6 +823,16 @@ function editPostBox(text: string, append: boolean = false) {
 }
 
 /**
+ * Get the ID of the current forum
+ * @returns {string} Forum ID
+ */
+function getForumId() {
+    return document
+        .getElementById("XF")!
+        .dataset.containerKey?.replace("node-", "");
+}
+
+/**
  * Generates large, transparent text (basically a watermark)
  * @param {string} top CSS Top Style
  * @param {string} str Text to display
@@ -851,13 +853,10 @@ function generateRedText(top: string, str: string = "Confidential") {
 }
 
 /**
- * Get the ID of the current forum
- * @returns {string} Forum ID
+ * Fills in placeholders in a canned response string with the proper data then returns it
  */
-function getForumId() {
-    return document
-        .getElementById("XF")!
-        .dataset.containerKey?.replace("node-", "");
+function generateResponseText(response: string) {
+    return response;
 }
 
 /**
@@ -1031,8 +1030,7 @@ function handleGenericThread() {
 
                     for (let i = 0; i < mutation.addedNodes.length; i++) {
                         const node = mutation.addedNodes[i];
-                        if (node.nodeName === "DIV")
-                            handleAutoMention(observer);
+                        if (node.nodeName === "DIV") handlePostBox(observer);
                     }
                 });
             });
@@ -1069,6 +1067,7 @@ function handleGenericThread() {
         // LE Forums
         handleLeadership();
 
+    handleCannedResponses();
     blockSignatures();
 }
 
@@ -1226,13 +1225,23 @@ function autoMention(focus: boolean) {
 }
 
 /**
- * Handles adding auto mention functionality to the post box
- * @param {MutationObserver} observer
+ * Handles operations that should be performed when the post box is loaded
+ * @param observer
  */
-function handleAutoMention(observer: MutationObserver) {
+function handlePostBox(observer: MutationObserver) {
     const postBox = document.querySelector("div.fr-box") as HTMLDivElement;
     if (!postBox) return;
     observer.disconnect();
+
+    handleAutoMention();
+    handleCannedResponses();
+}
+
+/**
+ * Handles adding auto mention functionality to the post box
+ */
+function handleAutoMention() {
+    const postBox = document.querySelector("div.fr-box") as HTMLDivElement;
     if (GM_config.get("auto-mention-onclick")) {
         postBox.addEventListener("click", function () {
             autoMention(true);
@@ -1241,6 +1250,81 @@ function handleAutoMention(observer: MutationObserver) {
         postBox.click();
         autoMention(GM_config.get("auto-mention-focus") as boolean);
     }
+}
+
+/**
+ * Handles adding canned responses to the post box
+ */
+function handleCannedResponses() {
+    const bar = document.querySelector(
+        "div.formButtonGroup-extra"
+    ) as HTMLDivElement;
+    if (!bar) console.warn("Could not find post box button bar");
+    Object.entries(cannedResponses).forEach((cannedResponse) => {
+        const [category, responses] = cannedResponse;
+        const dropdown = document.createElement("span");
+        dropdown.classList.add("p-navEl-splitTrigger"); // Adds various styling for dropdowns, technically for the navbar but it works here
+        dropdown.style.float = "none"; // Class makes it float left, so we need to override it
+        dropdown.style.textAlign = "center";
+        dropdown.style.lineHeight = bar.clientHeight + "px";
+        dropdown.style.paddingLeft = "8px";
+        dropdown.dataset.category = category;
+        dropdown.innerText = category;
+
+        var dropdownMenu = document.createElement("div");
+        dropdownMenu.classList.add(
+            "menu",
+            "menu--structural",
+            "menu--potentialFixed",
+            "menu--left"
+        );
+        dropdownMenu.style.zIndex = "800";
+        dropdownMenu.style.display = "none";
+        dropdownMenu.style.position = "fixed";
+        dropdownMenu.style.minWidth = "150px";
+        dropdownMenu.style.overflowY = "scroll";
+        dropdownMenu.hidden = true;
+
+        dropdown.append(dropdownMenu);
+        dropdown.addEventListener("mouseover", function () {
+            var rect = dropdown.getBoundingClientRect();
+            dropdownMenu.hidden = false;
+            dropdownMenu.style.display = "block";
+            dropdownMenu.style.top = rect.bottom + "px";
+            dropdownMenu.style.left = rect.left + "px";
+            dropdownMenu.style.maxHeight =
+                window.innerHeight - rect.top - 25 + "px";
+            dropdownContent.style.maxHeight = dropdownMenu.style.maxHeight;
+            dropdownMenu.classList.add("is-active");
+        });
+        dropdown.addEventListener("mouseout", function () {
+            dropdownMenu.hidden = true;
+            dropdownMenu.style.display = "none";
+            dropdownMenu.classList.remove("is-active");
+        });
+
+        const dropdownContent = document.createElement("div");
+        dropdownContent.classList.add("menu-content");
+        dropdownContent.style.overflowY = "none";
+        dropdownMenu.append(dropdownContent);
+        bar.append(dropdown);
+
+        responses.forEach((response) => {
+            const btn = document.createElement("a");
+            btn.classList.add("menu-linkRow", "u-indentDepth0");
+            btn.innerText = response.name;
+            btn.style.cursor = "pointer";
+            btn.style.paddingLeft = "4px";
+            btn.style.paddingRight = "0px";
+            btn.style.paddingTop = "1px";
+            btn.style.paddingBottom = "1px";
+            btn.addEventListener("click", function () {
+                editPostBox(generateResponseText(response.response), true);
+                dropdown.dispatchEvent(new MouseEvent("mouseout"));
+            });
+            dropdownContent.append(btn);
+        });
+    });
 }
 
 /**
