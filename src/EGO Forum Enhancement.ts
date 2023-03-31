@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.3.1
+// @version      4.4.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -35,6 +35,11 @@ interface OnHold_Map {
     explain: string;
 }
 
+interface CannedResponse {
+    name: string;
+    response: string;
+}
+
 declare var SteamIDConverter: any;
 
 const completedMap: Completed_Map[] = [];
@@ -42,6 +47,7 @@ const signatureBlockList: string[] = [];
 const navbarURLs: NavbarURL_Map[] = [];
 const onHoldTemplates: OnHold_Map[] = [];
 const autoMentionForums: string[] = [];
+const cannedResponses: { [category: string]: CannedResponse[] } = {};
 const contestReportForums: string[] = ["1233", "1234", "1235", "1236"];
 
 /**
@@ -182,8 +188,7 @@ function setupForumsConfig() {
             },
             "move-to-completed": {
                 type: "hidden",
-                default:
-                    "Contest a Ban ?$;1236\nReport a Player ?$;1235\nContact Leadership ?$;853",
+                default: "1234;1236\n1233;1235\n852;853",
             },
             "signature-block-unchecked": {
                 label: "Signature Block List",
@@ -234,8 +239,8 @@ function setupForumsConfig() {
             "auto-mention-unchecked": {
                 label: "Auto Mention (Subforum IDs)",
                 section: [
-                    "Autofill",
-                    "Autofill various content into the post editor.",
+                    "Automention",
+                    "Automatically mention the OP in the editor in certain forums. This is not guaranteed to work on the Rich Text editor (although it should).",
                 ],
                 type: "textarea",
                 save: false,
@@ -245,15 +250,52 @@ function setupForumsConfig() {
                 type: "hidden",
                 default: "",
             },
+            "auto-mention-newlines": {
+                label: "Number of newlines to add after mention",
+                title: "This may be off by one when using the Rich Text editor.",
+                type: "int",
+                min: 0,
+                default: 2,
+            },
             "auto-mention-onclick": {
                 label: "Fill on click instead of on load",
                 type: "checkbox",
                 default: true,
             },
             "auto-mention-focus": {
-                label: "Autofocus after mentioning (only on load mode)",
+                label: "Focus after mentioning (only on load mode)",
                 type: "checkbox",
                 default: false,
+            },
+            "canned-responses-unchecked": {
+                label: "Canned Responses",
+                section: [
+                    "Canned Responses",
+                    "See <a href='https://github.com/blankdvth/eGOScripts/wiki/Canned-Responses' target='_blank'>this guide</a> on how to format your canned responses.",
+                ],
+                type: "textarea",
+                save: false,
+                default: "",
+            },
+            "canned-responses": {
+                type: "hidden",
+                default: "",
+            },
+            "canned-response-min-width": {
+                label: "Minimum width of dropdown (in pixels)",
+                type: "int",
+                min: 0,
+                default: 125,
+            },
+            "canned-response-focus": {
+                label: "Focus after inserting canned response",
+                type: "checkbox",
+                default: true,
+            },
+            "canned-response-trigger-automention": {
+                label: "Attempt to trigger automention before inserting canned response",
+                type: "checkbox",
+                default: true,
             },
         },
         events: {
@@ -275,6 +317,10 @@ function setupForumsConfig() {
                     "auto-mention-unchecked",
                     GM_config.get("auto-mention")
                 );
+                GM_config.set(
+                    "canned-responses-unchecked",
+                    GM_config.get("canned-responses")
+                );
             },
             open: function (doc) {
                 GM_config.fields[
@@ -287,6 +333,7 @@ function setupForumsConfig() {
                             true
                         ) as string;
                         if (
+                            maps.length == 0 ||
                             maps
                                 .split(/\r?\n/)
                                 .every((map) => map.match(/^\d+;\d+$/))
@@ -313,6 +360,7 @@ function setupForumsConfig() {
                         true
                     ) as string;
                     if (
+                        urls.length == 0 ||
                         urls
                             .split(/\r?\n/)
                             .every((url) =>
@@ -331,6 +379,7 @@ function setupForumsConfig() {
                             true
                         ) as string;
                         if (
+                            onHold.length == 0 ||
                             onHold
                                 .split(/\r?\n/)
                                 .every((line) =>
@@ -350,11 +399,31 @@ function setupForumsConfig() {
                         true
                     ) as string;
                     if (
+                        autoMention.length == 0 ||
                         autoMention
                             .split(/\r?\n/)
                             .every((id) => id.match(/^\d+$/))
                     )
                         GM_config.set("auto-mention", autoMention);
+                });
+                GM_config.fields[
+                    "canned-responses-unchecked"
+                ].node?.addEventListener("change", function () {
+                    const cannedResponses = GM_config.get(
+                        "canned-responses-unchecked",
+                        true
+                    ) as string;
+                    // Check if entire config matches the regex by matching all and rejoining the matches, then comparing to the original
+                    if (
+                        [
+                            ...cannedResponses.matchAll(
+                                /(?:===\n|^)- (?<name>.+)\n- (?<category>.+)\n(?<response>(?:.|\n)+?)\n===/gm
+                            ),
+                        ]
+                            .map((i) => i[0])
+                            .join("\n") === cannedResponses
+                    )
+                        GM_config.set("canned-responses", cannedResponses);
                 });
             },
             save: function (forgotten) {
@@ -389,6 +458,13 @@ function setupForumsConfig() {
                 )
                     alert(
                         "Invalid auto mention list. Ensure each ID is on it's own line and all IDs are numerical."
+                    );
+                if (
+                    forgotten["canned-responses-unchecked"] !==
+                    GM_config.get("canned-responses")
+                )
+                    alert(
+                        "Invalid canned responses list. Ensure each response is in the proper format (see the wiki for more information)."
                     );
             },
         },
@@ -430,10 +506,11 @@ function autoMAULAuth() {
  */
 function loadCompletedMap() {
     const completedMapRaw = GM_config.get("move-to-completed") as string;
+    if (completedMapRaw.length == 0) return;
     completedMapRaw.split(/\r?\n/).forEach((map) => {
         const parts = map.split(";");
         if (parts.length != 2) {
-            alert("Invalid map: " + map);
+            alert("Invalid completed map: " + map);
             return;
         } else if (!parts[1].match(/\d+/)) {
             alert("Invalid ID: " + parts[1]);
@@ -465,6 +542,7 @@ function loadSignatureBlockList() {
  */
 function loadNavbarURLs() {
     const navbarURLsRaw = GM_config.get("navbar-urls") as string;
+    if (navbarURLsRaw.length == 0) return;
     navbarURLsRaw.split(/\r?\n/).forEach((url) => {
         const parts = url.split(";");
         if (parts.length != 2) {
@@ -483,6 +561,7 @@ function loadNavbarURLs() {
  */
 function loadOnHoldTemplates() {
     const onHoldTemplatesRaw = GM_config.get("on-hold") as string;
+    if (onHoldTemplatesRaw.length == 0) return;
     onHoldTemplatesRaw.split(/\r?\n/).forEach((line) => {
         const parts = line.split(";");
         if (parts.length != 3) {
@@ -504,6 +583,25 @@ function loadAutoMentionList() {
     const autoMentionListRaw = GM_config.get("auto-mention") as string;
     autoMentionListRaw.split(/\r?\n/).forEach((id) => {
         autoMentionForums.push(id);
+    });
+}
+
+/**
+ * Loads the canned responses from config
+ */
+function loadCannedResponses() {
+    const cannedResponsesRaw = GM_config.get("canned-responses") as string;
+    [
+        ...cannedResponsesRaw.matchAll(
+            /(?:===\n|^)- (?<name>.+)\n- (?<category>.+)\n(?<response>(?:.|\n)+?)\n===/gm
+        ),
+    ].forEach((match) => {
+        const category = match.groups!.category;
+        if (!cannedResponses[category]) cannedResponses[category] = [];
+        cannedResponses[category].push({
+            name: match.groups!.name,
+            response: match.groups!.response,
+        });
     });
 }
 
@@ -742,7 +840,7 @@ function editPostBox(text: string, append: boolean = false) {
     ) {
         // BBCode Editor
         const editors = document.querySelectorAll(
-            'textarea.input[name="message"]'
+            'div.message textarea.input[name="message"]'
         );
         const editor = editors[editors.length - 1] as HTMLTextAreaElement;
         editor.value = append ? editor.value + text : text;
@@ -750,8 +848,39 @@ function editPostBox(text: string, append: boolean = false) {
         // Rich Editor
         const editors = document.querySelectorAll("div.fr-element.fr-view");
         const editor = editors[editors.length - 1] as HTMLDivElement;
-        editor.innerText = append ? editor.innerText + text : text;
+        editor.innerText = append ? editor.innerText.trim() + text : text;
+        editor.dispatchEvent(new Event("mouseup"));
     }
+}
+
+/**
+ * Get the ID of the current forum
+ * @returns {string} Forum ID
+ */
+function getForumId() {
+    return document
+        .getElementById("XF")!
+        .dataset.containerKey?.replace("node-", "");
+}
+
+/**
+ * Get the username of the current user
+ * @returns {string} Username of current user
+ */
+function getUsername() {
+    return (
+        document.querySelector(
+            "a.p-navgroup-link--user > span.p-navgroup-linkText"
+        ) as HTMLSpanElement | null
+    )?.innerText;
+}
+
+/**
+ * Get the username of the OP of the current thread
+ * @returns {string} Username of the OP
+ */
+function getOP() {
+    return document.querySelector("a.username") as HTMLAnchorElement | null;
 }
 
 /**
@@ -775,13 +904,12 @@ function generateRedText(top: string, str: string = "Confidential") {
 }
 
 /**
- * Get the ID of the current forum
- * @returns {string} Forum ID
+ * Fills in placeholders in a canned response string with the proper data then returns it
  */
-function getForumId() {
-    return document
-        .getElementById("XF")!
-        .dataset.containerKey?.replace("node-", "");
+function generateResponseText(response: string) {
+    return response
+        .replaceAll("{{{username}}}", getUsername() ?? "")
+        .replaceAll("{{{op username}}}", getOP()?.innerText ?? "");
 }
 
 /**
@@ -948,26 +1076,6 @@ function handleGenericThread() {
             // Ban Contest or Report
             handleBanReportContest();
 
-        if (autoMentionForums.includes(forumId)) {
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    if (!mutation.addedNodes) return;
-
-                    for (let i = 0; i < mutation.addedNodes.length; i++) {
-                        const node = mutation.addedNodes[i];
-                        if (node.nodeName === "DIV")
-                            handleAutoMention(observer);
-                    }
-                });
-            });
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true,
-                attributes: false,
-                characterData: false,
-            });
-        }
-
         const button_group = document.querySelector("div.buttonGroup");
         for (var i = 0; i < completedMap.length; i++) {
             if (forumId == completedMap[i].originId) {
@@ -992,6 +1100,29 @@ function handleGenericThread() {
     if (isLeadership(breadcrumbs))
         // LE Forums
         handleLeadership();
+
+    const observer = new MutationObserver((mutations) => {
+        mutations.every((mutation) => {
+            // Using every so that we can return false to stop observing
+            if (!mutation.addedNodes) return true;
+
+            for (let i = 0; i < mutation.addedNodes.length; i++) {
+                const node = mutation.addedNodes[i];
+                if (node.nodeName === "DIV") {
+                    handlePostBox(observer);
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    });
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: false,
+        characterData: false,
+    });
 
     blockSignatures();
 }
@@ -1140,31 +1271,138 @@ function handleLeadership() {
  * @param focus Whether to focus the post box after mentioning the user
  */
 function autoMention(focus: boolean) {
-    const user = document.querySelector("a.username") as HTMLAnchorElement;
+    const user = getOP();
     if (!user) return;
     const username = user.innerText;
     const userId = user.dataset.userId;
-    if (username && userId && getPostBox()?.length == 0)
-        editPostBox(`[USER=${userId}]@${username}[/USER]\n\n`);
-    if (focus) getPostBoxEl().focus();
+    if (username && userId && getPostBox()?.trim().length == 0) {
+        editPostBox(
+            `[USER=${userId}]@${username}[/USER]${"\n".repeat(
+                GM_config.get("auto-mention-newlines") as number
+            )}`
+        );
+        if (focus) getPostBoxEl().focus();
+    }
+}
+
+/**
+ * Handles operations that should be performed when the post box is loaded
+ * @param observer
+ */
+function handlePostBox(observer: MutationObserver) {
+    const postBox = document.querySelector("div.fr-box") as HTMLDivElement;
+    if (!postBox) return;
+    const forumId = getForumId();
+    observer.disconnect();
+
+    if (forumId && autoMentionForums.includes(forumId)) handleAutoMention();
+    handleCannedResponses();
 }
 
 /**
  * Handles adding auto mention functionality to the post box
- * @param {MutationObserver} observer
  */
-function handleAutoMention(observer: MutationObserver) {
+function handleAutoMention() {
     const postBox = document.querySelector("div.fr-box") as HTMLDivElement;
-    if (!postBox) return;
-    observer.disconnect();
     if (GM_config.get("auto-mention-onclick")) {
-        postBox.addEventListener("click", function () {
+        function autoMentionListener() {
             autoMention(true);
-        });
+            postBox.removeEventListener("click", autoMentionListener);
+        }
+        postBox.addEventListener("click", autoMentionListener);
     } else {
         postBox.click();
         autoMention(GM_config.get("auto-mention-focus") as boolean);
     }
+}
+
+/**
+ * Handles adding canned responses to the post box
+ */
+function handleCannedResponses() {
+    const bar = document.querySelector(
+        "div.formButtonGroup-extra"
+    ) as HTMLDivElement;
+    if (!bar) {
+        console.warn("Could not find post box button bar");
+        return;
+    }
+    Object.entries(cannedResponses).forEach((cannedResponse) => {
+        const [category, responses] = cannedResponse;
+        const dropdown = document.createElement("span");
+        dropdown.classList.add("p-navEl-splitTrigger"); // Adds various styling for dropdowns, technically for the navbar but it works here
+        dropdown.style.float = "none"; // Class makes it float left, so we need to override it
+        dropdown.style.textAlign = "center";
+        dropdown.style.lineHeight = bar.clientHeight + "px";
+        dropdown.style.paddingLeft = "8px";
+        dropdown.dataset.category = category;
+        dropdown.innerText = category;
+
+        var dropdownMenu = document.createElement("div");
+        dropdownMenu.classList.add(
+            "menu",
+            "menu--structural",
+            "menu--potentialFixed",
+            "menu--left"
+        );
+        dropdownMenu.style.zIndex = "800";
+        dropdownMenu.style.display = "none";
+        dropdownMenu.style.position = "fixed";
+        dropdownMenu.style.minWidth =
+            GM_config.get("canned-response-min-width") + "px";
+        dropdownMenu.style.overflow = "auto";
+        dropdownMenu.hidden = true;
+
+        dropdown.append(dropdownMenu);
+        dropdown.addEventListener("mouseover", function () {
+            var rect = dropdown.getBoundingClientRect();
+            dropdownMenu.hidden = false;
+            dropdownMenu.style.display = "block";
+            dropdownMenu.style.top = rect.bottom + "px";
+            dropdownMenu.style.left = rect.left + "px";
+            dropdownMenu.style.maxHeight =
+                window.innerHeight - rect.top - 25 + "px";
+            dropdownMenu.style.maxWidth =
+                window.innerWidth - rect.left - 25 + "px";
+            dropdownContent.style.maxHeight = dropdownMenu.style.maxHeight;
+            dropdownMenu.classList.add("is-active");
+        });
+        dropdown.addEventListener("mouseout", function () {
+            dropdownMenu.hidden = true;
+            dropdownMenu.style.display = "none";
+            dropdownMenu.classList.remove("is-active");
+        });
+
+        const dropdownContent = document.createElement("div");
+        dropdownContent.classList.add("menu-content");
+        dropdownContent.style.overflow = "none";
+        dropdownMenu.append(dropdownContent);
+        bar.append(dropdown);
+
+        responses.forEach((response) => {
+            const btn = document.createElement("a");
+            btn.classList.add("menu-linkRow", "u-indentDepth0");
+            btn.innerText = response.name;
+            btn.style.cursor = "pointer";
+            btn.style.paddingLeft = "4px";
+            btn.style.paddingRight = "0px";
+            btn.style.paddingTop = "1px";
+            btn.style.paddingBottom = "1px";
+            btn.addEventListener("click", function () {
+                const postBox = getPostBoxEl();
+                if (GM_config.get("canned-response-trigger-automention")) {
+                    const forumId = getForumId();
+                    if (forumId && autoMentionForums.includes(forumId))
+                        autoMention(false);
+                }
+                editPostBox(generateResponseText(response.response), true);
+                dropdown.dispatchEvent(new MouseEvent("mouseout"));
+                postBox.dispatchEvent(new Event("autosize:update"));
+                if (GM_config.get("canned-response-focus")) postBox.focus();
+            });
+            dropdownContent.append(btn);
+        });
+    });
 }
 
 /**
@@ -1419,6 +1657,7 @@ function blockSignatures() {
     loadNavbarURLs();
     loadOnHoldTemplates();
     loadAutoMentionList();
+    loadCannedResponses();
 
     // Determine what page we're on
     const url = window.location.href;
