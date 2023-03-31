@@ -981,7 +981,7 @@ function handleGenericThread() {
             }
         }
 
-        if (forumId === "685")
+        if (forumId !== "685")
             // Trash Bin
             addTrashButton(
                 button_group?.querySelector(
