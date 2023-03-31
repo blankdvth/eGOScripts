@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.4.0
+// @version      4.4.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -840,7 +840,7 @@ function editPostBox(text: string, append: boolean = false) {
     ) {
         // BBCode Editor
         const editors = document.querySelectorAll(
-            'textarea.input[name="message"]'
+            'div.message textarea.input[name="message"]'
         );
         const editor = editors[editors.length - 1] as HTMLTextAreaElement;
         editor.value = append ? editor.value + text : text;
@@ -848,7 +848,7 @@ function editPostBox(text: string, append: boolean = false) {
         // Rich Editor
         const editors = document.querySelectorAll("div.fr-element.fr-view");
         const editor = editors[editors.length - 1] as HTMLDivElement;
-        editor.innerText = append ? editor.innerText + text : text;
+        editor.innerText = append ? editor.innerText.trim() + text : text;
         editor.dispatchEvent(new Event("mouseup"));
     }
 }
