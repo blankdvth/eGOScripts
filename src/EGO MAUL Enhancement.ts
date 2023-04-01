@@ -631,7 +631,7 @@ function updateBanNoteURLs() {
                 '<a href="$&" target="_blank" rel="external">$&</a>'
             )
             .replaceAll(
-                /([^\/\d]|^)(\d{17})([^\/\d]|$)/g,
+                /(^|\s)(\d{17})($|\s)/g,
                 '$1<a href="https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=$2" target="_blank">$2</a>$3'
             );
         // If the text hasn't been changed, move on
