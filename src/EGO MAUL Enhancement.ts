@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20MAUL%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.3.5
+// @version      4.3.6
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS
 // @match        https://maul.edgegamers.com/*
@@ -149,7 +149,7 @@ function setupMAULConfig() {
                 title: "The regex to use to find Steam IDs in ban notes. Recommended to test in regex101.com first.\nFirst match is left spacing character, second is the SteamID, third is right spacing character.",
                 type: "text",
                 default:
-                    "(^|\\s|[!\"#$%&'()*+,\\-.:;<=>?@[\\]^_`{|}~])(\\d{17})($|\\s|(?!\\1|[./\\d]))",
+                    "(?:(^)(\\d{17})($|\\s|[^./\\d])|(\\s|[!\"#$%&'()*+,\\-.:;<=>?@[\\]^_`{|}~])(\\d{17})($|\\s|(?!\\1|[./\\d])))",
             },
             "spur-account": {
                 label: "Use Spur Account Link",
@@ -651,7 +651,7 @@ function updateBanNoteURLs() {
                 '<a href="$&" target="_blank" rel="external">$&</a>'
             )
             .replaceAll(
-                STEAMID_REGEX,
+                STEAMID_REGEX, // The most finnicky regex in history, too many false-positives and false-negatives. User configurable for that reason.
                 '$1<a href="https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=$2" target="_blank">$2</a>$3'
             );
         // If the text hasn't been changed, move on
