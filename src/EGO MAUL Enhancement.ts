@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20MAUL%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.3.4
+// @version      4.3.5
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS
 // @match        https://maul.edgegamers.com/*
@@ -150,6 +150,12 @@ function setupMAULConfig() {
                 type: "text",
                 default:
                     "(^|\\s|[!\"#$%&'()*+,\\-.:;<=>?@[\\]^_`{|}~])(\\d{17})($|\\s|(?!\\1|[./\\d]))",
+            },
+            "spur-account": {
+                label: "Use Spur Account Link",
+                title: "Link to Spur for logged in users, rather than anonymously.",
+                type: "checkbox",
+                default: false,
             },
             "autoselect-division": {
                 label: "Division Index",
@@ -502,7 +508,9 @@ function handleEditBan() {
     ip_div.appendChild(
         createLinkButton(
             "Check Spur",
-            "https://spur.us/context/" + ip,
+            GM_config.get("spur-account")
+                ? `https://spur.us/app/context?q=${ip}`
+                : `https://spur.us/context/${ip}`,
             "_blank"
         )
     );
