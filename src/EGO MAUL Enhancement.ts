@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20MAUL%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.3.3
+// @version      4.3.4
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS
 // @match        https://maul.edgegamers.com/*
@@ -43,6 +43,7 @@ const knownAdmins: { [key: string]: string } = {}; // Known admin list
 const presetsAdd: Add_Preset[] = []; // Presets for adding bans
 const presetsEdit: Edit_Preset[] = []; // Presets for editing bans
 let USERNAME = ""; // Current username
+let STEAMID_REGEX: RegExp; // SteamID regex
 
 /**
  * Adds a preset button to the div
@@ -143,6 +144,13 @@ function setupMAULConfig() {
         id: "maul-config",
         title: "MAUL Enhancement Script Configuration",
         fields: {
+            "steamid-regex": {
+                label: "SteamID Regex",
+                title: "The regex to use to find Steam IDs in ban notes. Recommended to test in regex101.com first.\nFirst match is left spacing character, second is the SteamID, third is right spacing character.",
+                type: "text",
+                default:
+                    "(^|\\s|[!\"#$%&'()*+,\\-.:;<=>?@[\\]^_`{|}~])(\\d{17})($|\\s|(?!\\1|[./\\d]))",
+            },
             "autoselect-division": {
                 label: "Division Index",
                 section: [
@@ -345,6 +353,10 @@ function loadPresets() {
             addUsername: parts[5].length > 0,
         });
     });
+}
+
+function loadSteamIDRegex() {
+    STEAMID_REGEX = new RegExp(GM_config.get("steamid-regex") as string, "g");
 }
 
 /**
@@ -631,7 +643,7 @@ function updateBanNoteURLs() {
                 '<a href="$&" target="_blank" rel="external">$&</a>'
             )
             .replaceAll(
-                /(^|\s)(\d{17})($|\s)/g,
+                STEAMID_REGEX,
                 '$1<a href="https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=$2" target="_blank">$2</a>$3'
             );
         // If the text hasn't been changed, move on
@@ -665,6 +677,7 @@ function updateBanNoteURLs() {
     // Setup configuration stuff
     setupMAULConfig();
     loadPresets();
+    loadSteamIDRegex();
 
     // Determine what page we're on
     const url = window.location.href;
