@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.4.2
+// @version      4.4.3
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -296,6 +296,12 @@ function setupForumsConfig() {
                 label: "Attempt to trigger automention before inserting canned response",
                 type: "checkbox",
                 default: true,
+            },
+            "canned-responses-hide-scrollbar": {
+                label: "Hide scrollbars (scrolling will still work)",
+                title: "May not work on all browsers.",
+                type: "checkbox",
+                default: false,
             },
         },
         events: {
@@ -1327,6 +1333,14 @@ function handleCannedResponses() {
         console.warn("Could not find post box button bar");
         return;
     }
+    if (GM_config.get("canned-responses-hide-scrollbar")) {
+        // @ts-ignore - Firefox only
+        bar.style.scrollbarWidth = "none";
+        // @ts-ignore - Webkit only
+        bar.style.webkitScrollbar = "none";
+    }
+    bar.style.whiteSpace = "nowrap";
+    bar.style.overflowX = "auto";
     Object.entries(cannedResponses).forEach((cannedResponse) => {
         const [category, responses] = cannedResponse;
         const dropdown = document.createElement("span");
@@ -1338,7 +1352,7 @@ function handleCannedResponses() {
         dropdown.dataset.category = category;
         dropdown.innerText = category;
 
-        var dropdownMenu = document.createElement("div");
+        const dropdownMenu = document.createElement("div");
         dropdownMenu.classList.add(
             "menu",
             "menu--structural",
@@ -1351,6 +1365,12 @@ function handleCannedResponses() {
         dropdownMenu.style.minWidth =
             GM_config.get("canned-response-min-width") + "px";
         dropdownMenu.style.overflow = "auto";
+        if (GM_config.get("canned-responses-hide-scrollbar")) {
+            // @ts-ignore - Firefox only
+            dropdownMenu.style.scrollbarWidth = "none";
+            // @ts-ignore - Webkit only
+            dropdownMenu.style.webkitScrollbar = "none";
+        }
         dropdownMenu.hidden = true;
 
         dropdown.append(dropdownMenu);
@@ -1376,6 +1396,12 @@ function handleCannedResponses() {
         const dropdownContent = document.createElement("div");
         dropdownContent.classList.add("menu-content");
         dropdownContent.style.overflow = "none";
+        if (GM_config.get("canned-responses-hide-scrollbar")) {
+            // @ts-ignore - Firefox only
+            dropdownContent.style.scrollbarWidth = "none";
+            // @ts-ignore - Webkit only
+            dropdownContent.style.webkitScrollbar = "none";
+        }
         dropdownMenu.append(dropdownContent);
         bar.append(dropdown);
 
