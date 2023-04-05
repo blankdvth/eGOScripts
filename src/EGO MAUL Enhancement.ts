@@ -149,7 +149,7 @@ function setupMAULConfig() {
                 title: "The regex to use to find Steam IDs in ban notes. Recommended to test in regex101.com first.\nFirst match is left spacing character, second is the SteamID, third is right spacing character.",
                 type: "text",
                 default:
-                    "(?:(^)(\\d{17})($|\\s|[^./\\d])|(\\s|[!\"#$%&'()*+,\\-.:;<=>?@[\\]^_`{|}~])(\\d{17})($|\\s|(?!\\1|[./\\d])))",
+                    "(^|\\s|[!\"#$%&'()*+,\\-.:;<=>?@[\\]^_`{|}~])(\\d{17})($|\\s|[!\"#$%&'()*+,\\-.:;<=>?@[\\]^_`{|}~])",
             },
             "spur-account": {
                 label: "Use Spur Account Link",
