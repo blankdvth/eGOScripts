@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.4.3
+// @version      4.5.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -45,6 +45,7 @@ declare var SteamIDConverter: any;
 const completedMap: Completed_Map[] = [];
 const signatureBlockList: string[] = [];
 const navbarURLs: NavbarURL_Map[] = [];
+const navbarRemovals: string[] = [];
 const onHoldTemplates: OnHold_Map[] = [];
 const autoMentionForums: string[] = [];
 const cannedResponses: { [category: string]: CannedResponse[] } = {};
@@ -219,6 +220,15 @@ function setupForumsConfig() {
                 type: "hidden",
                 default:
                     "GitLab;https://gitlab.edgegamers.io/\nGameME;https://edgegamers.gameme.com/",
+            },
+            "navbar-removals": {
+                label: "Navigation Bar Removals",
+                section: [
+                    "Navigation Bar Removals",
+                    "List of entries to remove from the navigation bar, separated by newlines. This removes the first full match for the text in the button, case-insensitive.",
+                ],
+                type: "textarea",
+                default: "",
             },
             "on-hold-unchecked": {
                 label: "On Hold Templates",
@@ -563,6 +573,17 @@ function loadNavbarURLs() {
 }
 
 /**
+ * Loads the navbar removals from config
+ */
+function loadNavbarRemovals() {
+    const navbarRemovalsRaw = GM_config.get("navbar-removals") as string;
+    if (navbarRemovalsRaw.length == 0) return;
+    navbarRemovalsRaw.split(/\r?\n/).forEach((removal) => {
+        navbarRemovals.push(removal.toLowerCase());
+    });
+}
+
+/**
  * Loads the on hold templates from config
  */
 function loadOnHoldTemplates() {
@@ -734,6 +755,17 @@ function addNav(href: string, text: string, nav: HTMLElement) {
 function addNavButtons(urls: NavbarURL_Map[], nav: HTMLElement) {
     urls.forEach((url) => {
         addNav(url.url, url.text, nav);
+    });
+}
+
+function removeNavButtons(removals: string[], nav: HTMLElement) {
+    (
+        nav.querySelectorAll(
+            "li > div > a:first-of-type"
+        ) as NodeListOf<HTMLAnchorElement>
+    ).forEach((a) => {
+        if (removals.includes(a.innerText.toLowerCase()))
+            a.parentElement?.parentElement?.remove();
     });
 }
 
@@ -1681,6 +1713,7 @@ function blockSignatures() {
     loadCompletedMap();
     loadSignatureBlockList();
     loadNavbarURLs();
+    loadNavbarRemovals();
     loadOnHoldTemplates();
     loadAutoMentionList();
     loadCannedResponses();
@@ -1702,6 +1735,7 @@ function blockSignatures() {
     autoMAULAuth();
 
     addNavButtons(navbarURLs, nav_list);
+    removeNavButtons(navbarRemovals, nav_list);
 
     if (url.match(/^https:\/\/www\.edgegamers\.com\/members\/\d+/))
         // Members Page
