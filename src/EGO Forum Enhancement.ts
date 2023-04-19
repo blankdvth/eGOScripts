@@ -651,11 +651,16 @@ function addMAULProfileButton(div: HTMLDivElement, member_id: number | string) {
 /**
  * Adds a "Add Ban" button to the div
  * @param {HTMLDivElement} div Div to add to
- * @param {number} steam_id_64 Steam ID to check
+ * @param {number} steam_id_64 Steam ID to add the ban to
+ * @param {string} handle Handle of the user
  */
-function addAddBanButton(div: HTMLDivElement, steam_id_64: number) {
+function addAddBanButton(
+    div: HTMLDivElement,
+    steam_id_64: number,
+    handle: string
+) {
     createButton(
-        "https://maul.edgegamers.com/index.php?page=editban#" + steam_id_64,
+        `https://maul.edgegamers.com/index.php?page=editban#${steam_id_64}_${handle}`,
         "Add Ban",
         div,
         "_blank"
@@ -1198,16 +1203,21 @@ function handleBanReportContest(report: boolean = false) {
         ).href.substring(35)
     );
 
-    const steam_id = post_title.match(
-        /^.* - .* - ([^\d]*?(?<game_id>(\d+)|(STEAM_\d:\d:\d+)|(\[U:\d:\d+\])).*)$/
+    const title_match = post_title.match(
+        /^.* - (?<handle>.*) - ([^\d]*?(?<game_id>(\d+)|(STEAM_\d:\d:\d+)|(\[U:\d:\d+\])).*)$/
     );
-    if (steam_id) {
-        const unparsed_id = steam_id.groups!.game_id;
+    if (title_match) {
+        const unparsed_id = title_match.groups!.game_id;
         try {
             const steam_id_64 = SteamIDConverter.isSteamID64(unparsed_id)
                 ? unparsed_id
                 : SteamIDConverter.toSteamID64(unparsed_id);
-            if (report) addAddBanButton(button_group, steam_id_64);
+            if (report)
+                addAddBanButton(
+                    button_group,
+                    steam_id_64,
+                    title_match.groups!.handle
+                );
             addBansButton(button_group, steam_id_64);
         } catch (TypeError) {
             if (GM_config.get("show-list-bans-unknown"))

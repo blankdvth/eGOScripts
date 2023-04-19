@@ -421,13 +421,18 @@ function handleAddBan(hash: string = "") {
         );
     }
 
-    // If this is an add ban short URL, fill in the field. Only fill if the field is not disabled
+    // If this is an add ban short URL, fill in the specified fields. Only fill if the field is not disabled
     if (
         hash.length > 0 &&
         !(document.getElementById("gameId") as HTMLInputElement).disabled
-    )
+    ) {
+        const match = hash.match(/^#(?<game_id>\d+)(?:_(?<name>.*))?$/)!;
         (document.getElementById("gameId") as HTMLInputElement).value =
-            hash.substring(1);
+            match.groups!.game_id;
+        if (match.groups!.name)
+            (document.getElementById("handle") as HTMLInputElement).value =
+                match.groups!.name;
+    }
 }
 
 /**
@@ -702,7 +707,7 @@ function updateBanNoteURLs() {
 
     if (
         url.match(
-            /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban\/?(?:#\d+)?$/
+            /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban\/?(?:#\d+(?:_.*)?)?$/
         )
     )
         // Add Ban Page (not Edit, that will have &id=12345 in the URL)
