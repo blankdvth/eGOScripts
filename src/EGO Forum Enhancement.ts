@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.6.0
+// @version      4.6.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -51,6 +51,7 @@ const autoMentionForums: string[] = [];
 const cannedResponses: { [category: string]: CannedResponse[] } = {};
 const contestForums: string[] = ["1234", "1236"];
 const reportForums: string[] = ["1233", "1235"];
+const countingURL: string = "https://www.edgegamers.com/threads/333944/";
 
 /**
  * Creates a preset button
@@ -177,6 +178,12 @@ function setupForumsConfig() {
                 type: "int",
                 default: 1800000, // half an hour
                 min: 300000, // 5 minutes, we don't want to spam the server
+            },
+            "autofill-counting": {
+                label: "Autofill Counting",
+                title: " Autofill the next number in the counting thread on click.",
+                type: "checkbox",
+                default: true,
             },
             "move-to-completed-unchecked": {
                 label: "Completed Forums Map",
@@ -1349,6 +1356,22 @@ function autoMention(focus: boolean) {
 }
 
 /**
+ * Handles adding auto counting functionality to the post box
+ */
+function autoCount() {
+    if (getPostBox()?.trim().length != 0) return;
+    // For some reason using a[class=""] doesn't work, so we have to use a:not(a[class])
+    const posts = document.querySelectorAll(
+        "header.message-attribution > ul.message-attribution-opposite > li > a:not(a[class])"
+    ) as NodeListOf<HTMLAnchorElement>;
+    if (posts.length == 0) return;
+    const lastNum = Number(
+        posts[posts.length - 1].innerText.substring(1).replaceAll(",", "")
+    ); // Remove the # and commas from the post number
+    editPostBox(`${lastNum + 1}`);
+}
+
+/**
  * Handles operations that should be performed when the post box is loaded
  * @param observer
  */
@@ -1359,6 +1382,11 @@ function handlePostBox(observer: MutationObserver) {
     observer.disconnect();
 
     if (forumId && autoMentionForums.includes(forumId)) handleAutoMention();
+    if (
+        GM_config.get("autofill-counting") &&
+        window.location.href.startsWith(countingURL)
+    )
+        handleAutoCount();
     handleCannedResponses();
 }
 
@@ -1377,6 +1405,18 @@ function handleAutoMention() {
         postBox.click();
         autoMention(GM_config.get("auto-mention-focus") as boolean);
     }
+}
+
+/**
+ * Handles automatic counting
+ */
+function handleAutoCount() {
+    const postBox = document.querySelector("div.fr-box") as HTMLDivElement;
+    function autoCountListener() {
+        autoCount();
+        postBox.removeEventListener("click", autoCountListener);
+    }
+    postBox.addEventListener("click", autoCountListener);
 }
 
 /**
