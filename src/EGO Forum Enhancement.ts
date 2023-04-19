@@ -49,7 +49,8 @@ const navbarRemovals: string[] = [];
 const onHoldTemplates: OnHold_Map[] = [];
 const autoMentionForums: string[] = [];
 const cannedResponses: { [category: string]: CannedResponse[] } = {};
-const contestReportForums: string[] = ["1233", "1234", "1235", "1236"];
+const contestForums: string[] = ["1234", "1236"];
+const reportForums: string[] = ["1233", "1235"];
 
 /**
  * Creates a preset button
@@ -648,6 +649,20 @@ function addMAULProfileButton(div: HTMLDivElement, member_id: number | string) {
 }
 
 /**
+ * Adds a "Add Ban" button to the div
+ * @param {HTMLDivElement} div Div to add to
+ * @param {number} steam_id_64 Steam ID to check
+ */
+function addAddBanButton(div: HTMLDivElement, steam_id_64: number) {
+    createButton(
+        "https://maul.edgegamers.com/index.php?page=editban#" + steam_id_64,
+        "Add Ban",
+        div,
+        "_blank"
+    );
+}
+
+/**
  * Adds a "List Bans" button to the div
  * @param {HTMLDivElement} div Div to add to
  * @param {number} steam_id_64 Steam ID to check
@@ -659,8 +674,7 @@ function addBansButton(div: HTMLDivElement, steam_id_64: number) {
             steam_id_64,
         "List Bans",
         div,
-        "_blank",
-        GM_config.get("append-profile") as boolean
+        "_blank"
     );
 }
 
@@ -1110,9 +1124,9 @@ function handleGenericThread() {
     ).innerText;
     const forumId = getForumId();
     if (forumId) {
-        if (contestReportForums.includes(forumId))
+        if (contestForums.includes(forumId) || reportForums.includes(forumId))
             // Ban Contest or Report
-            handleBanReportContest();
+            handleBanReportContest(reportForums.includes(forumId));
 
         const button_group = document.querySelector("div.buttonGroup");
         for (var i = 0; i < completedMap.length; i++) {
@@ -1169,7 +1183,7 @@ function handleGenericThread() {
  * Adds "View Bans" or "Lookup ID" button on report/contest threads.
  * TODO: Add support for other game IDs
  */
-function handleBanReportContest() {
+function handleBanReportContest(report: boolean = false) {
     const post_title = (document.querySelector(".p-title") as HTMLDivElement)
         .innerText;
     const button_group = document.querySelector(
@@ -1193,6 +1207,7 @@ function handleBanReportContest() {
             const steam_id_64 = SteamIDConverter.isSteamID64(unparsed_id)
                 ? unparsed_id
                 : SteamIDConverter.toSteamID64(unparsed_id);
+            if (report) addAddBanButton(button_group, steam_id_64);
             addBansButton(button_group, steam_id_64);
         } catch (TypeError) {
             if (GM_config.get("show-list-bans-unknown"))

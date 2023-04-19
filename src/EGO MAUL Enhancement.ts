@@ -368,7 +368,7 @@ function loadSteamIDRegex() {
 /**
  * Adds presets for ban reason/duration/notes
  */
-function handleAddBan() {
+function handleAddBan(hash: string = "") {
     const div = createPresetDiv();
 
     // Set default dropdown options
@@ -420,6 +420,14 @@ function handleAddBan() {
             }
         );
     }
+
+    // If this is an add ban short URL, fill in the field. Only fill if the field is not disabled
+    if (
+        hash.length > 0 &&
+        !(document.getElementById("gameId") as HTMLInputElement).disabled
+    )
+        (document.getElementById("gameId") as HTMLInputElement).value =
+            hash.substring(1);
 }
 
 /**
@@ -689,15 +697,16 @@ function updateBanNoteURLs() {
 
     // Determine what page we're on
     const url = window.location.href;
+    const hash = window.location.hash;
     loadUsername();
 
     if (
         url.match(
-            /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban\/?$/
+            /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban\/?(?:#\d+)?$/
         )
     )
         // Add Ban Page (not Edit, that will have &id=12345 in the URL)
-        handleAddBan();
+        handleAddBan(hash);
     else if (
         url.match(
             /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban&id=\d+\/?$/
