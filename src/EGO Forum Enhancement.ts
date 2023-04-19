@@ -49,7 +49,7 @@ const navbarRemovals: string[] = [];
 const onHoldTemplates: OnHold_Map[] = [];
 const autoMentionForums: string[] = [];
 const cannedResponses: { [category: string]: CannedResponse[] } = {};
-const contestForums: string[] = ["1234", "1236"];
+const appealForums: string[] = ["1234", "1236"];
 const reportForums: string[] = ["1233", "1235"];
 const countingURL: string = "https://www.edgegamers.com/threads/333944/";
 
@@ -1136,9 +1136,9 @@ function handleGenericThread() {
     ).innerText;
     const forumId = getForumId();
     if (forumId) {
-        if (contestForums.includes(forumId) || reportForums.includes(forumId))
-            // Ban Contest or Report
-            handleBanReportContest(reportForums.includes(forumId));
+        if (appealForums.includes(forumId) || reportForums.includes(forumId))
+            // Ban appeal or Report
+            handleBanAppealReport(reportForums.includes(forumId));
 
         const button_group = document.querySelector("div.buttonGroup");
         for (var i = 0; i < completedMap.length; i++) {
@@ -1192,10 +1192,10 @@ function handleGenericThread() {
 }
 
 /**
- * Adds "View Bans" or "Lookup ID" button on report/contest threads.
+ * Adds "View Bans" or "Lookup ID" button on appeal/report threads.
  * TODO: Add support for other game IDs
  */
-function handleBanReportContest(report: boolean = false) {
+function handleBanAppealReport(report: boolean = false) {
     const post_title = (document.querySelector(".p-title") as HTMLDivElement)
         .innerText;
     const button_group = document.querySelector(
