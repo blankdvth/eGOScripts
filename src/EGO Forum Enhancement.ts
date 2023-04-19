@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.5.0
+// @version      4.5.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -699,7 +699,7 @@ function addMoveButton(
         createButton(
             "https://www.edgegamers.com/threads/" +
                 post_id.groups!.post_id +
-                "/move?move_" +
+                "/move#" +
                 id,
             text,
             div,
@@ -722,7 +722,7 @@ function addTrashButton(before: HTMLDivElement) {
             window.location.href =
                 "https://www.edgegamers.com/threads/" +
                 post_id!.groups!.post_id +
-                "/move?move_685";
+                "/move#685";
     };
     trashButton.classList.add("menu-linkRow");
     before.parentElement?.insertBefore(trashButton, before);
@@ -999,18 +999,18 @@ function tooltipMAULListener(event: Event) {
 
 /**
  * Moves and auto-fills out the moving prompt for a thread.
- * @param {string} url URL of the page
+ * @param {string} hash The hash of the URL, should be the thread ID only
  * @returns void
  */
-function handleThreadMovePage(url: string) {
-    const completedId = url.match(/\?move_(\d+)$/);
+function handleThreadMovePage(hash: string) {
+    const completedId = hash.substring(1);
     if (!completedId) return;
     const form = document.forms[1];
     const drop = form.querySelector("select.js-nodeList") as HTMLSelectElement;
     const checkArr = Array.from(form.querySelectorAll(".inputChoices-choice"));
     const optArr = Array.from(drop.options);
     drop.selectedIndex = optArr.indexOf(
-        optArr.find((el) => el.value == completedId![1]) as HTMLOptionElement
+        optArr.find((el) => el.value == completedId!) as HTMLOptionElement
     );
     if (drop.selectedIndex == -1) {
         throw "Could not find Completed forum";
@@ -1720,6 +1720,7 @@ function blockSignatures() {
 
     // Determine what page we're on
     const url = window.location.href;
+    const hash = window.location.hash;
 
     document.body.addEventListener(
         "DOMNodeInserted",
@@ -1745,11 +1746,12 @@ function blockSignatures() {
         );
     else if (
         url.match(
-            /^https:\/\/www\.edgegamers\.com\/threads\/\d+\/move(?:\?move_.*)?$/
-        )
+            /^^https:\/\/www\.edgegamers\.com\/threads\/\d+\/move(?:#\d+)?$/
+        ) &&
+        hash != ""
     )
         // Thread Move Page
-        handleThreadMovePage(url);
+        handleThreadMovePage(hash);
     else if (url.match(/^https:\/\/www\.edgegamers\.com\/forums\/?$/))
         // Forums List
         handleForumsList();
