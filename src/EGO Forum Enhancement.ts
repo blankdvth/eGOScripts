@@ -1013,7 +1013,7 @@ function handleThreadMovePage(hash: string) {
         optArr.find((el) => el.value == completedId!) as HTMLOptionElement
     );
     if (drop.selectedIndex == -1) {
-        throw "Could not find Completed forum";
+        throw "Could not find forum ID";
     }
     try {
         // These buttons may not exist if you created the post yourself, this is just to prevent edge cases.
