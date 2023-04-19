@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.5.0
+// @version      4.6.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -49,7 +49,8 @@ const navbarRemovals: string[] = [];
 const onHoldTemplates: OnHold_Map[] = [];
 const autoMentionForums: string[] = [];
 const cannedResponses: { [category: string]: CannedResponse[] } = {};
-const contestReportForums: string[] = ["1233", "1234", "1235", "1236"];
+const contestForums: string[] = ["1234", "1236"];
+const reportForums: string[] = ["1233", "1235"];
 
 /**
  * Creates a preset button
@@ -648,6 +649,25 @@ function addMAULProfileButton(div: HTMLDivElement, member_id: number | string) {
 }
 
 /**
+ * Adds a "Add Ban" button to the div
+ * @param {HTMLDivElement} div Div to add to
+ * @param {number} steam_id_64 Steam ID to add the ban to
+ * @param {string} handle Handle of the user
+ */
+function addAddBanButton(
+    div: HTMLDivElement,
+    steam_id_64: number,
+    handle: string
+) {
+    createButton(
+        `https://maul.edgegamers.com/index.php?page=editban#${steam_id_64}_${handle}`,
+        "Add Ban",
+        div,
+        "_blank"
+    );
+}
+
+/**
  * Adds a "List Bans" button to the div
  * @param {HTMLDivElement} div Div to add to
  * @param {number} steam_id_64 Steam ID to check
@@ -659,8 +679,7 @@ function addBansButton(div: HTMLDivElement, steam_id_64: number) {
             steam_id_64,
         "List Bans",
         div,
-        "_blank",
-        GM_config.get("append-profile") as boolean
+        "_blank"
     );
 }
 
@@ -699,7 +718,7 @@ function addMoveButton(
         createButton(
             "https://www.edgegamers.com/threads/" +
                 post_id.groups!.post_id +
-                "/move?move_" +
+                "/move#" +
                 id,
             text,
             div,
@@ -722,7 +741,7 @@ function addTrashButton(before: HTMLDivElement) {
             window.location.href =
                 "https://www.edgegamers.com/threads/" +
                 post_id!.groups!.post_id +
-                "/move?move_685";
+                "/move#685";
     };
     trashButton.classList.add("menu-linkRow");
     before.parentElement?.insertBefore(trashButton, before);
@@ -999,21 +1018,21 @@ function tooltipMAULListener(event: Event) {
 
 /**
  * Moves and auto-fills out the moving prompt for a thread.
- * @param {string} url URL of the page
+ * @param {string} hash The hash of the URL, should be the thread ID only
  * @returns void
  */
-function handleThreadMovePage(url: string) {
-    const completedId = url.match(/\?move_(\d+)$/);
+function handleThreadMovePage(hash: string) {
+    const completedId = hash.substring(1);
     if (!completedId) return;
     const form = document.forms[1];
     const drop = form.querySelector("select.js-nodeList") as HTMLSelectElement;
     const checkArr = Array.from(form.querySelectorAll(".inputChoices-choice"));
     const optArr = Array.from(drop.options);
     drop.selectedIndex = optArr.indexOf(
-        optArr.find((el) => el.value == completedId![1]) as HTMLOptionElement
+        optArr.find((el) => el.value == completedId!) as HTMLOptionElement
     );
     if (drop.selectedIndex == -1) {
-        throw "Could not find Completed forum";
+        throw "Could not find forum ID";
     }
     try {
         // These buttons may not exist if you created the post yourself, this is just to prevent edge cases.
@@ -1110,9 +1129,9 @@ function handleGenericThread() {
     ).innerText;
     const forumId = getForumId();
     if (forumId) {
-        if (contestReportForums.includes(forumId))
+        if (contestForums.includes(forumId) || reportForums.includes(forumId))
             // Ban Contest or Report
-            handleBanReportContest();
+            handleBanReportContest(reportForums.includes(forumId));
 
         const button_group = document.querySelector("div.buttonGroup");
         for (var i = 0; i < completedMap.length; i++) {
@@ -1169,7 +1188,7 @@ function handleGenericThread() {
  * Adds "View Bans" or "Lookup ID" button on report/contest threads.
  * TODO: Add support for other game IDs
  */
-function handleBanReportContest() {
+function handleBanReportContest(report: boolean = false) {
     const post_title = (document.querySelector(".p-title") as HTMLDivElement)
         .innerText;
     const button_group = document.querySelector(
@@ -1184,15 +1203,21 @@ function handleBanReportContest() {
         ).href.substring(35)
     );
 
-    const steam_id = post_title.match(
-        /^.* - .* - ([^\d]*?(?<game_id>(\d+)|(STEAM_\d:\d:\d+)|(\[U:\d:\d+\])).*)$/
+    const title_match = post_title.match(
+        /^.* - (?<handle>.*) - ([^\d]*?(?<game_id>(\d+)|(STEAM_\d:\d:\d+)|(\[U:\d:\d+\])).*)$/
     );
-    if (steam_id) {
-        const unparsed_id = steam_id.groups!.game_id;
+    if (title_match) {
+        const unparsed_id = title_match.groups!.game_id;
         try {
             const steam_id_64 = SteamIDConverter.isSteamID64(unparsed_id)
                 ? unparsed_id
                 : SteamIDConverter.toSteamID64(unparsed_id);
+            if (report)
+                addAddBanButton(
+                    button_group,
+                    steam_id_64,
+                    title_match.groups!.handle
+                );
             addBansButton(button_group, steam_id_64);
         } catch (TypeError) {
             if (GM_config.get("show-list-bans-unknown"))
@@ -1720,6 +1745,7 @@ function blockSignatures() {
 
     // Determine what page we're on
     const url = window.location.href;
+    const hash = window.location.hash;
 
     document.body.addEventListener(
         "DOMNodeInserted",
@@ -1745,11 +1771,12 @@ function blockSignatures() {
         );
     else if (
         url.match(
-            /^https:\/\/www\.edgegamers\.com\/threads\/\d+\/move(?:\?move_.*)?$/
-        )
+            /^^https:\/\/www\.edgegamers\.com\/threads\/\d+\/move(?:#\d+)?$/
+        ) &&
+        hash != ""
     )
         // Thread Move Page
-        handleThreadMovePage(url);
+        handleThreadMovePage(hash);
     else if (url.match(/^https:\/\/www\.edgegamers\.com\/forums\/?$/))
         // Forums List
         handleForumsList();

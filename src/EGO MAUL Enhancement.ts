@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20MAUL%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.3.7
+// @version      4.4.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS
 // @match        https://maul.edgegamers.com/*
@@ -368,7 +368,7 @@ function loadSteamIDRegex() {
 /**
  * Adds presets for ban reason/duration/notes
  */
-function handleAddBan() {
+function handleAddBan(hash: string = "") {
     const div = createPresetDiv();
 
     // Set default dropdown options
@@ -419,6 +419,19 @@ function handleAddBan() {
                 ).checked = preset.pa;
             }
         );
+    }
+
+    // If this is an add ban short URL, fill in the specified fields. Only fill if the field is not disabled
+    if (
+        hash.length > 0 &&
+        !(document.getElementById("gameId") as HTMLInputElement).disabled
+    ) {
+        const match = hash.match(/^#(?<game_id>\d+)(?:_(?<name>.*))?$/)!;
+        (document.getElementById("gameId") as HTMLInputElement).value =
+            match.groups!.game_id;
+        if (match.groups!.name)
+            (document.getElementById("handle") as HTMLInputElement).value =
+                match.groups!.name;
     }
 }
 
@@ -689,15 +702,16 @@ function updateBanNoteURLs() {
 
     // Determine what page we're on
     const url = window.location.href;
+    const hash = window.location.hash;
     loadUsername();
 
     if (
         url.match(
-            /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban\/?$/
+            /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban\/?(?:#\d+(?:_.*)?)?$/
         )
     )
         // Add Ban Page (not Edit, that will have &id=12345 in the URL)
-        handleAddBan();
+        handleAddBan(hash);
     else if (
         url.match(
             /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban&id=\d+\/?$/
