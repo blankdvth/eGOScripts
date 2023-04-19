@@ -1365,7 +1365,9 @@ function autoCount() {
         "header.message-attribution > ul.message-attribution-opposite > li > a:not(a[class])"
     ) as NodeListOf<HTMLAnchorElement>;
     if (posts.length == 0) return;
-    const lastNum = Number(posts[posts.length - 1].innerText.substring(1).replaceAll(",", "")); // Remove the # and commas from the post number
+    const lastNum = Number(
+        posts[posts.length - 1].innerText.substring(1).replaceAll(",", "")
+    ); // Remove the # and commas from the post number
     editPostBox(`${lastNum + 1}`);
 }
 
