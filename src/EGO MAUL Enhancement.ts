@@ -229,6 +229,19 @@ function setupMAULConfig() {
                 type: "checkbox",
                 default: false,
             },
+            "flag-colour": {
+                label: "List Bans Flag Colour",
+                title: "The colour to use for the field flag on the List Bans page. Any valid CSS colour is allowed.",
+                type: "text",
+                default: "rgba(255, 0, 0, 0.25)",
+            },
+            "flag-alert": {
+                label: "Alert Style",
+                title: "What alert to use for the flag message.<br>success, info, warning, danger",
+                type: "select",
+                options: ["success", "info", "warning", "danger"],
+                default: "info",
+            },
             "flag-fields-unchecked": {
                 label: "Flag Fields",
                 type: "textarea",
@@ -421,6 +434,7 @@ function loadPresets() {
         const parts = line.split(";");
         if (parts.length != 6) {
             alert("Invalid preset: " + line);
+            return;
         }
         presetsEdit.push({
             name: parts[0],
@@ -628,16 +642,16 @@ function handleEditBan() {
                 )
             )
         ).then((arr) => {
+            const insEl = div.parentElement!;
+            const presetHeader = insEl.querySelector("h4");
             arr.forEach((result) => {
                 const alert = document.createElement("div");
-                alert.classList.add("alert", "alert-info");
-                alert.style.marginLeft = "15px";
+                alert.classList.add("alert", "alert-" + GM_config.get("flag-alert"));
                 alert.innerText = result.message;
-                div.parentElement?.insertBefore(
-                    alert,
-                    div.parentElement.querySelector("h4")
-                );
+                insEl.insertBefore(alert, presetHeader);
             });
+            if (arr.length > 0)
+                insEl.insertBefore(document.createElement("hr"), presetHeader);
         });
 }
 
@@ -715,7 +729,7 @@ function handleBanList() {
             )
         ).then((arr) => {
             arr.forEach((result) => {
-                result.element.style.backgroundColor = "rgba(255, 0, 0, 0.25)";
+                result.element.style.backgroundColor = GM_config.get("flag-colour") as string;
                 result.element.title = result.message;
             });
         });
