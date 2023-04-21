@@ -629,7 +629,14 @@ function handleEditBan() {
             )
         ).then((arr) => {
             arr.forEach((result) => {
-                console.log(result); // TODO: Replace with proper warnings/values
+                const alert = document.createElement("div");
+                alert.classList.add("alert", "alert-info");
+                alert.style.marginLeft = "15px";
+                alert.innerText = result.message;
+                div.parentElement?.insertBefore(
+                    alert,
+                    div.parentElement.querySelector("h4")
+                );
             });
         });
 }
