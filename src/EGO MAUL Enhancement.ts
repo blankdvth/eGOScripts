@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20MAUL%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.5.1
+// @version      4.5.2
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS
 // @match        https://maul.edgegamers.com/*
@@ -15,6 +15,7 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_getResourceText
+// @grant        unsafeWindow
 // ==/UserScript==
 /// <reference path="../config_types/index.d.ts" />
 
@@ -42,6 +43,10 @@ interface Flag_Field_Result {
     message: string;
 }
 
+interface Unsafe_Window {
+    generateFlagHash: (text: string) => void;
+}
+
 declare var SteamIDConverter: any;
 
 const knownAdmins: { [key: string]: string } = {}; // Known admin list
@@ -50,6 +55,14 @@ const presetsEdit: Edit_Preset[] = []; // Presets for editing bans
 const flagFields: { [key: string]: string } = {}; // Presets for flag fields
 let USERNAME = ""; // Current username
 let STEAMID_REGEX: RegExp; // SteamID regex
+
+(unsafeWindow as any as Unsafe_Window).generateFlagHash = function (
+    text: string
+) {
+    generateHash(text + GM_config.get("flag-salt")).then((hash) =>
+        console.log(hash)
+    );
+};
 
 /**
  * Adds a preset button to the div
@@ -224,7 +237,7 @@ function setupMAULConfig() {
                 label: "Enable",
                 section: [
                     "Field Flag",
-                    'Flags certain bans based on the (trimmed) value of any field. All lines are in the format "hash;message".<br>The hash should be a SHA-256 hash with the Salt (see below) appended to the end of the value (no whitespace). Message is the message that is shown (Edit Bans only).<br>This does not check the date or ban duration fields on the List Bans page (but it does on Edit Ban).',
+                    'Flags certain bans based on the (trimmed) value of any field. All lines are in the format "hash;message".<br>The hash should be a SHA-256 hash with the Salt (see below) appended to the end of the value (no whitespace). Message is the message that is shown when it matches.<br>This does not check the date or ban duration fields on the List Bans page.<br>To quickly generate a hash, open console and type: generateFlagHash("your value here")',
                 ],
                 type: "checkbox",
                 default: false,
