@@ -37,8 +37,8 @@ interface Edit_Preset {
     addUsername: boolean;
 }
 
-interface Flag_Field {
-    hash: string;
+interface Flag_Field_Result {
+    element: HTMLElement;
     message: string;
 }
 
@@ -47,7 +47,7 @@ declare var SteamIDConverter: any;
 const knownAdmins: { [key: string]: string } = {}; // Known admin list
 const presetsAdd: Add_Preset[] = []; // Presets for adding bans
 const presetsEdit: Edit_Preset[] = []; // Presets for editing bans
-const flagFields: Flag_Field[] = []; // Presets for flag fields
+const flagFields: { [key: string]: string } = {}; // Presets for flag fields
 let USERNAME = ""; // Current username
 let STEAMID_REGEX: RegExp; // SteamID regex
 
@@ -224,7 +224,7 @@ function setupMAULConfig() {
                 label: "Enable",
                 section: [
                     "Field Flag",
-                    'Flags certain bans based on the value of any field. All lines are in the format "hash;message", where hash is a SHA-256 hash of the value to look for, and message is the message that is shown (Edit Bans only).',
+                    'Flags certain bans based on the value of any field. All lines are in the format "hash;message", where hash is a SHA-256 hash of the value to look for, and message is the message that is shown (Edit Bans only).<br>This does not check the date or ban duration fields on the List Bans page (but it does on Edit Ban).',
                 ],
                 type: "checkbox",
                 default: false,
@@ -250,7 +250,10 @@ function setupMAULConfig() {
                     "presets-edit-unchecked",
                     GM_config.get("presets-edit")
                 );
-                GM_config.set("flag-fields-unchecked", GM_config.get("flag"));
+                GM_config.set(
+                    "flag-fields-unchecked",
+                    GM_config.get("flag-fields")
+                );
             },
             open: function (doc) {
                 GM_config.fields[
@@ -435,16 +438,14 @@ function loadPresets() {
  */
 function loadFlagFields() {
     const flagFieldsRaw = GM_config.get("flag-fields") as string;
+    if (flagFieldsRaw.length == 0) return;
     flagFieldsRaw.split(/\r?\n/).forEach((line) => {
         const parts = line.split(";");
         if (parts.length != 2) {
             alert("Invalid flag field: " + line);
             return;
         }
-        flagFields.push({
-            hash: parts[0],
-            message: parts[1]
-        })
+        flagFields[parts[0]] = parts[1];
     });
 }
 
@@ -617,6 +618,20 @@ function handleEditBan() {
     ip_div.appendChild(
         createLinkButton("Check IPInfo", "https://ipinfo.io/" + ip, "_blank")
     );
+
+    // Search for flag fields
+    if (GM_config.get("flag-enabled"))
+        findFlagFields(
+            Array.from(
+                document.querySelectorAll(
+                    "div > p.form-control-static, div > input:not(input#preventAmnesty), div > textarea"
+                )
+            )
+        ).then((arr) => {
+            arr.forEach((result) => {
+                console.log(result); // TODO: Replace with proper warnings/values
+            });
+        });
 }
 
 /**
@@ -680,6 +695,23 @@ function handleBanList() {
     convertBanningAdmins();
     convertGameIDs();
     updateBanNoteURLs();
+    if (GM_config.get("flag-enabled"))
+        findFlagFields(
+            Array.from(
+                document.querySelectorAll(
+                    "tbody > tr > td:not(.text-center)"
+                ) as NodeListOf<HTMLTableRowElement>
+            ).filter(
+                (el) =>
+                    el.innerText.trim() != "" &&
+                    el.parentElement?.style.display != "none"
+            )
+        ).then((arr) => {
+            arr.forEach((result) => {
+                result.element.style.backgroundColor = "rgba(255, 0, 0, 0.25)";
+                result.element.title = result.message;
+            });
+        });
 }
 
 /**
@@ -735,6 +767,25 @@ function convertGameIDs() {
                 : el.innerText;
         el.innerHTML = `<i><a href="https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=${id}" style="color: inherit">${el.innerHTML}</a></i>`;
     });
+}
+
+/**
+ * Find all fields that match user provided flagFields
+ * @param {Array<HTMLElement>} elements Elements to search through
+ * @returns {Array<Flag_Field_Result>} Elements that match the flagFields
+ */
+async function findFlagFields(
+    elements: Array<HTMLElement>
+): Promise<Array<Flag_Field_Result>> {
+    const results: Array<Flag_Field_Result> = [];
+    for (const el of elements) {
+        const hash = await generateHash(
+            el.innerText || (el as HTMLInputElement).value || el.innerHTML
+        );
+        const msg = flagFields[hash];
+        if (msg) results.push({ element: el, message: msg });
+    }
+    return results;
 }
 
 /**
