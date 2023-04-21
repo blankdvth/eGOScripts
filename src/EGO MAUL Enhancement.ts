@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20MAUL%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.4.0
+// @version      4.5.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS
 // @match        https://maul.edgegamers.com/*
@@ -37,11 +37,17 @@ interface Edit_Preset {
     addUsername: boolean;
 }
 
+interface Flag_Field_Result {
+    element: HTMLElement;
+    message: string;
+}
+
 declare var SteamIDConverter: any;
 
 const knownAdmins: { [key: string]: string } = {}; // Known admin list
 const presetsAdd: Add_Preset[] = []; // Presets for adding bans
 const presetsEdit: Edit_Preset[] = []; // Presets for editing bans
+const flagFields: { [key: string]: string } = {}; // Presets for flag fields
 let USERNAME = ""; // Current username
 let STEAMID_REGEX: RegExp; // SteamID regex
 
@@ -123,6 +129,21 @@ function createLinkButton(
 }
 
 /**
+ * Generates a SHA-256 hash of the given string
+ * @param {string} string String to hash
+ * @returns {Promise<string>} Promise that resolves to the hash
+ */
+async function generateHash(string: string): Promise<string> {
+    const utf8 = new TextEncoder().encode(string);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", utf8);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray
+        .map((bytes) => bytes.toString(16).padStart(2, "0"))
+        .join("");
+    return hashHex;
+}
+
+/**
  * Generates the proper forum thread link
  * @param {*} threadId Thread ID
  * @param {*} postId Post ID
@@ -199,6 +220,38 @@ function setupMAULConfig() {
                 type: "hidden",
                 default: "Ban Evasion;0;Ban Evasion;y;;",
             },
+            "flag-enabled": {
+                label: "Enable",
+                section: [
+                    "Field Flag",
+                    'Flags certain bans based on the value of any field. All lines are in the format "hash;message", where hash is a SHA-256 hash of the value to look for, and message is the message that is shown (Edit Bans only).<br>This does not check the date or ban duration fields on the List Bans page (but it does on Edit Ban).',
+                ],
+                type: "checkbox",
+                default: false,
+            },
+            "flag-colour": {
+                label: "List Bans Flag Colour",
+                title: "The colour to use for the field flag on the List Bans page. Any valid CSS colour is allowed.",
+                type: "text",
+                default: "rgba(255, 0, 0, 0.25)",
+            },
+            "flag-alert": {
+                label: "Alert Style",
+                title: "What alert to use for the flag message.<br>success, info, warning, danger",
+                type: "select",
+                options: ["success", "info", "warning", "danger"],
+                default: "info",
+            },
+            "flag-fields-unchecked": {
+                label: "Flag Fields",
+                type: "textarea",
+                save: false,
+                default: "",
+            },
+            "flag-fields": {
+                type: "hidden",
+                default: "",
+            },
         },
         events: {
             init: function () {
@@ -209,6 +262,10 @@ function setupMAULConfig() {
                 GM_config.set(
                     "presets-edit-unchecked",
                     GM_config.get("presets-edit")
+                );
+                GM_config.set(
+                    "flag-fields-unchecked",
+                    GM_config.get("flag-fields")
                 );
             },
             open: function (doc) {
@@ -258,6 +315,27 @@ function setupMAULConfig() {
                     },
                     false
                 );
+                GM_config.fields[
+                    "flag-fields-unchecked"
+                ].node?.addEventListener(
+                    "change",
+                    function () {
+                        const flagFields = GM_config.get(
+                            "flag-fields-unchecked",
+                            true
+                        ) as string;
+
+                        if (
+                            flagFields
+                                .split(/\r?\n/)
+                                .every((line) =>
+                                    line.match(/^[^;\r\n]+;[^;\r\n]+$/)
+                                )
+                        )
+                            GM_config.set("flag-fields", flagFields);
+                    },
+                    false
+                );
             },
             save: function (forgotten) {
                 if (GM_config.isOpen) {
@@ -274,6 +352,13 @@ function setupMAULConfig() {
                     )
                         alert(
                             'Invalid preset format for "Edit Ban Presets", value not saved.\nVerify that each line has 6 semicolon-separated values, the preset name is not empty, and that length is either empty or a number > 0.'
+                        );
+                    if (
+                        forgotten["flag-fields-unchecked"] !==
+                        GM_config.get("flag-fields")
+                    )
+                        alert(
+                            'Invalid flag format for "Flag Fields", value not saved.\nVerify that each line has 2 semicolon-separated values.'
                         );
                 }
             },
@@ -349,6 +434,7 @@ function loadPresets() {
         const parts = line.split(";");
         if (parts.length != 6) {
             alert("Invalid preset: " + line);
+            return;
         }
         presetsEdit.push({
             name: parts[0],
@@ -358,6 +444,22 @@ function loadPresets() {
             notes: parts[4],
             addUsername: parts[5].length > 0,
         });
+    });
+}
+
+/**
+ * Loads flag fields from the config
+ */
+function loadFlagFields() {
+    const flagFieldsRaw = GM_config.get("flag-fields") as string;
+    if (flagFieldsRaw.length == 0) return;
+    flagFieldsRaw.split(/\r?\n/).forEach((line) => {
+        const parts = line.split(";");
+        if (parts.length != 2) {
+            alert("Invalid flag field: " + line);
+            return;
+        }
+        flagFields[parts[0]] = parts[1];
     });
 }
 
@@ -530,6 +632,30 @@ function handleEditBan() {
     ip_div.appendChild(
         createLinkButton("Check IPInfo", "https://ipinfo.io/" + ip, "_blank")
     );
+
+    // Search for flag fields
+    if (GM_config.get("flag-enabled"))
+        findFlagFields(
+            Array.from(
+                document.querySelectorAll(
+                    "div > p.form-control-static, div > input:not(input#preventAmnesty), div > textarea"
+                )
+            )
+        ).then((arr) => {
+            const insEl = div.parentElement!;
+            const presetHeader = insEl.querySelector("h4");
+            arr.forEach((result) => {
+                const alert = document.createElement("div");
+                alert.classList.add(
+                    "alert",
+                    "alert-" + GM_config.get("flag-alert")
+                );
+                alert.innerText = result.message;
+                insEl.insertBefore(alert, presetHeader);
+            });
+            if (arr.length > 0)
+                insEl.insertBefore(document.createElement("hr"), presetHeader);
+        });
 }
 
 /**
@@ -587,12 +713,31 @@ function handleProfile() {
 }
 
 /**
- * Updates banning admins and ban notes
+ * Handles the List Bans page
  */
 function handleBanList() {
     convertBanningAdmins();
     convertGameIDs();
     updateBanNoteURLs();
+    if (GM_config.get("flag-enabled"))
+        findFlagFields(
+            Array.from(
+                document.querySelectorAll(
+                    "tbody > tr > td:not(.text-center)"
+                ) as NodeListOf<HTMLTableRowElement>
+            ).filter(
+                (el) =>
+                    el.innerText.trim() != "" &&
+                    el.parentElement?.style.display != "none"
+            )
+        ).then((arr) => {
+            arr.forEach((result) => {
+                result.element.style.backgroundColor = GM_config.get(
+                    "flag-colour"
+                ) as string;
+                result.element.title = result.message;
+            });
+        });
 }
 
 /**
@@ -651,6 +796,25 @@ function convertGameIDs() {
 }
 
 /**
+ * Find all fields that match user provided flagFields
+ * @param {Array<HTMLElement>} elements Elements to search through
+ * @returns {Array<Flag_Field_Result>} Elements that match the flagFields
+ */
+async function findFlagFields(
+    elements: Array<HTMLElement>
+): Promise<Array<Flag_Field_Result>> {
+    const results: Array<Flag_Field_Result> = [];
+    for (const el of elements) {
+        const hash = await generateHash(
+            el.innerText || (el as HTMLInputElement).value || el.innerHTML
+        );
+        const msg = flagFields[hash];
+        if (msg) results.push({ element: el, message: msg });
+    }
+    return results;
+}
+
+/**
  * Adds hyperlinks to the Ban Notes fields (both Steam IDs and URLs)
  */
 function updateBanNoteURLs() {
@@ -698,6 +862,7 @@ function updateBanNoteURLs() {
     // Setup configuration stuff
     setupMAULConfig();
     loadPresets();
+    loadFlagFields();
     loadSteamIDRegex();
 
     // Determine what page we're on
