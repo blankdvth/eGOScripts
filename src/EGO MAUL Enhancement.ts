@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20MAUL%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.4.0
+// @version      4.5.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS
 // @match        https://maul.edgegamers.com/*
@@ -199,6 +199,25 @@ function setupMAULConfig() {
                 type: "hidden",
                 default: "Ban Evasion;0;Ban Evasion;y;;",
             },
+            "flag-enabled": {
+                label: "Enable",
+                section: [
+                    "Field Flag",
+                    'Flags certain bans based on the value of any field. All lines are in the format "hash;message", where hash is a SHA-256 hash of the value to look for, and message is the message that is shown (Edit Bans only).',
+                ],
+                type: "checkbox",
+                default: false,
+            },
+            "flag-fields-unchecked": {
+                label: "Flag Fields",
+                type: "textarea",
+                save: false,
+                default: "",
+            },
+            "flag-fields": {
+                type: "hidden",
+                default: "",
+            },
         },
         events: {
             init: function () {
@@ -210,6 +229,7 @@ function setupMAULConfig() {
                     "presets-edit-unchecked",
                     GM_config.get("presets-edit")
                 );
+                GM_config.set("flag-fields-unchecked", GM_config.get("flag"));
             },
             open: function (doc) {
                 GM_config.fields[
@@ -258,6 +278,27 @@ function setupMAULConfig() {
                     },
                     false
                 );
+                GM_config.fields[
+                    "flag-fields-unchecked"
+                ].node?.addEventListener(
+                    "change",
+                    function () {
+                        const flagFields = GM_config.get(
+                            "flag-fields-unchecked",
+                            true
+                        ) as string;
+
+                        if (
+                            flagFields
+                                .split(/\r?\n/)
+                                .every((line) =>
+                                    line.match(/^[^;\r\n]+;[^;\r\n]+$/)
+                                )
+                        )
+                            GM_config.set("flag-fields", flagFields);
+                    },
+                    false
+                );
             },
             save: function (forgotten) {
                 if (GM_config.isOpen) {
@@ -274,6 +315,13 @@ function setupMAULConfig() {
                     )
                         alert(
                             'Invalid preset format for "Edit Ban Presets", value not saved.\nVerify that each line has 6 semicolon-separated values, the preset name is not empty, and that length is either empty or a number > 0.'
+                        );
+                    if (
+                        forgotten["flag-fields-unchecked"] !==
+                        GM_config.get("flag-fields")
+                    )
+                        alert(
+                            'Invalid flag format for "Flag Fields", value not saved.\nVerify that each line has 2 semicolon-separated values.'
                         );
                 }
             },
@@ -587,7 +635,7 @@ function handleProfile() {
 }
 
 /**
- * Updates banning admins and ban notes
+ * Handles the List Bans page
  */
 function handleBanList() {
     convertBanningAdmins();
