@@ -235,6 +235,12 @@ function setupMAULConfig() {
                 type: "checkbox",
                 default: false,
             },
+            "flag-ignore-notes": {
+                label: "Ignore Notes",
+                title: "Ignore the ban notes field when checking for flags.",
+                type: "checkbox",
+                default: false,
+            },
             "flag-salt": {
                 label: "Salt",
                 title: "DO NOT SHARE THIS! Ctrl + A, Ctrl + C to copy. The salt to use when hashing the field values. If this is changed, all hashes need to be regenerated.",
@@ -659,7 +665,10 @@ function handleEditBan() {
         findFlagFields(
             Array.from(
                 document.querySelectorAll(
-                    "div > p.form-control-static, div > input:not(input#preventAmnesty), div > textarea"
+                    "div > p.form-control-static, div > input:not(input#preventAmnesty)" +
+                        (GM_config.get("flag-ignore-notes")
+                            ? ""
+                            : ", div > textarea")
                 )
             )
         ).then((arr) => {
