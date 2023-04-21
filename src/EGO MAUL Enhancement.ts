@@ -37,11 +37,17 @@ interface Edit_Preset {
     addUsername: boolean;
 }
 
+interface Flag_Field {
+    hash: string;
+    message: string;
+}
+
 declare var SteamIDConverter: any;
 
 const knownAdmins: { [key: string]: string } = {}; // Known admin list
 const presetsAdd: Add_Preset[] = []; // Presets for adding bans
 const presetsEdit: Edit_Preset[] = []; // Presets for editing bans
+const flagFields: Flag_Field[] = []; // Presets for flag fields
 let USERNAME = ""; // Current username
 let STEAMID_REGEX: RegExp; // SteamID regex
 
@@ -424,6 +430,24 @@ function loadPresets() {
     });
 }
 
+/**
+ * Loads flag fields from the config
+ */
+function loadFlagFields() {
+    const flagFieldsRaw = GM_config.get("flag-fields") as string;
+    flagFieldsRaw.split(/\r?\n/).forEach((line) => {
+        const parts = line.split(";");
+        if (parts.length != 2) {
+            alert("Invalid flag field: " + line);
+            return;
+        }
+        flagFields.push({
+            hash: parts[0],
+            message: parts[1]
+        })
+    });
+}
+
 function loadSteamIDRegex() {
     STEAMID_REGEX = new RegExp(GM_config.get("steamid-regex") as string, "g");
 }
@@ -761,6 +785,7 @@ function updateBanNoteURLs() {
     // Setup configuration stuff
     setupMAULConfig();
     loadPresets();
+    loadFlagFields();
     loadSteamIDRegex();
 
     // Determine what page we're on
