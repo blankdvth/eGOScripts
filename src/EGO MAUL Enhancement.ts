@@ -224,8 +224,14 @@ function setupMAULConfig() {
                 label: "Enable",
                 section: [
                     "Field Flag",
-                    'Flags certain bans based on the value of any field. All lines are in the format "hash;message".<br>The hash should be a SHA-256 hash with the Salt (see below) appended to the end of the value (no whitespace). Message is the message that is shown (Edit Bans only).<br>This does not check the date or ban duration fields on the List Bans page (but it does on Edit Ban).',
+                    'Flags certain bans based on the (trimmed) value of any field. All lines are in the format "hash;message".<br>The hash should be a SHA-256 hash with the Salt (see below) appended to the end of the value (no whitespace). Message is the message that is shown (Edit Bans only).<br>This does not check the date or ban duration fields on the List Bans page (but it does on Edit Ban).',
                 ],
+                type: "checkbox",
+                default: false,
+            },
+            "flag-force-lowercase": {
+                label: "Force Lowercase",
+                title: "Force the field value to be lowercase before hashing. This does not include the salt.",
                 type: "checkbox",
                 default: false,
             },
@@ -820,10 +826,13 @@ async function findFlagFields(
 ): Promise<Array<Flag_Field_Result>> {
     const results: Array<Flag_Field_Result> = [];
     for (const el of elements) {
-        const hash = await generateHash(
-            (el.innerText || (el as HTMLInputElement).value || el.innerHTML) +
-                GM_config.get("flag-salt")
-        );
+        var value = (
+            el.innerText ||
+            (el as HTMLInputElement).value ||
+            el.innerHTML
+        ).trim();
+        if (GM_config.get("flag-force-lowercase")) value = value.toLowerCase();
+        const hash = await generateHash(value + GM_config.get("flag-salt"));
         const msg = flagFields[hash];
         if (msg) results.push({ element: el, message: msg });
     }
