@@ -224,10 +224,16 @@ function setupMAULConfig() {
                 label: "Enable",
                 section: [
                     "Field Flag",
-                    'Flags certain bans based on the value of any field. All lines are in the format "hash;message", where hash is a SHA-256 hash of the value to look for, and message is the message that is shown (Edit Bans only).<br>This does not check the date or ban duration fields on the List Bans page (but it does on Edit Ban).',
+                    'Flags certain bans based on the value of any field. All lines are in the format "hash;message".<br>The hash should be a SHA-256 hash with the Salt (see below) appended to the end of the value (no whitespace). Message is the message that is shown (Edit Bans only).<br>This does not check the date or ban duration fields on the List Bans page (but it does on Edit Ban).',
                 ],
                 type: "checkbox",
                 default: false,
+            },
+            "flag-salt": {
+                label: "Salt",
+                title: "DO NOT SHARE THIS! Ctrl + A, Ctrl + C to copy. The salt to use when hashing the field values. If this is changed, all hashes need to be regenerated.",
+                type: "text",
+                default: "",
             },
             "flag-colour": {
                 label: "List Bans Flag Colour",
@@ -267,6 +273,15 @@ function setupMAULConfig() {
                     "flag-fields-unchecked",
                     GM_config.get("flag-fields")
                 );
+                if ((GM_config.get("flag-salt") as string).length == 0) {
+                    GM_config.set(
+                        "flag-salt",
+                        [...Array(45)]
+                            .map(() => (~~(Math.random() * 36)).toString(36))
+                            .join("")
+                    );
+                    GM_config.save();
+                }
             },
             open: function (doc) {
                 GM_config.fields[
@@ -363,7 +378,7 @@ function setupMAULConfig() {
                 }
             },
         },
-        css: "textarea {width: 100%; height: 160px; resize: vertical;}",
+        css: "textarea {width: 100%; height: 160px; resize: vertical;} #maul-config_field_flag-salt {filter: blur(6px)} #maul-config_field_flag-salt:focus {filter: blur(0)}",
     });
     const dropdownMenu = document.querySelector(
         ".user-dropdown > ul.dropdown-menu"
@@ -806,7 +821,8 @@ async function findFlagFields(
     const results: Array<Flag_Field_Result> = [];
     for (const el of elements) {
         const hash = await generateHash(
-            el.innerText || (el as HTMLInputElement).value || el.innerHTML
+            (el.innerText || (el as HTMLInputElement).value || el.innerHTML) +
+                GM_config.get("flag-salt")
         );
         const msg = flagFields[hash];
         if (msg) results.push({ element: el, message: msg });
