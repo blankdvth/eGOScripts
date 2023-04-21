@@ -646,7 +646,10 @@ function handleEditBan() {
             const presetHeader = insEl.querySelector("h4");
             arr.forEach((result) => {
                 const alert = document.createElement("div");
-                alert.classList.add("alert", "alert-" + GM_config.get("flag-alert"));
+                alert.classList.add(
+                    "alert",
+                    "alert-" + GM_config.get("flag-alert")
+                );
                 alert.innerText = result.message;
                 insEl.insertBefore(alert, presetHeader);
             });
@@ -729,7 +732,9 @@ function handleBanList() {
             )
         ).then((arr) => {
             arr.forEach((result) => {
-                result.element.style.backgroundColor = GM_config.get("flag-colour") as string;
+                result.element.style.backgroundColor = GM_config.get(
+                    "flag-colour"
+                ) as string;
                 result.element.title = result.message;
             });
         });
