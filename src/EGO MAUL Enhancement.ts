@@ -123,6 +123,21 @@ function createLinkButton(
 }
 
 /**
+ * Generates a SHA-256 hash of the given string
+ * @param {string} string String to hash
+ * @returns {Promise<string>} Promise that resolves to the hash
+ */
+async function generateHash(string: string): Promise<string> {
+    const utf8 = new TextEncoder().encode(string);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", utf8);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray
+        .map((bytes) => bytes.toString(16).padStart(2, "0"))
+        .join("");
+    return hashHex;
+}
+
+/**
  * Generates the proper forum thread link
  * @param {*} threadId Thread ID
  * @param {*} postId Post ID
