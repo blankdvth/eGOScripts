@@ -573,7 +573,7 @@ function handleAddBan(hash: string = "") {
             match.groups!.game_id;
         if (match.groups!.name)
             (document.getElementById("handle") as HTMLInputElement).value =
-                match.groups!.name;
+                decodeURIComponent(match.groups!.name);
     }
 }
 
