@@ -5,7 +5,7 @@
 // @updateURL    %DOWNLOAD_URL%
 // @version      4.5.3
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
-// @author       blank_dvth, Left, Skle, MSWS
+// @author       blank_dvth, Left, Skle, MSWS, PixeL
 // @match        https://maul.edgegamers.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=edgegamers.com
 // @require      https://peterolson.github.io/BigInteger.js/BigInteger.min.js
