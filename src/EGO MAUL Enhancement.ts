@@ -5,7 +5,7 @@
 // @updateURL    %DOWNLOAD_URL%
 // @version      4.5.3
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
-// @author       blank_dvth, Left, Skle, MSWS
+// @author       blank_dvth, Left, Skle, MSWS, PixeL
 // @match        https://maul.edgegamers.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=edgegamers.com
 // @require      https://peterolson.github.io/BigInteger.js/BigInteger.min.js
@@ -762,6 +762,7 @@ function handleBanList() {
     convertBanningAdmins();
     convertGameIDs();
     updateBanNoteURLs();
+    convertDurationFields();
     if (GM_config.get("flag-enabled"))
         findFlagFields(
             Array.from(
@@ -835,6 +836,82 @@ function convertGameIDs() {
                 ? (el.firstChild! as HTMLSpanElement).title
                 : el.innerText;
         el.innerHTML = `<i><a href="https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=${id}" style="color: inherit">${el.innerHTML}</a></i>`;
+    });
+}
+
+/**
+ * Converts the Duration on bans to show a more human readable version on hover.
+ */
+function convertDurationFields() {
+    const banDurations = document.querySelectorAll(
+        "table.table-bordered td:nth-child(5)"
+    ) as NodeListOf<HTMLTableCellElement>;
+
+    const expirationFormatter = new Intl.DateTimeFormat("en-US", {
+        dateStyle: "medium",
+        timeStyle: "short",
+    });
+
+    const convertMinutesToHuman = (minutes: number) => {
+        const units: any = {
+            year: 24 * 60 * 365,
+            month: 24 * 60 * 30,
+            week: 24 * 60 * 7,
+            day: 24 * 60,
+            hour: 60,
+            minute: 1,
+        };
+
+        let str = undefined;
+
+        for (const name in units) {
+            const p = Math.floor(minutes / units[name]);
+
+            if (p == 1) {
+                str = `${p} ${name}`;
+                break;
+            }
+
+            if (p >= 2) {
+                str = `${p} ${name}s`;
+                break;
+            }
+
+            minutes %= units[name];
+        }
+
+        return str;
+    };
+
+    banDurations.forEach((el: HTMLTableCellElement) => {
+        let value = el.innerText;
+        if (value == "Permanent") return;
+
+        let convertedDuration = undefined;
+
+        // The ban is not expired yet.
+        if (value.includes("(")) {
+            value = value.replaceAll("(", "").replaceAll(")", "");
+
+            const split = value.split(" ");
+            if (split.length != 2) return;
+
+            const banDuration = Number(split[0]);
+            const banExpiration = Number(split[1]);
+
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + banExpiration);
+            const convertedExpiration = expirationFormatter.format(now);
+
+            convertedDuration = convertMinutesToHuman(banDuration);
+            convertedDuration += ` (Expires ${convertedExpiration})`;
+        } else {
+            convertedDuration = convertMinutesToHuman(Number(value));
+        }
+
+        if (!convertedDuration) return;
+
+        el.setAttribute("title", convertedDuration);
     });
 }
 
