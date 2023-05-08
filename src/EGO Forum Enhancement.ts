@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.7.0
+// @version      4.7.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -1015,6 +1015,7 @@ function tooltipMAULListener(event: Event) {
     const buttenGroupOne = target.querySelector(
         ".memberTooltip > .memberTooltip-actions > :nth-child(1)"
     ) as HTMLDivElement;
+    if (!buttenGroupOne) return;
     buttenGroupOne
         .querySelector("a")
         ?.href.match(
