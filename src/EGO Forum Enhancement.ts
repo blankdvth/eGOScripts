@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.6.1
+// @version      4.6.2
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -1545,127 +1545,6 @@ function handleApplicationPage() {
 }
 
 /**
- * Adds a "Find Issue Reason" button on the user awards page
- * @returns void
- */
-function handleUserAwardPage() {
-    if (document.querySelector("div.contentRow-snippet")) return; // This is our own award page, don't add the button
-    const username = (
-        document.querySelector(".p-title-value") as HTMLHeadingElement
-    ).textContent?.match(/^(.*)'s Awards$/)![1];
-    const blocks = document.querySelector(".blocks") as HTMLDivElement;
-    Array.from(blocks.children).forEach(function (block) {
-        const awardContainer = block.querySelector(
-            "div > .userAwardsContainer"
-        ) as HTMLOListElement;
-        Array.from(awardContainer.children).forEach(function (award) {
-            const contentDiv = award.querySelector("div") as HTMLDivElement;
-            if (contentDiv.classList.contains("showAsDeleted")) {
-                return;
-            }
-
-            const awardImageClasses = contentDiv.querySelector(
-                ".contentRow-figure > span > img"
-            )?.classList[1];
-            const awardId = awardImageClasses?.substring(
-                awardImageClasses.indexOf("--") + 2
-            );
-            if (!awardId) return;
-            createButton(
-                "/award-system/" + awardId + "/recent?username=" + username,
-                "Find Issue Reason",
-                contentDiv.querySelector(".contentRow-main") as HTMLDivElement,
-                "_blank",
-                GM_config.get("append-profile") as boolean
-            );
-        });
-    });
-}
-
-/**
- * Adds a form to the recent awards page to find a user's award
- * @returns void
- */
-function handleRecentAwardPage() {
-    const url = window.location.href;
-    const awardId = url.match(
-        /^https:\/\/www\.edgegamers\.com\/award-system\/(\d+)\/recent\/?$/
-    )![1];
-    const form = document.createElement("form");
-    form.setAttribute("action", "/award-system/" + awardId + "/recent");
-    form.setAttribute("method", "get");
-    form.setAttribute("class", "block");
-    form.innerHTML =
-        '<div class="block-container"><h3 class="block-minorHeader">Find User Award</h3><div class="block-body block-row"><input type="text" class="input" data-xf-init="auto-complete" data-single="true" name="username" data-autosubmit="true" maxlength="50" placeholder="Name…" autocomplete="off"></div></div>';
-    const pageWrapper = document.querySelector(".p-pageWrapper");
-    pageWrapper?.insertBefore(form, pageWrapper.querySelector(".p-body"));
-}
-
-/**
- * Directs the url to the page containing the award of the username that was supplied
- * @returns void
- */
-function handleFindAwardPage() {
-    const url = window.location.href;
-    const match = url.match(
-        /^https:\/\/www\.edgegamers\.com\/award-system\/(\d+)\/recent\?username=(.+)$/
-    )!;
-    const awardId = match[1];
-    const userToFind = match[2];
-    const maxPagesA = document.querySelector(".pageNav-main > :last-child > a");
-    if (maxPagesA != null) {
-        var maxPages = parseInt(maxPagesA.innerHTML);
-    } else {
-        var maxPages = 1;
-    }
-    for (var i = 1; i <= maxPages; i++) {
-        parseAwardPage(i, userToFind, awardId);
-    }
-}
-
-/**
- * Internal function to parse a page of awards
- * @param {number} pageNum the current number of the page being parsed
- * @param {string} userToFind the username to find
- * @param {string} awardId the id of the award to find
- */
-function parseAwardPage(pageNum: number, userToFind: string, awardId: string) {
-    const pageHtml = document.createElement("html");
-    fetch("/award-system/" + awardId + "/recent?page=" + pageNum).then(
-        function (response) {
-            response.text().then(function (text) {
-                pageHtml.innerHTML = text;
-                const bodyDiv = pageHtml.querySelector(".block-body")!;
-                Array.from(bodyDiv.children).forEach(function (div) {
-                    if (div.getAttribute("data-author") == userToFind) {
-                        window.location.href =
-                            "/award-system/" +
-                            awardId +
-                            "/recent?page=" +
-                            pageNum +
-                            "&spotlight=" +
-                            userToFind;
-                    }
-                });
-            });
-        }
-    );
-}
-
-/**
- * Handles Award Spotlight pages, scrolling to the spotlight
- */
-function handleAwardSpotlight() {
-    const url = window.location.href;
-    const userToFind = url.match(
-        /^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?page=\d+\&spotlight=(.+)$/
-    )![1];
-    document
-        .querySelectorAll('[data-author="' + userToFind + '"]')[0]
-        .scrollIntoView({ behavior: "smooth" });
-}
-
-/**
  * Hides signatures behind a button, and prevents loading of most content (img, video, iframe)
  */
 function blockSignatures() {
@@ -1823,35 +1702,6 @@ function blockSignatures() {
     else if (url.match(/^https:\/\/www\.edgegamers\.com\/application\/\d+\/?$/))
         // Application Page
         handleApplicationPage();
-    else if (
-        url.match(
-            /^https:\/\/www\.edgegamers\.com\/award-system\/user\/awards\?user=\d+\/?$/
-        )
-    )
-        // User Award Page
-        handleUserAwardPage();
-    else if (
-        url.match(
-            /^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\/?$/
-        )
-    )
-        // Recent Award Page
-        handleRecentAwardPage();
-    else if (
-        url.match(
-            /^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?username=.+$/
-        )
-    ) {
-        // Find award page
-        handleFindAwardPage();
-    } else if (
-        url.match(
-            /^https:\/\/www\.edgegamers\.com\/award-system\/\d+\/recent\?page=\d+\&spotlight=.+$/
-        )
-    ) {
-        // Award page with a spotlight
-        handleAwardSpotlight();
-    }
 
     if (!url.match(/^https:\/\/www\.edgegamers\.com\/-\/$/))
         handleGenericThread();
