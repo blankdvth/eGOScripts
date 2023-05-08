@@ -3,13 +3,14 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20MAUL%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.5.3
+// @version      4.5.4
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS, PixeL
 // @match        https://maul.edgegamers.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=edgegamers.com
 // @require      https://peterolson.github.io/BigInteger.js/BigInteger.min.js
 // @require      https://raw.githubusercontent.com/12pt/steamid-converter/master/js/converter-min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment-with-locales.min.js
 // @require      https://openuserjs.org/src/libs/sizzle/GM_config.js
 // @resource     admins https://raw.githubusercontent.com/blankdvth/eGOScripts/master/admins.txt
 // @grant        GM_getValue
@@ -17,7 +18,8 @@
 // @grant        GM_getResourceText
 // @grant        unsafeWindow
 // ==/UserScript==
-/// <reference path="../config_types/index.d.ts" />
+/// <reference path="../types/config/index.d.ts" />
+/// <reference path="../types/moment/moment.d.ts" />
 
 // Declare TypeScript types
 interface Add_Preset {
@@ -232,6 +234,16 @@ function setupMAULConfig() {
             "presets-edit": {
                 type: "hidden",
                 default: "Ban Evasion;0;Ban Evasion;y;;",
+            },
+            "datetimeformat-expiration": {
+                label: "Expiration Format",
+                title: "Format to use to show expiration date on bans.",
+                section: [
+                    "Datetime Formats",
+                    'See <a href="https://momentjs.com/docs/#/displaying/format/" target="_blank">this guide</a> for formatting options.',
+                ],
+                type: "text",
+                default: "YYYY-MM-DD HH:mm",
             },
             "flag-enabled": {
                 label: "Enable",
@@ -847,11 +859,6 @@ function convertDurationFields() {
         "table.table-bordered td:nth-child(5)"
     ) as NodeListOf<HTMLTableCellElement>;
 
-    const expirationFormatter = new Intl.DateTimeFormat("en-US", {
-        dateStyle: "medium",
-        timeStyle: "short",
-    });
-
     const convertMinutesToHuman = (minutes: number) => {
         const units: any = {
             year: 24 * 60 * 365,
@@ -901,7 +908,9 @@ function convertDurationFields() {
 
             const now = new Date();
             now.setMinutes(now.getMinutes() + banExpiration);
-            const convertedExpiration = expirationFormatter.format(now);
+            const convertedExpiration = moment(now).format(
+                GM_config.get("datetimeformat-expiration") as string
+            );
 
             convertedDuration = convertMinutesToHuman(banDuration);
             convertedDuration += ` (Expires ${convertedExpiration})`;

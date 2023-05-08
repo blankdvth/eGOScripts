@@ -16,7 +16,7 @@
 // @grant        GM_setValue
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
-/// <reference path="../config_types/index.d.ts" />
+/// <reference path="../types/config/index.d.ts" />
 
 // Declare TypeScript types
 interface Completed_Map {
