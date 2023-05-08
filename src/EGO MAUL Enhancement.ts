@@ -235,6 +235,16 @@ function setupMAULConfig() {
                 type: "hidden",
                 default: "Ban Evasion;0;Ban Evasion;y;;",
             },
+            "datetimeformat-expiration": {
+                label: "Expiration Format",
+                title: "Format to use to show expiration date on bans.",
+                section: [
+                    "Datetime Formats",
+                    'See <a href="https://momentjs.com/docs/#/displaying/format/" target="_blank">this guide</a> for formatting options.',
+                ],
+                type: "text",
+                default: "YYYY-MM-DD HH:mm",
+            },
             "flag-enabled": {
                 label: "Enable",
                 section: [
@@ -849,11 +859,6 @@ function convertDurationFields() {
         "table.table-bordered td:nth-child(5)"
     ) as NodeListOf<HTMLTableCellElement>;
 
-    const expirationFormatter = new Intl.DateTimeFormat("en-US", {
-        dateStyle: "medium",
-        timeStyle: "short",
-    });
-
     const convertMinutesToHuman = (minutes: number) => {
         const units: any = {
             year: 24 * 60 * 365,
@@ -903,7 +908,9 @@ function convertDurationFields() {
 
             const now = new Date();
             now.setMinutes(now.getMinutes() + banExpiration);
-            const convertedExpiration = expirationFormatter.format(now);
+            const convertedExpiration = moment(now).format(
+                GM_config.get("datetimeformat-expiration") as string
+            );
 
             convertedDuration = convertMinutesToHuman(banDuration);
             convertedDuration += ` (Expires ${convertedExpiration})`;
