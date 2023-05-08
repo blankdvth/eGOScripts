@@ -10,6 +10,7 @@
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=edgegamers.com
 // @require      https://peterolson.github.io/BigInteger.js/BigInteger.min.js
 // @require      https://raw.githubusercontent.com/12pt/steamid-converter/master/js/converter-min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment-with-locales.min.js
 // @require      https://openuserjs.org/src/libs/sizzle/GM_config.js
 // @resource     admins https://raw.githubusercontent.com/blankdvth/eGOScripts/master/admins.txt
 // @grant        GM_getValue
@@ -17,7 +18,8 @@
 // @grant        GM_getResourceText
 // @grant        unsafeWindow
 // ==/UserScript==
-/// <reference path="../config_types/index.d.ts" />
+/// <reference path="../types/config/index.d.ts" />
+/// <reference path="../types/moment/moment.d.ts" />
 
 // Declare TypeScript types
 interface Add_Preset {
