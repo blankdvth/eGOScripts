@@ -962,7 +962,7 @@ function convertDurationFields() {
             );
 
             convertedDuration = convertMinutesToHuman(banDuration);
-            convertedDuration += ` (Expires ${convertedExpiration})`;
+            convertedDuration += ` (expires ${convertedExpiration})`;
         } else {
             convertedDuration = convertMinutesToHuman(Number(value));
         }
