@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.6.2
+// @version      4.6.3
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -184,6 +184,12 @@ function setupForumsConfig() {
                 title: " Autofill the next number in the counting thread on click.",
                 type: "checkbox",
                 default: true,
+            },
+            "logo-link": {
+                label: "Logo Link",
+                title: "Replace the link the eGO logo (top-left) links to with the given URL. Leave empty to disable.",
+                type: "text",
+                default: "",
             },
             "move-to-completed-unchecked": {
                 label: "Completed Forums Map",
@@ -784,6 +790,9 @@ function addNavButtons(urls: NavbarURL_Map[], nav: HTMLElement) {
     });
 }
 
+/**
+ * Removes nav buttons from the navbar
+ */
 function removeNavButtons(removals: string[], nav: HTMLElement) {
     (
         nav.querySelectorAll(
@@ -793,6 +802,16 @@ function removeNavButtons(removals: string[], nav: HTMLElement) {
         if (removals.includes(a.innerText.toLowerCase()))
             a.parentElement?.parentElement?.remove();
     });
+}
+
+/**
+ * Replaces the logo link with a new one
+ */
+function replaceLogoLink() {
+    if ((GM_config.get("logo-link") as string).length == 0) return;
+    (
+        document.querySelector("div.p-header-logo > a") as HTMLAnchorElement
+    ).href = GM_config.get("logo-link") as string;
 }
 
 /**
@@ -1681,6 +1700,7 @@ function blockSignatures() {
 
     addNavButtons(navbarURLs, nav_list);
     removeNavButtons(navbarRemovals, nav_list);
+    replaceLogoLink();
 
     if (url.match(/^https:\/\/www\.edgegamers\.com\/members\/\d+/))
         // Members Page
