@@ -38,7 +38,6 @@ jobs:
     - name: Apply Environment Variables
       run: |
         for file in *.js; do
-          sed -i "s/%DOWNLOAD_URL%/https:\/\/github.com\/${{ env.GITHUB_ACTION_REPOSITORY }}\/releases\/latest\/download\/$file/g" "$file"
           sed -i "s/%RELEASE_TYPE%/${{ env.RELEASE_TYPE }}/g" "$file"
         done
     - name: Rename Files to UserScript
