@@ -52,8 +52,6 @@ interface Unsafe_Window {
     generateFlagHash: (text: string) => void;
 }
 
-declare var SteamIDConverter: any;
-
 const knownAdmins: { [key: string]: string } = {}; // Known admin list
 const presetsAdd: Add_Preset[] = []; // Presets for adding bans
 const presetsEdit: Edit_Preset[] = []; // Presets for editing bans
@@ -651,50 +649,54 @@ function handleEditBan() {
         ".control-label[for=gameId]"
     )?.parentElement;
     const id = idGroup?.querySelector("p")?.innerText;
-    const idDiv = document.createElement("div");
-    idDiv.style.display = "flex";
-    idDiv.style.flexDirection = "row";
-    idDiv.style.paddingTop = "10px";
-    idGroup?.appendChild(idDiv);
-    idDiv.appendChild(
-        createLinkButton("Steam", "https://steamcommunity.com/profiles/" + id)
-    );
-    idDiv.appendChild(
-        createLinkButton(
-            "GameME",
-            "https://edgegamers.gameme.com/search?si=uniqueid&rc=all&q=" +
-                SteamIDConverter.toSteamID(id)
-        )
-    );
-    idDiv.appendChild(
-        createLinkButton("SteamID (IO)", "https://steamid.io/lookup/" + id)
-    );
-    idDiv.appendChild(
-        createLinkButton("SteamID (UK)", "https://steamid.uk/profile/" + id)
-    );
+    if (id) {
+        const idDiv = document.createElement("div");
+        idDiv.style.display = "flex";
+        idDiv.style.flexDirection = "row";
+        idDiv.style.paddingTop = "10px";
+        idGroup?.appendChild(idDiv);
+        idDiv.appendChild(
+            createLinkButton("Steam", "https://steamcommunity.com/profiles/" + id)
+        );
+        idDiv.appendChild(
+            createLinkButton(
+                "GameME",
+                "https://edgegamers.gameme.com/search?si=uniqueid&rc=all&q=" +
+                    SteamIDConverter.toSteamID(id)
+            )
+        );
+        idDiv.appendChild(
+            createLinkButton("SteamID (IO)", "https://steamid.io/lookup/" + id)
+        );
+        idDiv.appendChild(
+            createLinkButton("SteamID (UK)", "https://steamid.uk/profile/" + id)
+        );
+    }
 
     // IP buttons
     const ipGroup = Array.from(
         document.querySelectorAll(".control-label")
     ).find((el) => el.textContent === "IP")?.parentElement; // BECAUSE MAUL HAS THE IP LABELED WITH THE WRONG FOR
     const ip = ipGroup?.querySelector("p")?.innerText;
-    const ip_div = document.createElement("div");
-    ip_div.style.display = "flex";
-    ip_div.style.flexDirection = "row";
-    ip_div.style.paddingTop = "10px";
-    ipGroup?.appendChild(ip_div);
-    ip_div.appendChild(
-        createLinkButton(
-            "Check Spur",
-            GM_config.get("spur-account")
-                ? `https://spur.us/app/context?q=${ip}`
-                : `https://spur.us/context/${ip}`,
-            "_blank"
-        )
-    );
-    ip_div.appendChild(
-        createLinkButton("Check IPInfo", "https://ipinfo.io/" + ip, "_blank")
-    );
+    if (ip) {
+        const ip_div = document.createElement("div");
+        ip_div.style.display = "flex";
+        ip_div.style.flexDirection = "row";
+        ip_div.style.paddingTop = "10px";
+        ipGroup?.appendChild(ip_div);
+        ip_div.appendChild(
+            createLinkButton(
+                "Check Spur",
+                GM_config.get("spur-account")
+                    ? `https://spur.us/app/context?q=${ip}`
+                    : `https://spur.us/context/${ip}`,
+                "_blank"
+            )
+        );
+        ip_div.appendChild(
+            createLinkButton("Check IPInfo", "https://ipinfo.io/" + ip, "_blank")
+        );
+    }
 
     // Search for flag fields
     if (GM_config.get("flag-enabled"))

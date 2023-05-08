@@ -43,8 +43,6 @@ interface CannedResponse {
     response: string;
 }
 
-declare var SteamIDConverter: any;
-
 const completedMap: Completed_Map[] = [];
 const signatureBlockList: string[] = [];
 const navbarURLs: NavbarURL_Map[] = [];
@@ -687,7 +685,7 @@ function addAddBanButton(div: HTMLDivElement, data: AddBan_Data) {
  * @param {number} steam_id_64 Steam ID to check
  * TODO: Add support for other game IDs
  */
-function addBansButton(div: HTMLDivElement, steam_id_64: number) {
+function addBansButton(div: HTMLDivElement, steam_id_64: string) {
     createButton(
         "https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=" +
             steam_id_64,
@@ -1255,7 +1253,7 @@ function handleBanAppealReport(report: boolean = false) {
             if (GM_config.get("show-list-bans-unknown"))
                 addBansButton(
                     button_group,
-                    post_title.split(" - ")[2] as unknown as number
+                    post_title.split(" - ")[2]
                 );
             addLookupButton(button_group, post_title);
         }
@@ -1263,7 +1261,7 @@ function handleBanAppealReport(report: boolean = false) {
         if (GM_config.get("show-list-bans-unknown"))
             addBansButton(
                 button_group,
-                post_title.split(" - ")[2] as unknown as number
+                post_title.split(" - ")[2]
             );
         addLookupButton(button_group, post_title);
     }
