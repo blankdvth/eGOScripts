@@ -3,13 +3,14 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.6.3
+// @version      4.7.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=edgegamers.com
 // @require      https://peterolson.github.io/BigInteger.js/BigInteger.min.js
 // @require      https://raw.githubusercontent.com/12pt/steamid-converter/master/js/converter-min.js
+// @require      https://raw.githubusercontent.com/pieroxy/lz-string/master/libs/lz-string.min.js
 // @require      https://openuserjs.org/src/libs/sizzle/GM_config.js
 // @connect      maul.edgegamers.com
 // @grant        GM_getValue
@@ -17,6 +18,8 @@
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
 /// <reference path="../types/config/index.d.ts" />
+/// <reference path="../types/lz-string.d.ts" />
+/// <reference path="../types/forum_maul_c.d.ts" />
 
 // Declare TypeScript types
 interface Completed_Map {
@@ -664,16 +667,14 @@ function addMAULProfileButton(div: HTMLDivElement, member_id: number | string) {
 /**
  * Adds a "Add Ban" button to the div
  * @param {HTMLDivElement} div Div to add to
- * @param {number} steam_id_64 Steam ID to add the ban to
- * @param {string} handle Handle of the user
+ * @param {data} data Data to pass to the ban page
  */
-function addAddBanButton(
-    div: HTMLDivElement,
-    steam_id_64: number,
-    handle: string
-) {
+function addAddBanButton(div: HTMLDivElement, data: AddBan_Data) {
+    const urlData = LZString.compressToEncodedURIComponent(
+        JSON.stringify(data)
+    );
     createButton(
-        `https://maul.edgegamers.com/index.php?page=editban#${steam_id_64}_${handle}`,
+        `https://maul.edgegamers.com/index.php?page=editban#${urlData}`,
         "Add Ban",
         div,
         "_blank"
@@ -1230,7 +1231,7 @@ function handleBanAppealReport(report: boolean = false) {
     );
 
     const title_match = post_title.match(
-        /^.* - (?<handle>.*) - ([^\d]*?(?<game_id>(\d+)|(STEAM_\d:\d:\d+)|(\[U:\d:\d+\])).*)$/
+        /^(?<game>.*) - (?<handle>.*) - ([^\d]*?(?<game_id>(\d+)|(STEAM_\d:\d:\d+)|(\[U:\d:\d+\])).*)$/
     );
     if (title_match) {
         const unparsed_id = title_match.groups!.game_id;
@@ -1239,11 +1240,15 @@ function handleBanAppealReport(report: boolean = false) {
                 ? unparsed_id
                 : SteamIDConverter.toSteamID64(unparsed_id);
             if (report)
-                addAddBanButton(
-                    button_group,
-                    steam_id_64,
-                    title_match.groups!.handle
-                );
+                addAddBanButton(button_group, {
+                    name: title_match.groups!.handle,
+                    id: steam_id_64,
+                    threadId: document
+                        .getElementById("XF")!
+                        .dataset.contentKey?.replace("thread-", ""),
+                    reporter: getOP()?.innerText,
+                    game: title_match.groups!.game,
+                });
             addBansButton(button_group, steam_id_64);
         } catch (TypeError) {
             if (GM_config.get("show-list-bans-unknown"))
