@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20MAUL%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.6.0
+// @version      4.6.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS, PixeL
 // @match        https://maul.edgegamers.com/*
@@ -193,6 +193,12 @@ function setupMAULConfig() {
                 title: "Link to Spur for logged in users, rather than anonymously.",
                 type: "checkbox",
                 default: false,
+            },
+            "convert-search": {
+                label: "Convert Steam IDs to ID64 when Searching",
+                title: "Converts all non-ID64 (ID3, ID) to ID64 when searching MAUL.",
+                type: "checkbox",
+                default: true,
             },
             "autoselect-division": {
                 label: "Division Index",
@@ -795,6 +801,29 @@ function handleBanList() {
     convertGameIDs();
     updateBanNoteURLs();
     convertDurationFields();
+    if (GM_config.get("convert-search"))
+        document
+            .querySelector(
+                "div.form-group.input-group > span.input-group-btn > button"
+            )
+            ?.addEventListener("click", function () {
+                if (
+                    (document.getElementById("banQType") as HTMLSelectElement)
+                        .value == "gameId"
+                ) {
+                    const searchBox = document.querySelector(
+                        "div.form-group.input-group > input[name='q']"
+                    ) as HTMLInputElement | undefined;
+                    const id = searchBox?.value;
+                    if (
+                        id &&
+                        (SteamIDConverter.isSteamID(id) ||
+                            SteamIDConverter.isSteamID3(id))
+                    ) {
+                        searchBox.value = SteamIDConverter.toSteamID64(id);
+                    }
+                }
+            });
     if (GM_config.get("flag-enabled"))
         findFlagFields(
             Array.from(
