@@ -656,7 +656,10 @@ function handleEditBan() {
         idDiv.style.paddingTop = "10px";
         idGroup?.appendChild(idDiv);
         idDiv.appendChild(
-            createLinkButton("Steam", "https://steamcommunity.com/profiles/" + id)
+            createLinkButton(
+                "Steam",
+                "https://steamcommunity.com/profiles/" + id
+            )
         );
         idDiv.appendChild(
             createLinkButton(
@@ -694,7 +697,11 @@ function handleEditBan() {
             )
         );
         ip_div.appendChild(
-            createLinkButton("Check IPInfo", "https://ipinfo.io/" + ip, "_blank")
+            createLinkButton(
+                "Check IPInfo",
+                "https://ipinfo.io/" + ip,
+                "_blank"
+            )
         );
     }
 

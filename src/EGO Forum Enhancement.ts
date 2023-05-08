@@ -1251,18 +1251,12 @@ function handleBanAppealReport(report: boolean = false) {
             addBansButton(button_group, steam_id_64);
         } catch (TypeError) {
             if (GM_config.get("show-list-bans-unknown"))
-                addBansButton(
-                    button_group,
-                    post_title.split(" - ")[2]
-                );
+                addBansButton(button_group, post_title.split(" - ")[2]);
             addLookupButton(button_group, post_title);
         }
     } else {
         if (GM_config.get("show-list-bans-unknown"))
-            addBansButton(
-                button_group,
-                post_title.split(" - ")[2]
-            );
+            addBansButton(button_group, post_title.split(" - ")[2]);
         addLookupButton(button_group, post_title);
     }
 }
