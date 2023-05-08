@@ -3,7 +3,7 @@
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20MAUL%20Enhancement.ts
 // @downloadURL  %DOWNLOAD_URL%
 // @updateURL    %DOWNLOAD_URL%
-// @version      4.5.4
+// @version      4.6.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS, PixeL
 // @match        https://maul.edgegamers.com/*
@@ -11,6 +11,7 @@
 // @require      https://peterolson.github.io/BigInteger.js/BigInteger.min.js
 // @require      https://raw.githubusercontent.com/12pt/steamid-converter/master/js/converter-min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment-with-locales.min.js
+// @require      https://raw.githubusercontent.com/pieroxy/lz-string/master/libs/lz-string.min.js
 // @require      https://openuserjs.org/src/libs/sizzle/GM_config.js
 // @resource     admins https://raw.githubusercontent.com/blankdvth/eGOScripts/master/admins.txt
 // @grant        GM_getValue
@@ -19,7 +20,9 @@
 // @grant        unsafeWindow
 // ==/UserScript==
 /// <reference path="../types/config/index.d.ts" />
-/// <reference path="../types/moment/moment.d.ts" />
+/// <reference path="../types/moment.d.ts" />
+/// <reference path="../types/lz-string.d.ts" />
+/// <reference path="../types/forum_maul_c.d.ts" />
 
 // Declare TypeScript types
 interface Add_Preset {
@@ -580,12 +583,20 @@ function handleAddBan(hash: string = "") {
         hash.length > 0 &&
         !(document.getElementById("gameId") as HTMLInputElement).disabled
     ) {
-        const match = hash.match(/^#(?<game_id>\d+)(?:_(?<name>.*))?$/)!;
-        (document.getElementById("gameId") as HTMLInputElement).value =
-            match.groups!.game_id;
-        if (match.groups!.name)
+        const data: AddBan_Data = JSON.parse(
+            LZString.decompressFromEncodedURIComponent(hash)
+        );
+        if (data.name)
             (document.getElementById("handle") as HTMLInputElement).value =
-                decodeURIComponent(match.groups!.name);
+                data.name;
+        if (data.threadId)
+            (
+                document.getElementById("notes") as HTMLTextAreaElement
+            ).value = `https://edgegamers.com/threads/${data.threadId}/\n\n`;
+        (document.getElementById("gameId") as HTMLInputElement).value = data.id;
+        (
+            document.querySelector("input[name='redirect']") as HTMLInputElement
+        ).value = `https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=${data.id}`;
     }
 }
 
@@ -1005,11 +1016,11 @@ function updateBanNoteURLs() {
 
     if (
         url.match(
-            /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban\/?(?:#\d+(?:_.*)?)?$/
+            /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban\/?(?:#.+)?$/
         )
     )
         // Add Ban Page (not Edit, that will have &id=12345 in the URL)
-        handleAddBan(hash);
+        handleAddBan(hash.substring(1));
     else if (
         url.match(
             /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban&id=\d+\/?$/
