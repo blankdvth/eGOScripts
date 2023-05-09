@@ -1033,6 +1033,8 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
             left.appendChild(dataList).classList.add("dataList");
             const table = document.createElement("table");
             dataList.appendChild(table).classList.add("dataList-table");
+            const tableBody = document.createElement("tbody");
+            table.appendChild(tableBody);
 
             const cols = latestBan.querySelectorAll("td");
             const banData = {
@@ -1048,13 +1050,13 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
 
             for (const [key, value] of Object.entries(banData)) {
                 const row = document.createElement("tr");
-                table.appendChild(row).classList.add("dataList-row");
+                tableBody.appendChild(row).classList.add("dataList-row");
                 const keyCell = document.createElement("td");
-                row.appendChild(keyCell).classList.add("dataList-cell");
+                row.appendChild(keyCell).classList.add("dataList-cell", "small-cell");
                 keyCell.innerText = key;
                 keyCell.style.textAlign = "left";
                 const valueCell = document.createElement("td");
-                row.appendChild(valueCell).classList.add("dataList-cell");
+                row.appendChild(valueCell).classList.add("dataList-cell", "small-cell");
                 valueCell.innerHTML = value;
                 valueCell.style.textAlign = "right";
             }
@@ -1080,9 +1082,9 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
                     '$1<a href="https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=$2" target="_blank"><u>$2</u></a>$3'
                 );
             notesDiv.innerHTML = replacedNotes;
-            notesDiv.style.maxHeight = table.offsetHeight + "px";
-            notesDiv.style.overflowY = "auto";
             notesDiv.style.textAlign = "left";
+            notesDiv.style.maxHeight = left.offsetHeight + "px";
+            notesDiv.style.overflowY = "auto";
         },
     });
 }
