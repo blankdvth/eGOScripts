@@ -1083,7 +1083,7 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
                 );
             notesDiv.innerHTML = replacedNotes;
             notesDiv.style.textAlign = "left";
-            notesDiv.style.maxHeight = left.offsetHeight + "px";
+            notesDiv.style.maxHeight = table.offsetHeight + "px";
             notesDiv.style.overflowY = "auto";
         },
     });
