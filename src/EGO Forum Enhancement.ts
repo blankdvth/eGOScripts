@@ -335,6 +335,12 @@ function setupForumsConfig() {
                 type: "checkbox",
                 default: true,
             },
+            "ban-display-hidden": {
+                label: "Hide behind button",
+                title: "Whether to hide the ban display behind a button.",
+                type: "checkbox",
+                default: false,
+            },
             "ban-display-silent-fail": {
                 label: "Silently fail",
                 title: "Whether to silently fail when a ban cannot be retrieved. No error message will be shown.",
@@ -1489,11 +1495,34 @@ function handleBanAppealReport(report: boolean = false) {
                     reporter: getOP()?.innerText,
                     game: title_match.groups!.game,
                 });
-            else if (GM_config.get("ban-display-enable"))
-                displayBanInfo(
-                    steam_id_64,
-                    document.querySelector(".p-body-main")!
-                );
+            else if (GM_config.get("ban-display-enable")) {
+                if (GM_config.get("ban-display-hidden")) {
+                    const button = document.createElement("a");
+                    button.classList.add("button--link", "button");
+                    button.onclick = () => {
+                        button.remove();
+                        displayBanInfo(
+                            steam_id_64,
+                            document.querySelector(".p-body-main")!
+                        );
+                    };
+
+                    const button_text = document.createElement("span"); // Create button text
+                    button_text.classList.add("button-text");
+                    button_text.innerHTML = "Get Ban Info";
+
+                    // Add all elements to their respective parents
+                    button.appendChild(button_text);
+                    button_group.insertBefore(
+                        button,
+                        button_group.lastElementChild
+                    );
+                } else
+                    displayBanInfo(
+                        steam_id_64,
+                        document.querySelector(".p-body-main")!
+                    );
+            }
             addBansButton(button_group, steam_id_64);
         } catch (TypeError) {
             if (GM_config.get("show-list-bans-unknown"))
