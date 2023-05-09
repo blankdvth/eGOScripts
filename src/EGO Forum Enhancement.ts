@@ -1062,12 +1062,15 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
             )!.innerHTML;
             const notesDiv = document.createElement("div");
             right.appendChild(notesDiv);
-            var replacedNotes = notes.replaceAll(/&amp;/g, "&");
-            if (GM_config.get("ban-display-hyperlink"))
-                replacedNotes = replacedNotes.replaceAll(
-                    /https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)/g,
-                    '<a href="$&" target="_blank" rel="external"><u>$&</u></a>'
-                );
+            var replacedNotes = notes;
+            if (GM_config.get("ban-display-hyperlink")) {
+                replacedNotes = replacedNotes
+                    .replaceAll(/&amp;/g, "&")
+                    .replaceAll(
+                        /https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)/g,
+                        '<a href="$&" target="_blank" rel="external"><u>$&</u></a>'
+                    );
+            }
             if (GM_config.get("ban-display-steamid"))
                 // TODO: Allow user to customize this (like MAUL)
                 replacedNotes = replacedNotes.replaceAll(
