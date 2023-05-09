@@ -1181,16 +1181,22 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
                     "dataList-cell",
                     "small-cell"
                 );
-                if (allowedHTMLData.includes(key))
-                    valueCell.innerHTML = value;
-                else
-                    valueCell.innerText = value;
+                if (allowedHTMLData.includes(key)) valueCell.innerHTML = value;
+                else valueCell.innerText = value;
                 valueCell.style.textAlign = "right";
             }
 
             const notes = html.getElementById(
                 "notes_" + latestBan.dataset.num
             )!.innerHTML;
+            if (notes.includes("<") || notes.includes(">")) {
+                // Failsafe checking, MAUL should always replace these with &lt; and &gt;, if they don't, something is wrong.
+                if (!GM_config.get("ban-display-silent-fail"))
+                    display.innerHTML =
+                        "<i>Potential injection detected, aborting</i>";
+                else display.innerHTML = "";
+                return;
+            }
             const notesDiv = document.createElement("div");
             right.appendChild(notesDiv);
             var replacedNotes = notes;
