@@ -1026,7 +1026,7 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
             right.style.paddingLeft = "5px";
             right.style.paddingTop = "2px";
             right.style.paddingBottom = "2px";
-            right.style.border = "1px solid #515157";
+            right.style.border = "1px solid #3e3e42";
             right.style.borderRadius = "3px";
 
             const dataList = document.createElement("div");
