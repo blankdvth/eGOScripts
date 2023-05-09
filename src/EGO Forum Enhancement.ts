@@ -1047,16 +1047,49 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
             const tableBody = document.createElement("tbody");
             table.appendChild(tableBody);
 
-            const cols = latestBan.querySelectorAll("td");
+            /*
+                0 - Date
+                1 - Handle
+                2 - Game ID
+                3 - Admin Name
+                4 - Duration
+                5 - Reason (may be truncated with ...)
+                6 - Actions (don't touch)
+            */
+            const cols = latestBan.querySelectorAll(
+                "td"
+            ) as NodeListOf<HTMLTableCellElement>;
+            // Indexes change, there is always Division and Admins Online, but additional rows may be added if overflowed in the table
+            const expand = html.getElementById(
+                "expand_" + latestBan.dataset.num
+            )!;
+            const expandColsHeader = expand.querySelectorAll(
+                "span.pull-left:not(.col-xs-9)"
+            ) as NodeListOf<HTMLSpanElement>;
+            const expandColsData = expand.querySelectorAll(
+                "span.pull-left.col-xs-9"
+            ) as NodeListOf<HTMLSpanElement>;
+            const expandCols: { [key: string]: string } = {};
+            for (var i = 0; i < expandColsHeader.length; i++) {
+                expandCols[expandColsHeader[i].innerText.replace(":", "")] =
+                    expandColsData[i].innerText;
+            }
+
             const banData = {
                 Date: cols[0].innerText,
-                Handle: cols[1].innerText,
+                Handle: expandCols["Handle"]
+                    ? expandCols["Handle"]
+                    : cols[1].innerText,
                 "Banning Admin": cols[3].innerHTML.replace(
                     'href="',
                     'target="_blank" href="https://maul.edgegamers.com/'
                 ), // Hyperlink it
-                Duration: cols[4].innerText,
-                Reason: cols[5].innerText,
+                Duration: expandCols["Duration"]
+                    ? expandCols["Duration"]
+                    : cols[4].innerText, // Never seen this overflow before, but it's possible
+                Reason: expandCols["Reason"]
+                    ? expandCols["Reason"]
+                    : cols[5].innerText,
             };
 
             for (const [key, value] of Object.entries(banData)) {
