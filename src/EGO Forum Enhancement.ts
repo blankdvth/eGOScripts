@@ -335,6 +335,12 @@ function setupForumsConfig() {
                 type: "checkbox",
                 default: true,
             },
+            "ban-display-silent-fail": {
+                label: "Silently fail",
+                title: "Whether to silently fail when a ban cannot be retrieved. No error message will be shown.",
+                type: "checkbox",
+                default: false,
+            },
             "ban-display-hyperlink": {
                 label: "Hyperlink",
                 title: "Whether to hyperlink URLs in ban notes.",
@@ -996,9 +1002,13 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
             display.style.textAlign = "center";
             insertBefore.parentElement?.insertBefore(display, insertBefore);
 
-            if (!res.responseText || res.responseText.includes("<title>Login | MAUL</title>")) {
-                display.innerHTML =
-                    "<i>Error retrieving ban information, not authenticated?</i>";
+            if (
+                !res.responseText ||
+                res.responseText.includes("<title>Login | MAUL</title>")
+            ) {
+                if (!GM_config.get("ban-display-silent-fail"))
+                    display.innerHTML =
+                        "<i>Error retrieving ban information, not authenticated?</i>";
                 return;
             }
             const html = new DOMParser().parseFromString(
@@ -1010,7 +1020,8 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
                 | undefined
                 | null;
             if (!latestBan) {
-                display.innerHTML = "<i>No bans found.</i>";
+                if (!GM_config.get("ban-display-silent-fail"))
+                    display.innerHTML = "<i>No bans found.</i>";
                 return;
             }
 
@@ -1052,11 +1063,17 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
                 const row = document.createElement("tr");
                 tableBody.appendChild(row).classList.add("dataList-row");
                 const keyCell = document.createElement("td");
-                row.appendChild(keyCell).classList.add("dataList-cell", "small-cell");
+                row.appendChild(keyCell).classList.add(
+                    "dataList-cell",
+                    "small-cell"
+                );
                 keyCell.innerText = key;
                 keyCell.style.textAlign = "left";
                 const valueCell = document.createElement("td");
-                row.appendChild(valueCell).classList.add("dataList-cell", "small-cell");
+                row.appendChild(valueCell).classList.add(
+                    "dataList-cell",
+                    "small-cell"
+                );
                 valueCell.innerHTML = value;
                 valueCell.style.textAlign = "right";
             }
