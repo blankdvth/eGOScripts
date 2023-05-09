@@ -330,7 +330,7 @@ function setupForumsConfig() {
                 label: "Enable",
                 section: [
                     "Ban Display",
-                    "Automatically retrieve and display ban info on appeals. Only works when MAUL is authenticated.",
+                    "Automatically retrieve and display ban info in appeals. Only works when MAUL is authenticated.",
                 ],
                 type: "checkbox",
                 default: true,
@@ -996,7 +996,7 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
             display.style.textAlign = "center";
             insertBefore.parentElement?.insertBefore(display, insertBefore);
 
-            if (!res.responseText) {
+            if (!res.responseText || res.responseText.includes("<title>Login | MAUL</title>")) {
                 display.innerHTML =
                     "<i>Error retrieving ban information, not authenticated?</i>";
                 return;
