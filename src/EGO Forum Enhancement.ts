@@ -326,6 +326,12 @@ function setupForumsConfig() {
                 type: "checkbox",
                 default: false,
             },
+            "ban-display-enable": {
+                label: "Enable",
+                section: ["Ban Display", "Automatically retrieve and display ban info on appeals. Only works when MAUL is authenticated."],
+                type: "checkbox",
+                default: true,
+            }
         },
         events: {
             init: function () {
@@ -964,6 +970,68 @@ function getOP() {
 }
 
 /**
+ * Retrieves and displays ban information for a user
+ */
+function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
+    GM_xmlhttpRequest({method: "GET", url: `https://maul.edgegamers.com/index.php?q=${steam_id_64}&qType=gameId&page=bans`, onload: function(res) {
+        const display = document.createElement("div");
+        display.style.textAlign = "center";
+        insertBefore.parentElement?.insertBefore(display, insertBefore);
+
+        if (!res.responseText) {
+            display.innerHTML = "<i>Error retrieving ban information, not authenticated?</i>";
+            return;
+        }
+        const html = new DOMParser().parseFromString(res.responseText, 'text/html');
+        const latestBan = html.querySelector("table.table > tbody > tr") as HTMLTableRowElement | undefined | null;
+        if (!latestBan) {
+            display.innerHTML = "<i>No bans found.</i>";
+            return;
+        }
+        
+        display.style.display = "flex";
+        const left = document.createElement("div");
+        display.appendChild(left).style.flex = "1";
+        const right = document.createElement("div");
+        display.appendChild(right).style.flex = "1";
+
+        const dataList = document.createElement("div");
+        left.appendChild(dataList).classList.add("dataList");
+        const table = document.createElement("table");
+        dataList.appendChild(table).classList.add("dataList-table");
+
+        const cols = latestBan.querySelectorAll("td");
+        const banData = {
+            "Date": cols[0].innerText,
+            "Handle": cols[1].innerText,
+            "Banning Admin": cols[3].innerText,
+            "Duration": cols[4].innerText,
+            "Reason": cols[5].innerText,
+        };
+        
+        for (const [key, value] of Object.entries(banData)) {
+            const row = document.createElement("tr");
+            table.appendChild(row).classList.add("dataList-row");
+            const keyCell = document.createElement("td");
+            row.appendChild(keyCell).classList.add("dataList-cell");
+            keyCell.innerText = key;
+            keyCell.style.textAlign = "left";
+            const valueCell = document.createElement("td");
+            row.appendChild(valueCell).classList.add("dataList-cell");
+            valueCell.innerText = value;
+        }
+
+        const notes = html.getElementById("notes_" + latestBan.dataset.num)!.innerText;
+        const notesDiv = document.createElement("div");
+        right.appendChild(notesDiv);
+        notesDiv.innerText = notes;
+        notesDiv.style.maxHeight = table.offsetHeight + "px";
+        notesDiv.style.overflowY = "auto";
+        notesDiv.style.textAlign = "left";
+    }});
+}
+
+/**
  * Generates large, transparent text (basically a watermark)
  * @param {string} top CSS Top Style
  * @param {string} str Text to display
@@ -1246,6 +1314,8 @@ function handleBanAppealReport(report: boolean = false) {
                     reporter: getOP()?.innerText,
                     game: title_match.groups!.game,
                 });
+            else if (GM_config.get("ban-display-enable"))
+                displayBanInfo(steam_id_64, document.querySelector(".p-body-main")!);
             addBansButton(button_group, steam_id_64);
         } catch (TypeError) {
             if (GM_config.get("show-list-bans-unknown"))
