@@ -1130,6 +1130,7 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
             }
 
             const banData: { [key: string]: string } = {};
+            const allowedHTMLData = ["Banning Admin"];
             // We're checking expandCols for everything on the off-chance they overflow, but the only ones that actually have before are Handle, Game ID, and Reason.
             if (GM_config.get("ban-display-show-date"))
                 banData["Date"] = expandCols["Date"]
@@ -1180,7 +1181,10 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
                     "dataList-cell",
                     "small-cell"
                 );
-                valueCell.innerHTML = value;
+                if (allowedHTMLData.includes(key))
+                    valueCell.innerHTML = value;
+                else
+                    valueCell.innerText = value;
                 valueCell.style.textAlign = "right";
             }
 
