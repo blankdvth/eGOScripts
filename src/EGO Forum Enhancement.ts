@@ -359,6 +359,12 @@ function setupForumsConfig() {
                 type: "checkbox",
                 default: true,
             },
+            "ban-display-show-expired": {
+                label: "Show expired bans",
+                title: "Whether to show bans info if the latest ban is expired.",
+                type: "checkbox",
+                default: false,
+            },
             "ban-display-show-date": {
                 label: "Show date",
                 title: "Whether to show the date of the ban in the display table.",
@@ -1058,6 +1064,7 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
         onload: function (res) {
             const display = document.createElement("div");
             display.style.textAlign = "center";
+            display.style.marginBottom = "8px";
             insertBefore.parentElement?.insertBefore(display, insertBefore);
 
             if (
@@ -1084,7 +1091,6 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
             }
 
             display.style.display = "flex";
-            display.style.marginBottom = "8px";
             const left = document.createElement("div");
             display.appendChild(left);
             left.style.flex = "1";
@@ -1133,28 +1139,42 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
                     expandColsData[i].innerText;
             }
 
+            if (
+                !(
+                    GM_config.get("ban-display-show-expired") ||
+                    (expandCols["Duration"] ?? cols[4].innerText).includes(
+                        "("
+                    ) ||
+                    (expandCols["Duration"] ?? cols[4].innerText) == "Permanent"
+                )
+            ) {
+                display.style.display = "block";
+                if (GM_config.get("ban-display-silent-fail"))
+                    display.innerHTML = "";
+                else {
+                    display.innerText = `Not currently banned. Last ban was on ${
+                        expandCols["Date"] ?? cols[0].innerText
+                    } for ${
+                        expandCols["Reason"] ?? cols[5].innerText
+                    }, lasting ${expandCols["Duration"] ?? cols[4].innerText}`;
+                    display.innerHTML = `<i>${display.innerHTML}</i>`;
+                }
+            }
+
             const banData: { [key: string]: string } = {};
             const allowedHTMLData = ["Banning Admin"];
             // We're checking expandCols for everything on the off-chance they overflow, but the only ones that actually have before are Handle, Game ID, and Reason.
             if (GM_config.get("ban-display-show-date"))
-                banData["Date"] = expandCols["Date"]
-                    ? expandCols["Date"]
-                    : cols[0].innerText;
+                banData["Date"] = expandCols["Date"] ?? cols[0].innerText;
             if (GM_config.get("ban-display-show-handle"))
-                banData["Handle"] = expandCols["Handle"]
-                    ? expandCols["Handle"]
-                    : cols[1].innerText;
+                banData["Handle"] = expandCols["Handle"] ?? cols[1].innerText;
             if (GM_config.get("ban-display-show-id"))
-                banData["Game ID"] = expandCols["Game ID"]
-                    ? expandCols["Game ID"]
-                    : cols[2].innerText;
+                banData["Game ID"] = expandCols["Game ID"] ?? cols[2].innerText;
             if (GM_config.get("ban-display-show-division"))
                 banData["Division"] = expandCols["Division"];
             if (GM_config.get("ban-display-show-banning-admin"))
                 banData["Banning Admin"] = (
-                    expandCols["Banning Admin"]
-                        ? expandCols["Banning Admin"]
-                        : cols[3].innerHTML
+                    expandCols["Banning Admin"] ?? cols[3].innerHTML
                 ).replace(
                     'href="',
                     'target="_blank" href="https://maul.edgegamers.com/'
@@ -1162,13 +1182,10 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
             if (GM_config.get("ban-display-show-admins-online"))
                 banData["Admins Online"] = expandCols["Admins Online"];
             if (GM_config.get("ban-display-show-duration"))
-                banData["Duration"] = expandCols["Duration"]
-                    ? expandCols["Duration"]
-                    : cols[4].innerText;
+                banData["Duration"] =
+                    expandCols["Duration"] ?? cols[4].innerText;
             if (GM_config.get("ban-display-show-reason"))
-                banData["Reason"] = expandCols["Reason"]
-                    ? expandCols["Reason"]
-                    : cols[5].innerText;
+                banData["Reason"] = expandCols["Reason"] ?? cols[5].innerText;
 
             for (const [key, value] of Object.entries(banData)) {
                 const row = document.createElement("tr");
@@ -1199,10 +1216,12 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
                 )
             ) {
                 // Failsafe checking, MAUL should always replace these with &lt; and &gt;, if they don't, something is wrong.
-                if (!GM_config.get("ban-display-silent-fail"))
+                display.style.display = "block";
+                if (GM_config.get("ban-display-silent-fail"))
+                    display.innerHTML = "";
+                else
                     display.innerHTML =
                         "<i>Potential injection detected, aborting</i>";
-                else display.innerHTML = "";
                 return;
             }
             const notesDiv = document.createElement("div");
