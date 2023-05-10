@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement%RELEASE_TYPE%
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
-// @version      4.8.1
+// @version      4.8.3
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=edgegamers.com
 // @require      https://peterolson.github.io/BigInteger.js/BigInteger.min.js
 // @require      https://raw.githubusercontent.com/12pt/steamid-converter/master/js/converter-min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment-with-locales.min.js
 // @require      https://raw.githubusercontent.com/pieroxy/lz-string/master/libs/lz-string.min.js
 // @require      https://openuserjs.org/src/libs/sizzle/GM_config.js
 // @connect      maul.edgegamers.com
@@ -16,6 +17,7 @@
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
 /// <reference path="../types/config/index.d.ts" />
+/// <reference path="../types/moment.d.ts" />
 /// <reference path="../types/lz-string.d.ts" />
 /// <reference path="../types/forum_maul_c.d.ts" />
 
@@ -365,6 +367,12 @@ function setupForumsConfig() {
                 type: "checkbox",
                 default: false,
             },
+            "ban-display-expiration-format": {
+                label: "Expiration Format",
+                title: "Format used to show expiration date",
+                type: "text",
+                default: "YYYY-MM-DD HH:mm",
+            },
             "ban-display-show-date": {
                 label: "Show date",
                 title: "Whether to show the date of the ban in the display table.",
@@ -403,9 +411,15 @@ function setupForumsConfig() {
             },
             "ban-display-show-duration": {
                 label: "Show duration",
-                title: "Whether to show the duration of the ban in the display table.",
+                title: "Whether to show the duration of the ban in the display table. The expiration is shown on hover.",
                 type: "checkbox",
                 default: true,
+            },
+            "ban-display-show-expiration": {
+                label: "Show expiration",
+                title: "Whether to show the expiration datetime of the ban in the display table. The duration is shown on hover.",
+                type: "checkbox",
+                default: false,
             },
             "ban-display-show-reason": {
                 label: "Show reason",
@@ -1139,6 +1153,27 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
                     expandColsData[i].innerText;
             }
 
+            var expire = "Never";
+            if (expandCols["Duration"] ?? cols[4].innerText != "Permanent") {
+                expire = moment(expandCols["Date"] ?? cols[0].innerText)
+                    .add(
+                        Number(
+                            (
+                                (expandCols["Duration"] as string | null) ??
+                                (cols[4].innerText as string)
+                            )
+                                .replaceAll("(", "")
+                                .replaceAll(")", "")
+                                .split(" ")
+                                .slice(-1)[0]
+                        ),
+                        "minutes"
+                    )
+                    .format(
+                        GM_config.get("ban-display-expiration-format") as string
+                    );
+            }
+
             if (
                 !(
                     GM_config.get("ban-display-show-expired") ||
@@ -1152,17 +1187,19 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
                 if (GM_config.get("ban-display-silent-fail"))
                     display.innerHTML = "";
                 else {
-                    display.innerText = `Not currently banned. Last ban was on ${
+                    display.innerHTML = `<i>Not currently banned, last ban was <code>${
+                        expandCols["Duration"] ?? cols[4].innerText
+                    }</code> minutes for <code>${
+                        new Option(expandCols["Reason"] ?? cols[5].innerText)
+                            .innerHTML
+                    }</code> and expired at <span title="placed ${
                         expandCols["Date"] ?? cols[0].innerText
-                    } for ${
-                        expandCols["Reason"] ?? cols[5].innerText
-                    }, lasting ${expandCols["Duration"] ?? cols[4].innerText}`;
-                    display.innerHTML = `<i>${display.innerHTML}</i>`;
+                    }">${expire}</span></i>`;
                 }
             }
 
             const banData: { [key: string]: string } = {};
-            const allowedHTMLData = ["Banning Admin"];
+            const allowedHTMLData = ["Banning Admin", "Duration", "Expires"]; // Only add sanitized or known safe fields
             // We're checking expandCols for everything on the off-chance they overflow, but the only ones that actually have before are Handle, Game ID, and Reason.
             if (GM_config.get("ban-display-show-date"))
                 banData["Date"] = expandCols["Date"] ?? cols[0].innerText;
@@ -1182,8 +1219,13 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
             if (GM_config.get("ban-display-show-admins-online"))
                 banData["Admins Online"] = expandCols["Admins Online"];
             if (GM_config.get("ban-display-show-duration"))
-                banData["Duration"] =
-                    expandCols["Duration"] ?? cols[4].innerText;
+                banData["Duration"] = `<span title="expires ${expire}">${
+                    expandCols["Duration"] ?? cols[4].innerText
+                }</span>`;
+            if (GM_config.get("ban-display-show-expiration"))
+                banData["Expires"] = `<span title="${
+                    expandCols["Duration"] ?? cols[4].innerText
+                } minutes">${expire}</span>`;
             if (GM_config.get("ban-display-show-reason"))
                 banData["Reason"] = expandCols["Reason"] ?? cols[5].innerText;
 
