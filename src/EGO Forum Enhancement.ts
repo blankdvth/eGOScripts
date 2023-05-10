@@ -359,6 +359,12 @@ function setupForumsConfig() {
                 type: "checkbox",
                 default: true,
             },
+            "ban-display-show-expired": {
+                label: "Show expired bans",
+                title: "Whether to show bans info if the latest ban is expired.",
+                type: "checkbox",
+                default: false,
+            },
             "ban-display-show-date": {
                 label: "Show date",
                 title: "Whether to show the date of the ban in the display table.",
@@ -1058,6 +1064,7 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
         onload: function (res) {
             const display = document.createElement("div");
             display.style.textAlign = "center";
+            display.style.marginBottom = "8px";
             insertBefore.parentElement?.insertBefore(display, insertBefore);
 
             if (
@@ -1084,7 +1091,6 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
             }
 
             display.style.display = "flex";
-            display.style.marginBottom = "8px";
             const left = document.createElement("div");
             display.appendChild(left);
             left.style.flex = "1";
@@ -1131,6 +1137,28 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
             for (var i = 0; i < expandColsHeader.length; i++) {
                 expandCols[expandColsHeader[i].innerText.replace(":", "")] =
                     expandColsData[i].innerText;
+            }
+
+            if (
+                !(
+                    GM_config.get("ban-display-show-expired") ||
+                    (expandCols["Duration"] ?? cols[4].innerText).includes(
+                        "("
+                    ) ||
+                    (expandCols["Duration"] ?? cols[4].innerText) == "Permanent"
+                )
+            ) {
+                display.style.display = "block";
+                if (GM_config.get("ban-display-silent-fail"))
+                    display.innerHTML = "";
+                else {
+                    display.innerText = `Not currently banned. Last ban was on ${
+                        expandCols["Date"] ?? cols[0].innerText
+                    } for ${
+                        expandCols["Reason"] ?? cols[5].innerText
+                    }, lasting ${expandCols["Duration"] ?? cols[4].innerText}`;
+                    display.innerHTML = `<i>${display.innerHTML}</i>`;
+                }
             }
 
             const banData: { [key: string]: string } = {};
@@ -1199,10 +1227,12 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
                 )
             ) {
                 // Failsafe checking, MAUL should always replace these with &lt; and &gt;, if they don't, something is wrong.
-                if (!GM_config.get("ban-display-silent-fail"))
+                display.style.display = "block";
+                if (GM_config.get("ban-display-silent-fail"))
+                    display.innerHTML = "";
+                else
                     display.innerHTML =
                         "<i>Potential injection detected, aborting</i>";
-                else display.innerHTML = "";
                 return;
             }
             const notesDiv = document.createElement("div");
