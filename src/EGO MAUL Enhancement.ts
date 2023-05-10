@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers MAUL Enhancement%RELEASE_TYPE%
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20MAUL%20Enhancement.ts
-// @version      4.6.1
+// @version      4.6.2
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS, PixeL
 // @match        https://maul.edgegamers.com/*
@@ -951,13 +951,13 @@ function convertDurationFields() {
             if (split.length != 2) return;
 
             const banDuration = Number(split[0]);
-            const banExpiration = Number(split[1]);
 
-            const now = new Date();
-            now.setMinutes(now.getMinutes() + banExpiration);
-            const convertedExpiration = moment(now).format(
-                GM_config.get("datetimeformat-expiration") as string
-            );
+            const convertedExpiration = moment(
+                (el.parentElement!.firstElementChild as HTMLTableCellElement)
+                    .innerText
+            )
+                .add(banDuration, "minutes")
+                .format(GM_config.get("datetimeformat-expiration") as string);
 
             convertedDuration = convertMinutesToHuman(banDuration);
             convertedDuration += ` (expires ${convertedExpiration})`;
