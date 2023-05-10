@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement%RELEASE_TYPE%
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
-// @version      4.7.1
+// @version      4.8.0
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -325,6 +325,87 @@ function setupForumsConfig() {
                 title: "May not work on all browsers.",
                 type: "checkbox",
                 default: false,
+            },
+            "ban-display-enable": {
+                label: "Enable",
+                section: [
+                    "Ban Display",
+                    "Automatically retrieve and display ban info in appeals. Only works when MAUL is authenticated.",
+                ],
+                type: "checkbox",
+                default: true,
+            },
+            "ban-display-hidden": {
+                label: "Hide behind button",
+                title: "Whether to hide the ban display behind a button.",
+                type: "checkbox",
+                default: false,
+            },
+            "ban-display-silent-fail": {
+                label: "Silently fail",
+                title: "Whether to silently fail when a ban cannot be retrieved. No error message will be shown.",
+                type: "checkbox",
+                default: false,
+            },
+            "ban-display-hyperlink": {
+                label: "Hyperlink",
+                title: "Whether to hyperlink URLs in ban notes.",
+                type: "checkbox",
+                default: true,
+            },
+            "ban-display-steamid": {
+                label: "Link Steam IDs",
+                title: "Whether to link Steam IDs to their MAUL List Bans page. This is a bit finnicky, turn it off if you're experiencing problems.",
+                type: "checkbox",
+                default: true,
+            },
+            "ban-display-show-date": {
+                label: "Show date",
+                title: "Whether to show the date of the ban in the display table.",
+                type: "checkbox",
+                default: true,
+            },
+            "ban-display-show-handle": {
+                label: "Show handle",
+                title: "Whether to show the handle in the display table.",
+                type: "checkbox",
+                default: true,
+            },
+            "ban-display-show-id": {
+                label: "Show Steam ID",
+                title: "Whether to show the Steam ID in the display table.",
+                type: "checkbox",
+                default: false,
+            },
+            "ban-display-show-division": {
+                label: "Show division",
+                title: "Whether to show the division in the display table.",
+                type: "checkbox",
+                default: false,
+            },
+            "ban-display-show-banning-admin": {
+                label: "Show banning admin",
+                title: "Whether to show the banning admin in the display table.",
+                type: "checkbox",
+                default: true,
+            },
+            "ban-display-show-admins-online": {
+                label: "Show admins online",
+                title: "Whether to show the admins online in the display table.",
+                type: "checkbox",
+                default: false,
+            },
+            "ban-display-show-duration": {
+                label: "Show duration",
+                title: "Whether to show the duration of the ban in the display table.",
+                type: "checkbox",
+                default: true,
+            },
+            "ban-display-show-reason": {
+                label: "Show reason",
+                title: "Whether to show the reason for the ban in the display table.",
+                type: "checkbox",
+                default: true,
             },
         },
         events: {
@@ -964,6 +1045,184 @@ function getOP() {
 }
 
 /**
+ * Retrieves and displays ban information for a user
+ */
+function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
+    GM_xmlhttpRequest({
+        method: "GET",
+        url: `https://maul.edgegamers.com/index.php?q=${steam_id_64}&qType=gameId&page=bans`,
+        onload: function (res) {
+            const display = document.createElement("div");
+            display.style.textAlign = "center";
+            insertBefore.parentElement?.insertBefore(display, insertBefore);
+
+            if (
+                !res.responseText ||
+                res.responseText.includes("<title>Login | MAUL</title>")
+            ) {
+                if (!GM_config.get("ban-display-silent-fail"))
+                    display.innerHTML =
+                        "<i>Error retrieving ban information, not authenticated?</i>";
+                return;
+            }
+            const html = new DOMParser().parseFromString(
+                res.responseText,
+                "text/html"
+            );
+            const latestBan = html.querySelector("table.table > tbody > tr") as
+                | HTMLTableRowElement
+                | undefined
+                | null;
+            if (!latestBan) {
+                if (!GM_config.get("ban-display-silent-fail"))
+                    display.innerHTML = "<i>No bans found.</i>";
+                return;
+            }
+
+            display.style.display = "flex";
+            display.style.marginBottom = "8px";
+            const left = document.createElement("div");
+            display.appendChild(left);
+            left.style.flex = "1";
+            left.style.paddingRight = "5px";
+            const right = document.createElement("div");
+            display.appendChild(right);
+            right.style.flex = "3";
+            right.style.paddingLeft = "5px";
+            right.style.paddingTop = "2px";
+            right.style.paddingBottom = "2px";
+            right.style.border = "1px solid #3e3e42";
+            right.style.borderRadius = "3px";
+
+            const dataList = document.createElement("div");
+            left.appendChild(dataList).classList.add("dataList");
+            const table = document.createElement("table");
+            dataList.appendChild(table).classList.add("dataList-table");
+            const tableBody = document.createElement("tbody");
+            table.appendChild(tableBody);
+
+            /*
+                0 - Date
+                1 - Handle
+                2 - Game ID
+                3 - Admin Name
+                4 - Duration
+                5 - Reason (may be truncated with ...)
+                6 - Actions (don't touch)
+            */
+            const cols = latestBan.querySelectorAll(
+                "td"
+            ) as NodeListOf<HTMLTableCellElement>;
+            // Indexes change, there is always Division and Admins Online, but additional rows may be added if overflowed in the table
+            const expand = html.getElementById(
+                "expand_" + latestBan.dataset.num
+            )!;
+            const expandColsHeader = expand.querySelectorAll(
+                "span.pull-left:not(.col-xs-9)"
+            ) as NodeListOf<HTMLSpanElement>;
+            const expandColsData = expand.querySelectorAll(
+                "span.pull-left.col-xs-9"
+            ) as NodeListOf<HTMLSpanElement>;
+            const expandCols: { [key: string]: string } = {};
+            for (var i = 0; i < expandColsHeader.length; i++) {
+                expandCols[expandColsHeader[i].innerText.replace(":", "")] =
+                    expandColsData[i].innerText;
+            }
+
+            const banData: { [key: string]: string } = {};
+            const allowedHTMLData = ["Banning Admin"];
+            // We're checking expandCols for everything on the off-chance they overflow, but the only ones that actually have before are Handle, Game ID, and Reason.
+            if (GM_config.get("ban-display-show-date"))
+                banData["Date"] = expandCols["Date"]
+                    ? expandCols["Date"]
+                    : cols[0].innerText;
+            if (GM_config.get("ban-display-show-handle"))
+                banData["Handle"] = expandCols["Handle"]
+                    ? expandCols["Handle"]
+                    : cols[1].innerText;
+            if (GM_config.get("ban-display-show-id"))
+                banData["Game ID"] = expandCols["Game ID"]
+                    ? expandCols["Game ID"]
+                    : cols[2].innerText;
+            if (GM_config.get("ban-display-show-division"))
+                banData["Division"] = expandCols["Division"];
+            if (GM_config.get("ban-display-show-banning-admin"))
+                banData["Banning Admin"] = (
+                    expandCols["Banning Admin"]
+                        ? expandCols["Banning Admin"]
+                        : cols[3].innerHTML
+                ).replace(
+                    'href="',
+                    'target="_blank" href="https://maul.edgegamers.com/'
+                ); // Hyperlink it
+            if (GM_config.get("ban-display-show-admins-online"))
+                banData["Admins Online"] = expandCols["Admins Online"];
+            if (GM_config.get("ban-display-show-duration"))
+                banData["Duration"] = expandCols["Duration"]
+                    ? expandCols["Duration"]
+                    : cols[4].innerText;
+            if (GM_config.get("ban-display-show-reason"))
+                banData["Reason"] = expandCols["Reason"]
+                    ? expandCols["Reason"]
+                    : cols[5].innerText;
+
+            for (const [key, value] of Object.entries(banData)) {
+                const row = document.createElement("tr");
+                tableBody.appendChild(row).classList.add("dataList-row");
+                const keyCell = document.createElement("td");
+                row.appendChild(keyCell).classList.add(
+                    "dataList-cell",
+                    "small-cell"
+                );
+                keyCell.innerText = key;
+                keyCell.style.textAlign = "left";
+                const valueCell = document.createElement("td");
+                row.appendChild(valueCell).classList.add(
+                    "dataList-cell",
+                    "small-cell"
+                );
+                if (allowedHTMLData.includes(key)) valueCell.innerHTML = value;
+                else valueCell.innerText = value;
+                valueCell.style.textAlign = "right";
+            }
+
+            const notes = html.getElementById(
+                "notes_" + latestBan.dataset.num
+            )!.innerHTML;
+            if (notes.includes("<") || notes.includes(">")) {
+                // Failsafe checking, MAUL should always replace these with &lt; and &gt;, if they don't, something is wrong.
+                if (!GM_config.get("ban-display-silent-fail"))
+                    display.innerHTML =
+                        "<i>Potential injection detected, aborting</i>";
+                else display.innerHTML = "";
+                return;
+            }
+            const notesDiv = document.createElement("div");
+            right.appendChild(notesDiv);
+            var replacedNotes = notes;
+            if (GM_config.get("ban-display-hyperlink")) {
+                replacedNotes = replacedNotes
+                    .replaceAll(/&amp;/g, "&")
+                    .replaceAll(
+                        /https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)/g,
+                        '<a href="$&" target="_blank" rel="external"><u>$&</u></a>'
+                    );
+            }
+            if (GM_config.get("ban-display-steamid"))
+                // TODO: Allow user to customize this (like MAUL)
+                replacedNotes = replacedNotes.replaceAll(
+                    /(^|\s|[!"#$%&'()*+,\-.:;<=>?@[\]^`{|}~])(\d{17})($|\s|[!"#$%&'()*+,\-.:;<=>?@[\]^`{|}~])/g,
+                    '$1<a href="https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=$2" target="_blank"><u>$2</u></a>$3'
+                );
+            notesDiv.innerHTML = replacedNotes;
+            notesDiv.style.textAlign = "left";
+            notesDiv.style.maxHeight = table.offsetHeight + "px";
+            notesDiv.style.overflowY = "auto";
+        },
+    });
+}
+
+/**
  * Generates large, transparent text (basically a watermark)
  * @param {string} top CSS Top Style
  * @param {string} str Text to display
@@ -1246,6 +1505,34 @@ function handleBanAppealReport(report: boolean = false) {
                     reporter: getOP()?.innerText,
                     game: title_match.groups!.game,
                 });
+            else if (GM_config.get("ban-display-enable")) {
+                if (GM_config.get("ban-display-hidden")) {
+                    const button = document.createElement("a");
+                    button.classList.add("button--link", "button");
+                    button.onclick = () => {
+                        button.remove();
+                        displayBanInfo(
+                            steam_id_64,
+                            document.querySelector(".p-body-main")!
+                        );
+                    };
+
+                    const button_text = document.createElement("span"); // Create button text
+                    button_text.classList.add("button-text");
+                    button_text.innerHTML = "Get Ban Info";
+
+                    // Add all elements to their respective parents
+                    button.appendChild(button_text);
+                    button_group.insertBefore(
+                        button,
+                        button_group.lastElementChild
+                    );
+                } else
+                    displayBanInfo(
+                        steam_id_64,
+                        document.querySelector(".p-body-main")!
+                    );
+            }
             addBansButton(button_group, steam_id_64);
         } catch (TypeError) {
             if (GM_config.get("show-list-bans-unknown"))
