@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement%RELEASE_TYPE%
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
-// @version      4.8.0
+// @version      4.8.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -888,8 +888,12 @@ function removeNavButtons(removals: string[], nav: HTMLElement) {
 function replaceLogoLink() {
     if ((GM_config.get("logo-link") as string).length == 0) return;
     (
-        document.querySelector("div.p-header-logo > a") as HTMLAnchorElement
-    ).href = GM_config.get("logo-link") as string;
+        document.querySelectorAll(
+            "div.p-header-logo > a, div.p-nav-smallLogo > a"
+        ) as NodeListOf<HTMLAnchorElement>
+    ).forEach((a: HTMLAnchorElement) => {
+        a.href = GM_config.get("logo-link") as string;
+    });
 }
 
 /**
