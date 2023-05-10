@@ -1189,7 +1189,7 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
             const notes = html.getElementById(
                 "notes_" + latestBan.dataset.num
             )!.innerHTML;
-            if (notes.includes("<") || notes.includes(">")) {
+            if ([...notes.matchAll(/<(.+?)>/g)].some((match) => match[1] != "br")) {
                 // Failsafe checking, MAUL should always replace these with &lt; and &gt;, if they don't, something is wrong.
                 if (!GM_config.get("ban-display-silent-fail"))
                     display.innerHTML =
