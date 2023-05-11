@@ -182,7 +182,8 @@ function getSteamID_M(unparsed_id: string): Promise<string> {
                     : SteamIDConverter.toSteamID64(unparsed_id)
             );
         } catch (TypeError) {
-            if (!GM_config.get("lookup-unknown-ids")) return reject("Could not find Steam ID");
+            if (!GM_config.get("lookup-unknown-ids"))
+                return reject("Could not find Steam ID");
             const profile_id = unparsed_id.match(
                 /^(.*id\/)?(?<game_id>[^\/\n]*)\/?$/
             )?.groups?.game_id;
@@ -197,7 +198,8 @@ function getSteamID_M(unparsed_id: string): Promise<string> {
                 responseType: "json",
                 onload: (response) => {
                     const data = response.response;
-                    if (data && data.length == 1) return resolve(data[0].steamid);
+                    if (data && data.length == 1)
+                        return resolve(data[0].steamid);
                     reject("Could not find Steam ID");
                 },
                 onerror: (error) => {
