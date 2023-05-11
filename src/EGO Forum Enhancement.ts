@@ -1027,7 +1027,7 @@ function getPostBoxEl() {
 function getSteamID_F(unparsed_id: string): Promise<string> {
     return new Promise((resolve, reject) => {
         const steam_id_match = unparsed_id.match(
-            /(\d+)|(STEAM_\d:\d:\d+)|(\[U:\d:\d+\])/
+            /(\d{17})|(STEAM_\d:\d:\d+)|(\[U:\d:\d+\])/
         );
         if (steam_id_match)
             try {
