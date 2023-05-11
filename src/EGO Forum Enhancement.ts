@@ -1031,7 +1031,7 @@ function getSteamID_F(unparsed_id: string): Promise<string> {
         );
         if (steam_id_match)
             try {
-                const steam_id = steam_id_match[0]
+                const steam_id = steam_id_match[0];
                 return resolve(
                     SteamIDConverter.isSteamID64(steam_id)
                         ? steam_id
@@ -1054,8 +1054,7 @@ function getSteamID_F(unparsed_id: string): Promise<string> {
             responseType: "json",
             onload: (response) => {
                 const data = response.response;
-                if (data && data.length == 1)
-                    return resolve(data[0].steamid);
+                if (data && data.length == 1) return resolve(data[0].steamid);
                 reject("Could not find Steam ID");
             },
             onerror: (error) => {
