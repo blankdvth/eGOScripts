@@ -193,7 +193,7 @@ function getSteamID_M(
             if (!GM_config.get("lookup-unknown-ids"))
                 return reject("Could not find Steam ID");
             const profile_id = unparsed_id.match(
-                /^(.*id\/)?(?<game_id>[^\/\n]*)\/?$/
+                /^(.*id\/)?(?<game_id>[^\/\n\s]*)\/?$/
             )?.groups?.game_id;
             if (!profile_id) return reject("Could not find Steam ID");
             GM_xmlhttpRequest({
