@@ -1027,23 +1027,29 @@ function getPostBoxEl() {
 function getSteamID(unparsed_id: string): Promise<string> {
     return new Promise((resolve, reject) => {
         try {
-            resolve(SteamIDConverter.isSteamID64(unparsed_id)
-            ? unparsed_id
-            : SteamIDConverter.toSteamID64(unparsed_id))
+            resolve(
+                SteamIDConverter.isSteamID64(unparsed_id)
+                    ? unparsed_id
+                    : SteamIDConverter.toSteamID64(unparsed_id)
+            );
         } catch (TypeError) {
-            if (!GM_config.get("lookup-unknown-ids")) reject("Could not find Steam ID");
-            const profile_id = unparsed_id.match(/^(.*id\/)?(?<game_id>[^\/\n]*)\/?$/)?.groups?.game_id;
+            if (!GM_config.get("lookup-unknown-ids"))
+                reject("Could not find Steam ID");
+            const profile_id = unparsed_id.match(
+                /^(.*id\/)?(?<game_id>[^\/\n]*)\/?$/
+            )?.groups?.game_id;
             if (!profile_id) reject("Could not find Steam ID");
             GM_xmlhttpRequest({
                 method: "GET",
-                url: `https://api.findsteamid.com/steam/api/summary/${encodeURIComponent(profile_id as string)}`,
+                url: `https://api.findsteamid.com/steam/api/summary/${encodeURIComponent(
+                    profile_id as string
+                )}`,
                 anonymous: true,
                 timeout: 2500,
                 responseType: "json",
                 onload: (response) => {
                     const data = response.response;
-                    if (data && data.length == 1)
-                        resolve(data[0].steamid);
+                    if (data && data.length == 1) resolve(data[0].steamid);
                     reject("Could not find Steam ID");
                 },
                 onerror: (error) => {
@@ -1051,8 +1057,8 @@ function getSteamID(unparsed_id: string): Promise<string> {
                 },
                 ontimeout: () => {
                     reject("Timeout");
-                }
-            })
+                },
+            });
         }
     });
 }
@@ -1602,51 +1608,53 @@ function handleBanAppealReport(report: boolean = false) {
         /^(?<game>.*) - (?<handle>.*) - (.*?\/?(?<game_id>[\w\d\/\[\]\-\.:]*).*)$/
     );
     if (title_match) {
-        getSteamID(title_match.groups!.game_id)?.then((steam_id_64) => {
-            if (report)
-                addAddBanButton(button_group, {
-                    name: title_match.groups!.handle,
-                    id: steam_id_64,
-                    threadId: document
-                        .getElementById("XF")!
-                        .dataset.contentKey?.replace("thread-", ""),
-                    reporter: getOP()?.innerText,
-                    game: title_match.groups!.game,
-                });
-            else if (GM_config.get("ban-display-enable")) {
-                if (GM_config.get("ban-display-hidden")) {
-                    const button = document.createElement("a");
-                    button.classList.add("button--link", "button");
-                    button.onclick = () => {
-                        button.remove();
+        getSteamID(title_match.groups!.game_id)
+            ?.then((steam_id_64) => {
+                if (report)
+                    addAddBanButton(button_group, {
+                        name: title_match.groups!.handle,
+                        id: steam_id_64,
+                        threadId: document
+                            .getElementById("XF")!
+                            .dataset.contentKey?.replace("thread-", ""),
+                        reporter: getOP()?.innerText,
+                        game: title_match.groups!.game,
+                    });
+                else if (GM_config.get("ban-display-enable")) {
+                    if (GM_config.get("ban-display-hidden")) {
+                        const button = document.createElement("a");
+                        button.classList.add("button--link", "button");
+                        button.onclick = () => {
+                            button.remove();
+                            displayBanInfo(
+                                steam_id_64 as string,
+                                document.querySelector(".p-body-main")!
+                            );
+                        };
+
+                        const button_text = document.createElement("span"); // Create button text
+                        button_text.classList.add("button-text");
+                        button_text.innerHTML = "Get Ban Info";
+
+                        // Add all elements to their respective parents
+                        button.appendChild(button_text);
+                        button_group.insertBefore(
+                            button,
+                            button_group.lastElementChild
+                        );
+                    } else
                         displayBanInfo(
-                            steam_id_64 as string,
+                            steam_id_64,
                             document.querySelector(".p-body-main")!
                         );
-                    };
-
-                    const button_text = document.createElement("span"); // Create button text
-                    button_text.classList.add("button-text");
-                    button_text.innerHTML = "Get Ban Info";
-
-                    // Add all elements to their respective parents
-                    button.appendChild(button_text);
-                    button_group.insertBefore(
-                        button,
-                        button_group.lastElementChild
-                    );
-                } else
-                    displayBanInfo(
-                        steam_id_64,
-                        document.querySelector(".p-body-main")!
-                    );
-            }
-            addBansButton(button_group, steam_id_64);
-        }).catch(() => {
-            if (GM_config.get("show-list-bans-unknown"))
-                addBansButton(button_group, post_title.split(" - ")[2]);
-            addLookupButton(button_group, post_title);
-        });
+                }
+                addBansButton(button_group, steam_id_64);
+            })
+            .catch(() => {
+                if (GM_config.get("show-list-bans-unknown"))
+                    addBansButton(button_group, post_title.split(" - ")[2]);
+                addLookupButton(button_group, post_title);
+            });
     } else {
         if (GM_config.get("show-list-bans-unknown"))
             addBansButton(button_group, post_title.split(" - ")[2]);
