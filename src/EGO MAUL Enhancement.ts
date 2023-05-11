@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers MAUL Enhancement%RELEASE_TYPE%
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20MAUL%20Enhancement.ts
-// @version      4.6.2
+// @version      4.7.2
 // @description  Add various enhancements & QOL additions to the EdgeGamers MAUL page that are beneficial for CS Leadership members.
 // @author       blank_dvth, Left, Skle, MSWS, PixeL
 // @match        https://maul.edgegamers.com/*
@@ -11,10 +11,12 @@
 // @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment-with-locales.min.js
 // @require      https://raw.githubusercontent.com/pieroxy/lz-string/master/libs/lz-string.min.js
 // @require      https://openuserjs.org/src/libs/sizzle/GM_config.js
+// @connect      api.findsteamid.com
 // @resource     admins https://raw.githubusercontent.com/blankdvth/eGOScripts/master/admins.txt
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_getResourceText
+// @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
 // ==/UserScript==
 /// <reference path="../types/config/index.d.ts" />
@@ -171,6 +173,55 @@ function generateForumsURL(threadId: any, postId: any): string {
 }
 
 /**
+ * Gets Steam ID 64 from an unknown format
+ * @param {string} unparsed_id Unparsed ID
+ * @param {boolean} reject_existing Whether to reject if the ID is already in the correct format
+ */
+function getSteamID_M(
+    unparsed_id: string,
+    reject_existing: boolean = false
+): Promise<string> {
+    return new Promise((resolve, reject) => {
+        if (SteamIDConverter.isSteamID64(unparsed_id))
+            reject_existing ? reject("Already ID 64") : resolve(unparsed_id);
+        else if (
+            SteamIDConverter.isSteamID(unparsed_id) ||
+            SteamIDConverter.isSteamID3(unparsed_id)
+        )
+            resolve(SteamIDConverter.toSteamID64(unparsed_id));
+        else {
+            if (!GM_config.get("lookup-unknown-ids"))
+                return reject("Could not find Steam ID");
+            const profile_id = unparsed_id.match(
+                /^(.*id\/)?(?<game_id>[^\/\n]*)\/?$/
+            )?.groups?.game_id;
+            if (!profile_id) return reject("Could not find Steam ID");
+            GM_xmlhttpRequest({
+                method: "GET",
+                url: `https://api.findsteamid.com/steam/api/summary/${encodeURIComponent(
+                    profile_id as string
+                )}`,
+                anonymous: true,
+                timeout: 2500,
+                responseType: "json",
+                onload: (response) => {
+                    const data = response.response;
+                    if (data && data.length == 1)
+                        return resolve(data[0].steamid);
+                    reject("Could not find Steam ID");
+                },
+                onerror: (error) => {
+                    reject(error);
+                },
+                ontimeout: () => {
+                    reject("Timeout");
+                },
+            });
+        }
+    });
+}
+
+/**
  * Setup the configuration manager and add a button to open it
  */
 function setupMAULConfig() {
@@ -197,6 +248,12 @@ function setupMAULConfig() {
                 title: "Converts all non-ID64 (ID3, ID) to ID64 when searching MAUL.",
                 type: "checkbox",
                 default: true,
+            },
+            "lookup-unknown-ids": {
+                label: "Lookup Unknown IDs",
+                title: "When a Steam ID is not found, attempt to look it up when converting. This WILL cause issues if you're trying to lookup a non-Steam ID, and can slow the search down slightly.",
+                type: "checkbox",
+                default: false,
             },
             "autoselect-division": {
                 label: "Division Index",
@@ -804,24 +861,35 @@ function handleBanList() {
             .querySelector(
                 "div.form-group.input-group > span.input-group-btn > button"
             )
-            ?.addEventListener("click", function () {
-                if (
-                    (document.getElementById("banQType") as HTMLSelectElement)
-                        .value == "gameId"
-                ) {
-                    const searchBox = document.querySelector(
-                        "div.form-group.input-group > input[name='q']"
-                    ) as HTMLInputElement | undefined;
-                    const id = searchBox?.value;
+            ?.addEventListener(
+                "click",
+                function (event) {
                     if (
-                        id &&
-                        (SteamIDConverter.isSteamID(id) ||
-                            SteamIDConverter.isSteamID3(id))
+                        (
+                            document.getElementById(
+                                "banQType"
+                            ) as HTMLSelectElement
+                        ).value == "gameId"
                     ) {
-                        searchBox.value = SteamIDConverter.toSteamID64(id);
+                        const searchBox = document.querySelector(
+                            "div.form-group.input-group > input[name='q']"
+                        ) as HTMLInputElement | undefined;
+                        const id = searchBox?.value;
+                        if (id) {
+                            event.preventDefault(); // Allow the replacement to occur (API request takes time)
+                            getSteamID_M(id, true)
+                                .then((steam_id) => {
+                                    searchBox.value = steam_id;
+                                })
+                                .catch()
+                                .finally(() => {
+                                    searchBox.form?.submit(); // We preventDefault'd, so we need to submit manually
+                                });
+                        }
                     }
-                }
-            });
+                },
+                false
+            );
     if (GM_config.get("flag-enabled"))
         findFlagFields(
             Array.from(
