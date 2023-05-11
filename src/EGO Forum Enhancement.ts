@@ -146,7 +146,7 @@ function setupForumsConfig() {
             },
             "lookup-unknown-ids": {
                 label: "Lookup unknown Steam IDs",
-                title: "When checked, the script will attempt to lookup unknown IDs automatically by reaching out to an external API.",
+                title: "When checked, the script will attempt to lookup unknown IDs automatically by reaching out to an external API. Please ensure the ID is correct before taking any action, this is not always accurate.",
                 type: "checkbox",
                 default: true,
             },
@@ -1609,7 +1609,7 @@ function handleBanAppealReport(report: boolean = false) {
     );
 
     const title_match = post_title.match(
-        /^(?<game>.*) - (?<handle>.*) - (.*?\/?(?<game_id>[\w\d\/\[\]\-\.:]*).*)$/
+        /^(?<game>.*) - (?<handle>.*) - (.*?\/?(?<game_id>[\w\d\/\[\]\-\.: ]*).*)$/
     );
     if (title_match) {
         getSteamID_F(title_match.groups!.game_id)
