@@ -171,6 +171,47 @@ function generateForumsURL(threadId: any, postId: any): string {
 }
 
 /**
+ * Gets Steam ID 64 from an unknown format
+ */
+function getSteamID_M(unparsed_id: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(
+                SteamIDConverter.isSteamID64(unparsed_id)
+                    ? unparsed_id
+                    : SteamIDConverter.toSteamID64(unparsed_id)
+            );
+        } catch (TypeError) {
+            if (!GM_config.get("lookup-unknown-ids")) return reject("Could not find Steam ID");
+            const profile_id = unparsed_id.match(
+                /^(.*id\/)?(?<game_id>[^\/\n]*)\/?$/
+            )?.groups?.game_id;
+            if (!profile_id) return reject("Could not find Steam ID");
+            GM_xmlhttpRequest({
+                method: "GET",
+                url: `https://api.findsteamid.com/steam/api/summary/${encodeURIComponent(
+                    profile_id as string
+                )}`,
+                anonymous: true,
+                timeout: 2500,
+                responseType: "json",
+                onload: (response) => {
+                    const data = response.response;
+                    if (data && data.length == 1) return resolve(data[0].steamid);
+                    reject("Could not find Steam ID");
+                },
+                onerror: (error) => {
+                    reject(error);
+                },
+                ontimeout: () => {
+                    reject("Timeout");
+                },
+            });
+        }
+    });
+}
+
+/**
  * Setup the configuration manager and add a button to open it
  */
 function setupMAULConfig() {

@@ -1024,7 +1024,7 @@ function getPostBoxEl() {
 /**
  * Gets Steam ID 64 from an unknown format
  */
-function getSteamID(unparsed_id: string): Promise<string> {
+function getSteamID_F(unparsed_id: string): Promise<string> {
     return new Promise((resolve, reject) => {
         try {
             resolve(
@@ -1033,12 +1033,11 @@ function getSteamID(unparsed_id: string): Promise<string> {
                     : SteamIDConverter.toSteamID64(unparsed_id)
             );
         } catch (TypeError) {
-            if (!GM_config.get("lookup-unknown-ids"))
-                reject("Could not find Steam ID");
+            if (!GM_config.get("lookup-unknown-ids")) return reject("Could not find Steam ID");
             const profile_id = unparsed_id.match(
                 /^(.*id\/)?(?<game_id>[^\/\n]*)\/?$/
             )?.groups?.game_id;
-            if (!profile_id) reject("Could not find Steam ID");
+            if (!profile_id) return reject("Could not find Steam ID");
             GM_xmlhttpRequest({
                 method: "GET",
                 url: `https://api.findsteamid.com/steam/api/summary/${encodeURIComponent(
@@ -1049,7 +1048,7 @@ function getSteamID(unparsed_id: string): Promise<string> {
                 responseType: "json",
                 onload: (response) => {
                     const data = response.response;
-                    if (data && data.length == 1) resolve(data[0].steamid);
+                    if (data && data.length == 1) return resolve(data[0].steamid);
                     reject("Could not find Steam ID");
                 },
                 onerror: (error) => {
@@ -1608,7 +1607,7 @@ function handleBanAppealReport(report: boolean = false) {
         /^(?<game>.*) - (?<handle>.*) - (.*?\/?(?<game_id>[\w\d\/\[\]\-\.:]*).*)$/
     );
     if (title_match) {
-        getSteamID(title_match.groups!.game_id)
+        getSteamID_F(title_match.groups!.game_id)
             ?.then((steam_id_64) => {
                 if (report)
                     addAddBanButton(button_group, {
