@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement%RELEASE_TYPE%
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
-// @version      4.9.4
+// @version      4.9.5
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -98,13 +98,15 @@ function addForumsPreset(
  * @param {HTMLDivElement} div Div to add/append to
  * @param {string} target Meta target for button
  * @param {boolean} append True to append, false to insert
+ * @param {HTMLElement} ins_el Element to insert before, only used if append is false
  */
 function createButton(
     href: string,
     text: string,
     div: HTMLDivElement,
     target: string = "_blank",
-    append: boolean = false
+    append: boolean = false,
+    ins_el: HTMLElement | null = null
 ) {
     const button = document.createElement("a");
     button.href = href;
@@ -119,7 +121,7 @@ function createButton(
     button.appendChild(button_text);
     append
         ? div.appendChild(button)
-        : div.insertBefore(button, div.lastElementChild);
+        : div.insertBefore(button, ins_el ?? div.lastElementChild);
 }
 
 /**
@@ -781,7 +783,11 @@ function addAddBanButton(div: HTMLDivElement, data: AddBan_Data) {
         `https://maul.edgegamers.com/index.php?page=editban#${urlData}`,
         "Add Ban",
         div,
-        "_blank"
+        "_blank",
+        false,
+        document.querySelector(
+            "a.button--link.button[href*='move']"
+        ) as HTMLAnchorElement | null
     );
 }
 
@@ -797,7 +803,11 @@ function addBansButton(div: HTMLDivElement, steam_id_64: string) {
             steam_id_64,
         "List Bans",
         div,
-        "_blank"
+        "_blank",
+        false,
+        document.querySelector(
+            "a.button--link.button[href*='move']"
+        ) as HTMLAnchorElement | null
     );
 }
 
@@ -814,7 +824,12 @@ function addLookupButton(div: HTMLDivElement, post_title: string) {
         createButton(
             "https://steamid.io/lookup/" + steam_id_unknown.groups!.game_id,
             "Lookup ID",
-            div
+            div,
+            "_blank",
+            false,
+            document.querySelector(
+                "a.button--link.button[href*='move']"
+            ) as HTMLAnchorElement | null
         );
 }
 
