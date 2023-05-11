@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement%RELEASE_TYPE%
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
-// @version      4.9.3
+// @version      4.9.4
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS
 // @match        https://www.edgegamers.com/*
@@ -1026,41 +1026,45 @@ function getPostBoxEl() {
  */
 function getSteamID_F(unparsed_id: string): Promise<string> {
     return new Promise((resolve, reject) => {
-        try {
-            resolve(
-                SteamIDConverter.isSteamID64(unparsed_id)
-                    ? unparsed_id
-                    : SteamIDConverter.toSteamID64(unparsed_id)
-            );
-        } catch (TypeError) {
-            if (!GM_config.get("lookup-unknown-ids"))
-                return reject("Could not find Steam ID");
-            const profile_id = unparsed_id.match(
-                /^(.*id\/)?(?<game_id>[^\/\n]*)\/?$/
-            )?.groups?.game_id;
-            if (!profile_id) return reject("Could not find Steam ID");
-            GM_xmlhttpRequest({
-                method: "GET",
-                url: `https://api.findsteamid.com/steam/api/summary/${encodeURIComponent(
-                    profile_id as string
-                )}`,
-                anonymous: true,
-                timeout: 2500,
-                responseType: "json",
-                onload: (response) => {
-                    const data = response.response;
-                    if (data && data.length == 1)
-                        return resolve(data[0].steamid);
-                    reject("Could not find Steam ID");
-                },
-                onerror: (error) => {
-                    reject(error);
-                },
-                ontimeout: () => {
-                    reject("Timeout");
-                },
-            });
-        }
+        const steam_id_match = unparsed_id.match(
+            /(\d+)|(STEAM_\d:\d:\d+)|(\[U:\d:\d+\])/
+        );
+        if (steam_id_match)
+            try {
+                const steam_id = steam_id_match[0]
+                return resolve(
+                    SteamIDConverter.isSteamID64(steam_id)
+                        ? steam_id
+                        : SteamIDConverter.toSteamID64(steam_id)
+                );
+            } catch (TypeError) {}
+        if (!GM_config.get("lookup-unknown-ids"))
+            return reject("Could not find Steam ID");
+        const profile_id = unparsed_id.match(
+            /^(.*id\/)?(?<game_id>[^\/\n]*)\/?$/
+        )?.groups?.game_id;
+        if (!profile_id) return reject("Could not find Steam ID");
+        GM_xmlhttpRequest({
+            method: "GET",
+            url: `https://api.findsteamid.com/steam/api/summary/${encodeURIComponent(
+                profile_id as string
+            )}`,
+            anonymous: true,
+            timeout: 2500,
+            responseType: "json",
+            onload: (response) => {
+                const data = response.response;
+                if (data && data.length == 1)
+                    return resolve(data[0].steamid);
+                reject("Could not find Steam ID");
+            },
+            onerror: (error) => {
+                reject(error);
+            },
+            ontimeout: () => {
+                reject("Timeout");
+            },
+        });
     });
 }
 
