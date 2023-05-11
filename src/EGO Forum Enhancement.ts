@@ -881,6 +881,160 @@ function addTrashButton(before: HTMLDivElement) {
 }
 
 /**
+ * Adds additional buttons to post action bars to make it easier to perform some actions.
+ */
+function addPostActionBarButtons() {
+    const threadId = window.location.href.match(/threads\/(?<post_id>\d+)/);
+    if (!threadId) return;
+
+    const posts = document.querySelectorAll(
+        ".message.message--post"
+    ) as NodeListOf<HTMLElement>;
+    if (posts.length == 0) return;
+
+    const isThreadUnapproved = document.querySelector(
+        ".blockStatus-message--moderated"
+    );
+
+    for (let i = 0; i < posts.length; i++) {
+        const post = posts[i] as HTMLElement;
+        if (!post) continue;
+
+        const actionBarSet = post.querySelector(
+            ".actionBar-set.actionBar-set--internal"
+        );
+
+        if (!actionBarSet) continue;
+
+        // There is no point in adding additional buttons on deleted posts currently.
+        const isDeleted =
+            post.classList.contains("message--deleted") ||
+            post.querySelector(".messageNotice--deleted");
+        if (isDeleted) continue;
+
+        const postId = post.dataset.content?.substring(5);
+        if (!postId) continue;
+
+        let isUnapproved = post.querySelector(".messageNotice--moderated")
+            ? true
+            : false;
+
+        let isThreadOP = false;
+
+        // Check the post counter to see if it is the original post so we can make sure we change the button action correctly.
+        if (i == 0) {
+            const attributionListElements = post.querySelectorAll(
+                ".message-attribution-opposite.message-attribution-opposite--list li"
+            );
+            for (let j = 0; j < attributionListElements.length; j++) {
+                const element = attributionListElements[j] as HTMLElement;
+
+                if (element.innerText == "#1") {
+                    isThreadOP = true;
+                    break;
+                }
+            }
+        }
+
+        if (isThreadOP && isThreadUnapproved) isUnapproved = true;
+
+        const approvalButton = document.createElement("a");
+        approvalButton.classList.add(
+            "actionBar-action",
+            "actionBar-action--menuItem"
+        );
+        approvalButton.setAttribute("tabindex", "0");
+
+        if (isThreadOP) {
+            approvalButton.innerText = isUnapproved
+                ? "Approve Thread"
+                : "Unapprove Thread";
+        } else {
+            approvalButton.innerText = isUnapproved ? "Approve" : "Unapprove";
+        }
+
+        approvalButton.onclick = () => {
+            handlePostApproval(threadId[1], postId, isUnapproved);
+        };
+
+        actionBarSet.appendChild(approvalButton);
+    }
+}
+
+/**
+ * Handles (un)approving a thread post by ID.
+ */
+async function handlePostApproval(
+    threadId: string,
+    postId: string,
+    approve: boolean
+) {
+    const xfTokenElement = document.querySelector(
+        "input[name='_xfToken']"
+    ) as HTMLInputElement;
+    if (!xfTokenElement) {
+        console.error("Failed to find _xfToken input");
+        return;
+    }
+    const xfToken = xfTokenElement.value;
+
+    // cookies cannot be set in the request unfortunately.
+    document.cookie = `xf_inlinemod_post=${postId}; Path=/; Secure=true;`;
+
+    const searchParams = new URLSearchParams({
+        type: "post",
+        _xfRequestUri: `/threads/${threadId}/`,
+        _xfWithData: "1",
+        _xfToken: xfToken,
+        _xfResponseType: "json",
+    });
+
+    // First we send a GET to signify we want to do moderation actions with the given post.
+    let response = await fetch(
+        `https://www.edgegamers.com/inline-mod/?${searchParams.toString()}`,
+        {
+            credentials: "same-origin",
+        }
+    );
+
+    if (!response.ok) {
+        console.error("Failed to fetch inline-mod");
+        document.cookie =
+            "xf_inlinemod_post=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+        return;
+    }
+
+    searchParams.set("action", approve ? "approve" : "unapprove");
+
+    // Then we send the POST with the actual mod actions
+    response = await fetch("https://www.edgegamers.com/inline-mod/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        credentials: "same-origin",
+        body: searchParams,
+    });
+
+    document.cookie =
+        "xf_inlinemod_post=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    if (!response.ok) {
+        console.error("Failed to change post approval status");
+        return;
+    }
+
+    const data = await response.json();
+
+    if (data.status != "ok") {
+        console.error("Server rejected post approval change");
+        console.log(data);
+        return;
+    }
+
+    window.location.reload();
+}
+
+/**
  * Adds a NAV item to the website's nav bar
  * @param {string} href URL to link to
  * @param {string} text Text for button
@@ -1602,6 +1756,7 @@ function handleGenericThread() {
     });
 
     blockSignatures();
+    addPostActionBarButtons();
 }
 
 /**
