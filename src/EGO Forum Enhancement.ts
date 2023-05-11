@@ -1031,6 +1031,7 @@ function getSteamID(unparsed_id: string): Promise<string> {
             ? unparsed_id
             : SteamIDConverter.toSteamID64(unparsed_id))
         } catch (TypeError) {
+            if (!GM_config.get("lookup-unknown-ids")) reject("Could not find Steam ID");
             const profile_id = unparsed_id.match(/^(.*id\/)?(?<game_id>[^\/\n]*)\/?$/)?.groups?.game_id;
             if (!profile_id) reject("Could not find Steam ID");
             GM_xmlhttpRequest({
