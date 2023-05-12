@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement%RELEASE_TYPE%
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
-// @version      4.10.1
+// @version      4.11.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS, PixeL
 // @match        https://www.edgegamers.com/*
@@ -2044,6 +2044,7 @@ function handlePostBox(observer: MutationObserver) {
     )
         handleAutoCount();
     handleCannedResponses();
+    handleUnapprovePost(postBox);
 }
 
 /**
@@ -2182,6 +2183,78 @@ function handleCannedResponses() {
             dropdownContent.append(btn);
         });
     });
+}
+
+/**
+ * Handles adding a post & unapprove button to the postbox
+ */
+function handleUnapprovePost(postBox: HTMLDivElement) {
+    const threadId = getThreadId();
+    const threadBody = document.querySelector(
+        "div.block-body.js-replyNewMessageContainer"
+    ) as HTMLDivElement;
+    const postButton = document.querySelector(
+        "button.button--icon--reply:not(#post-unapprove-button)"
+    ) as HTMLButtonElement;
+    const postUnapproveButton = document.createElement("a"); // Using a so that it doesn't submit the form
+    postUnapproveButton.classList.add(
+        "button--primary",
+        "button",
+        "button--icon",
+        "button--icon--reply"
+    );
+    postUnapproveButton.style.marginRight = "4px";
+    postUnapproveButton.id = "post-unapprove-button";
+    postUnapproveButton.innerHTML = '<span class="button-text">UA</span>';
+    postUnapproveButton.title = "Post & Unapprove";
+
+    postUnapproveButton.addEventListener("click", function () {
+        const postBoxContent = getPostBox();
+        if (!postBoxContent) return;
+        editPostBox("🐰🥚", false);
+        postButton.click();
+
+        const observer = new MutationObserver((mutations) => {
+            mutations.every((mutation) => {
+                if (!mutation.addedNodes) return true;
+                for (let i = 0; i < mutation.addedNodes.length; i++) {
+                    const node = mutation.addedNodes[i] as HTMLElement;
+                    if (node.nodeName === "ARTICLE") {
+                        const postId = node.dataset.content?.replaceAll(
+                            "post-",
+                            ""
+                        );
+                        if (threadId && postId)
+                            setPostApprovalStatus(
+                                threadId,
+                                postId,
+                                false,
+                                false
+                            ).then(() => {
+                                editPost(
+                                    threadId,
+                                    postId,
+                                    postBoxContent,
+                                    true
+                                ).then(() => {
+                                    window.location.reload();
+                                });
+                            });
+                        observer.disconnect();
+                        return false;
+                    }
+                }
+            });
+        });
+        observer.observe(threadBody, {
+            childList: true,
+            subtree: true,
+            attributes: false,
+            characterData: false,
+        });
+    });
+
+    postButton.parentElement?.insertBefore(postUnapproveButton, postButton);
 }
 
 /**
