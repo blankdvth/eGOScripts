@@ -976,14 +976,11 @@ async function setPostApprovalStatus(
     approve: boolean,
     reload: boolean = true
 ) {
-    const xfTokenElement = document.querySelector(
-        "input[name='_xfToken']"
-    ) as HTMLInputElement;
-    if (!xfTokenElement) {
-        console.error("Failed to find _xfToken input");
+    const xfToken = getXFToken();
+    if (!xfToken) {
+        console.error("Failed to get XF token");
         return;
     }
-    const xfToken = xfTokenElement.value;
 
     // cookies cannot be set in the request unfortunately.
     document.cookie = `xf_inlinemod_post=${postId}; Path=/; Secure=true;`;
@@ -1241,6 +1238,14 @@ function getSteamID_F(unparsed_id: string): Promise<string> {
             },
         });
     });
+}
+
+function getXFToken() {
+    return (
+        document.querySelector(
+            "input[name='_xfToken']"
+        ) as HTMLInputElement | null
+    )?.value;
 }
 
 /**
