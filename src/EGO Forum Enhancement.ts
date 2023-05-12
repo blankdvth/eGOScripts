@@ -207,6 +207,12 @@ function setupForumsConfig() {
                 type: "text",
                 default: "",
             },
+            "rich-override": {
+                label: "Allow post & unapprove in rich editor (NOT SUPPORTED)",
+                title: "The post & unapprove button in the rich editor is not supported, and will cause formatting issues in your message. If you want to use it anyway, check this box, no support will be provided.",
+                type: "checkbox",
+                default: false,
+            },
             "move-to-completed-unchecked": {
                 label: "Completed Forums Map",
                 section: [
@@ -2189,6 +2195,15 @@ function handleCannedResponses() {
  * Handles adding a post & unapprove button to the postbox
  */
 function handleUnapprovePost(postBox: HTMLDivElement) {
+    if (
+        !document.querySelector("#xfBbCode-1")?.classList.contains("fr-active")
+    ) {
+        if (GM_config.get("rich-override"))
+            console.warn(
+                "Post box is in rich editor mode, but rich editor override is enabled. The rich editor is NOT supported."
+            );
+        else return;
+    }
     const threadId = getThreadId();
     const threadBody = document.querySelector(
         "div.block-body.js-replyNewMessageContainer"
