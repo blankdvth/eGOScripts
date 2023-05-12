@@ -1276,11 +1276,7 @@ function getSteamID_F(unparsed_id: string): Promise<string> {
 }
 
 function getXFToken() {
-    return (
-        document.querySelector(
-            "input[name='_xfToken']"
-        ) as HTMLInputElement | null
-    )?.value;
+    return document.getElementById("XF")?.dataset.csrf;
 }
 
 /**
