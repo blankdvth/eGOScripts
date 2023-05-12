@@ -884,8 +884,8 @@ function addTrashButton(before: HTMLDivElement) {
  * Adds additional buttons to post action bars to make it easier to perform some actions.
  */
 function addPostActionBarButtons() {
-    const threadId = window.location.href.match(/threads\/(?<post_id>\d+)/);
-    if (!threadId) return;
+    const threadId = getThreadId();
+    if (!threadId || threadId.length == 0) return;
 
     const posts = document.querySelectorAll(
         ".message.message--post"
@@ -1268,6 +1268,16 @@ function getForumId() {
     return document
         .getElementById("XF")!
         .dataset.containerKey?.replace("node-", "");
+}
+
+/**
+ * Gets the ID of the current thread
+ * @returns {string} Thread ID
+ */
+function getThreadId() {
+    return document
+        .getElementById("XF")!
+        .dataset.contentKey?.replace("thread-", "");
 }
 
 /**
