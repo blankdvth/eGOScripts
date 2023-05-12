@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement%RELEASE_TYPE%
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
-// @version      4.10.0
+// @version      4.10.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS, PixeL
 // @match        https://www.edgegamers.com/*
@@ -140,9 +140,15 @@ function setupForumsConfig() {
                 type: "checkbox",
                 default: true,
             },
+            "show-confidential-watermark": {
+                label: "Show confidential watermarks on LE forums",
+                title: "When checked, all LE forums will have a red confidential watermark on them.",
+                type: "checkbox",
+                default: true,
+            },
             "confidential-reports": {
                 label: "Show confidential watermark on reports",
-                title: "When checked, reports will have a red confidential watermark on them.",
+                title: "When checked, reports will have a red confidential watermark on them. This only works if the above setting is enabled.",
                 type: "checkbox",
                 default: true,
             },
@@ -1934,8 +1940,10 @@ function handleProfileDropdown(event: Event) {
  * @returns void
  */
 function handleLeadership() {
-    generateRedText("5%");
-    generateRedText("80%");
+    if (GM_config.get("show-confidential-watermark")) {
+        generateRedText("5%");
+        generateRedText("80%");
+    }
 }
 
 /**
