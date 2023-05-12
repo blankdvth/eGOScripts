@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement%RELEASE_TYPE%
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
-// @version      4.10.1
+// @version      4.11.1
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS, PixeL
 // @match        https://www.edgegamers.com/*
@@ -206,6 +206,18 @@ function setupForumsConfig() {
                 title: "Replace the link the eGO logo (top-left) links to with the given URL. Leave empty to disable.",
                 type: "text",
                 default: "",
+            },
+            "enable-post-unapprove-btn": {
+                label: "Enable post & unapprove button",
+                title: "Whether to add a button that will safely post an unapproved reply.",
+                type: "checkbox",
+                default: true,
+            },
+            "rich-override": {
+                label: "Allow post & unapprove in rich editor (NOT SUPPORTED)",
+                title: "The post & unapprove button in the rich editor is not supported, and will cause formatting issues in your message. If you want to use it anyway, check this box, no support will be provided.",
+                type: "checkbox",
+                default: false,
             },
             "move-to-completed-unchecked": {
                 label: "Completed Forums Map",
@@ -973,16 +985,14 @@ function addPostActionBarButtons() {
 async function setPostApprovalStatus(
     threadId: string,
     postId: string,
-    approve: boolean
+    approve: boolean,
+    reload: boolean = true
 ) {
-    const xfTokenElement = document.querySelector(
-        "input[name='_xfToken']"
-    ) as HTMLInputElement;
-    if (!xfTokenElement) {
-        console.error("Failed to find _xfToken input");
+    const xfToken = getXFToken();
+    if (!xfToken) {
+        console.error("Failed to get XF token");
         return;
     }
-    const xfToken = xfTokenElement.value;
 
     // cookies cannot be set in the request unfortunately.
     document.cookie = `xf_inlinemod_post=${postId}; Path=/; Secure=true;`;
@@ -1037,7 +1047,51 @@ async function setPostApprovalStatus(
         return;
     }
 
-    window.location.reload();
+    if (reload) window.location.reload();
+}
+
+async function editPost(
+    threadId: string,
+    postId: string,
+    message: string,
+    silent: boolean = false,
+    clearEdits: boolean = false
+) {
+    const xfToken = getXFToken();
+    if (!xfToken) {
+        console.error("Failed to get XF token");
+        return;
+    }
+
+    const formdata = new FormData();
+    formdata.append("_xfToken", xfToken);
+    formdata.append("_xfInlineEdit", "1");
+    formdata.append("_xfRequestUri", `/threads/${threadId}/`);
+    formdata.append("_xfWithData", "1");
+    formdata.append("_xfResponseType", "json");
+    formdata.append("message", message);
+    if (silent) formdata.append("silent", "1");
+    if (clearEdits) formdata.append("clear_edit", "1");
+
+    const response = await fetch(
+        `https://www.edgegamers.com/posts/${postId}/edit`,
+        {
+            method: "POST",
+            credentials: "same-origin",
+            body: formdata,
+        }
+    );
+    if (!response.ok) {
+        console.error("Failed to edit post");
+        return;
+    }
+
+    const data = await response.json();
+    if (data.status != "ok") {
+        console.error("Server rejected post edit");
+        console.log(data);
+        return;
+    }
 }
 
 /**
@@ -1240,6 +1294,10 @@ function getSteamID_F(unparsed_id: string): Promise<string> {
             },
         });
     });
+}
+
+function getXFToken() {
+    return document.getElementById("XF")?.dataset.csrf;
 }
 
 /**
@@ -1998,6 +2056,8 @@ function handlePostBox(observer: MutationObserver) {
     )
         handleAutoCount();
     handleCannedResponses();
+    if (GM_config.get("enable-post-unapprove-btn"))
+        handleUnapprovePost(postBox);
 }
 
 /**
@@ -2136,6 +2196,87 @@ function handleCannedResponses() {
             dropdownContent.append(btn);
         });
     });
+}
+
+/**
+ * Handles adding a post & unapprove button to the postbox
+ */
+function handleUnapprovePost(postBox: HTMLDivElement) {
+    if (
+        !document.querySelector("#xfBbCode-1")?.classList.contains("fr-active")
+    ) {
+        if (GM_config.get("rich-override"))
+            console.warn(
+                "Post box is in rich editor mode, but rich editor override is enabled. The rich editor is NOT supported."
+            );
+        else return;
+    }
+    const threadId = getThreadId();
+    const threadBody = document.querySelector(
+        "div.block-body.js-replyNewMessageContainer"
+    ) as HTMLDivElement;
+    const postButton = document.querySelector(
+        "button.button--icon--reply:not(#post-unapprove-button)"
+    ) as HTMLButtonElement;
+    const postUnapproveButton = document.createElement("a"); // Using a so that it doesn't submit the form
+    postUnapproveButton.classList.add(
+        "button--primary",
+        "button",
+        "button--icon",
+        "button--icon--reply"
+    );
+    postUnapproveButton.style.marginRight = "4px";
+    postUnapproveButton.id = "post-unapprove-button";
+    postUnapproveButton.innerHTML = '<span class="button-text">UA</span>';
+    postUnapproveButton.title = "Post & Unapprove";
+
+    postUnapproveButton.addEventListener("click", function () {
+        const postBoxContent = getPostBox();
+        if (!postBoxContent) return;
+        editPostBox("🐰🥚", false);
+        postButton.click();
+
+        const observer = new MutationObserver((mutations) => {
+            mutations.every((mutation) => {
+                if (!mutation.addedNodes) return true;
+                for (let i = 0; i < mutation.addedNodes.length; i++) {
+                    const node = mutation.addedNodes[i] as HTMLElement;
+                    if (node.nodeName === "ARTICLE") {
+                        const postId = node.dataset.content?.replaceAll(
+                            "post-",
+                            ""
+                        );
+                        if (threadId && postId)
+                            setPostApprovalStatus(
+                                threadId,
+                                postId,
+                                false,
+                                false
+                            ).then(() => {
+                                editPost(
+                                    threadId,
+                                    postId,
+                                    postBoxContent,
+                                    true
+                                ).then(() => {
+                                    window.location.reload();
+                                });
+                            });
+                        observer.disconnect();
+                        return false;
+                    }
+                }
+            });
+        });
+        observer.observe(threadBody, {
+            childList: true,
+            subtree: true,
+            attributes: false,
+            characterData: false,
+        });
+    });
+
+    postButton.parentElement?.insertBefore(postUnapproveButton, postButton);
 }
 
 /**
