@@ -207,6 +207,12 @@ function setupForumsConfig() {
                 type: "text",
                 default: "",
             },
+            "enable-post-unapprove-btn": {
+                label: "Enable post & unapprove button",
+                title: "Whether to add a button that will safely post an unapproved reply.",
+                type: "checkbox",
+                default: true,
+            },
             "rich-override": {
                 label: "Allow post & unapprove in rich editor (NOT SUPPORTED)",
                 title: "The post & unapprove button in the rich editor is not supported, and will cause formatting issues in your message. If you want to use it anyway, check this box, no support will be provided.",
@@ -2050,7 +2056,8 @@ function handlePostBox(observer: MutationObserver) {
     )
         handleAutoCount();
     handleCannedResponses();
-    handleUnapprovePost(postBox);
+    if (GM_config.get("enable-post-unapprove-btn"))
+        handleUnapprovePost(postBox);
 }
 
 /**
