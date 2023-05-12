@@ -954,7 +954,7 @@ function addPostActionBarButtons() {
         }
 
         approvalButton.onclick = () => {
-            handlePostApproval(threadId[1], postId, isUnapproved);
+            setPostApprovalStatus(threadId[1], postId, isUnapproved);
         };
 
         actionBarSet.appendChild(approvalButton);
@@ -964,7 +964,7 @@ function addPostActionBarButtons() {
 /**
  * Handles (un)approving a thread post by ID.
  */
-async function handlePostApproval(
+async function setPostApprovalStatus(
     threadId: string,
     postId: string,
     approve: boolean
