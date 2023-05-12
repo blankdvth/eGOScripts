@@ -973,7 +973,8 @@ function addPostActionBarButtons() {
 async function setPostApprovalStatus(
     threadId: string,
     postId: string,
-    approve: boolean
+    approve: boolean,
+    reload: boolean = true
 ) {
     const xfTokenElement = document.querySelector(
         "input[name='_xfToken']"
@@ -1037,7 +1038,7 @@ async function setPostApprovalStatus(
         return;
     }
 
-    window.location.reload();
+    if (reload) window.location.reload();
 }
 
 /**
