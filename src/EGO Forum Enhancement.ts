@@ -1052,6 +1052,8 @@ async function editPost(threadId: string, postId: string, message: string, silen
     formdata.append("_xfWithData", "1");
     formdata.append("_xfResponseType", "json");
     formdata.append("message", message);
+    if (silent) formdata.append("silent", "1");
+    if (clearEdits) formdata.append("clear_edit", "1");
 
     const response = await fetch(`https://www.edgegamers.com/posts/${postId}/edit`, {
         method: "POST",
