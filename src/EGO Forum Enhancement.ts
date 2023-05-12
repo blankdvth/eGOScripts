@@ -1038,7 +1038,13 @@ async function setPostApprovalStatus(
     if (reload) window.location.reload();
 }
 
-async function editPost(threadId: string, postId: string, message: string, silent: boolean = false, clearEdits: boolean = false) {
+async function editPost(
+    threadId: string,
+    postId: string,
+    message: string,
+    silent: boolean = false,
+    clearEdits: boolean = false
+) {
     const xfToken = getXFToken();
     if (!xfToken) {
         console.error("Failed to get XF token");
@@ -1055,11 +1061,14 @@ async function editPost(threadId: string, postId: string, message: string, silen
     if (silent) formdata.append("silent", "1");
     if (clearEdits) formdata.append("clear_edit", "1");
 
-    const response = await fetch(`https://www.edgegamers.com/posts/${postId}/edit`, {
-        method: "POST",
-        credentials: "same-origin",
-        body: formdata,
-    })
+    const response = await fetch(
+        `https://www.edgegamers.com/posts/${postId}/edit`,
+        {
+            method: "POST",
+            credentials: "same-origin",
+            body: formdata,
+        }
+    );
     if (!response.ok) {
         console.error("Failed to edit post");
         return;
