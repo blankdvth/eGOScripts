@@ -1038,6 +1038,39 @@ async function setPostApprovalStatus(
     if (reload) window.location.reload();
 }
 
+async function editPost(threadId: string, postId: string, message: string, silent: boolean = false, clearEdits: boolean = false) {
+    const xfToken = getXFToken();
+    if (!xfToken) {
+        console.error("Failed to get XF token");
+        return;
+    }
+
+    const formdata = new FormData();
+    formdata.append("_xfToken", xfToken);
+    formdata.append("_xfInlineEdit", "1");
+    formdata.append("_xfRequestUri", `/threads/${threadId}/`);
+    formdata.append("_xfWithData", "1");
+    formdata.append("_xfResponseType", "json");
+    formdata.append("message", message);
+
+    const response = await fetch(`https://www.edgegamers.com/posts/${postId}/edit`, {
+        method: "POST",
+        credentials: "same-origin",
+        body: formdata,
+    })
+    if (!response.ok) {
+        console.error("Failed to edit post");
+        return;
+    }
+
+    const data = await response.json();
+    if (data.status != "ok") {
+        console.error("Server rejected post edit");
+        console.log(data);
+        return;
+    }
+}
+
 /**
  * Adds a NAV item to the website's nav bar
  * @param {string} href URL to link to
