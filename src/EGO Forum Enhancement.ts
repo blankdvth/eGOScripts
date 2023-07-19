@@ -2457,7 +2457,6 @@ function blockSignatures() {
     else if (url.match(/^https:\/\/www\.edgegamers\.com\/application\/\d+\/?$/))
         // Application Page
         handleApplicationPage();
-
-    if (!url.match(/^https:\/\/www\.edgegamers\.com\/-\/$/))
+    else if (!url.match(/^https:\/\/(www\.)?edgegamers\.com\/-\/$/))
         handleGenericThread();
 })();
