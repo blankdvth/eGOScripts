@@ -9,7 +9,7 @@
 // @require      https://peterolson.github.io/BigInteger.js/BigInteger.min.js
 // @require      https://raw.githubusercontent.com/12pt/steamid-converter/master/js/converter-min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment-with-locales.min.js
-// @require      https://raw.githubusercontent.com/pieroxy/lz-string/master/libs/lz-string.min.js
+// @require      https://raw.githubusercontent.com/pieroxy/lz-string/861d3feda0c9a8b7a48aaf3c028ab57606f1c02f/libs/lz-string.min.js
 // @require      https://raw.githubusercontent.com/sizzlemctwizzle/GM_config/2207c5c1322ebb56e401f03c2e581719f909762a/gm_config.js
 // @connect      api.findsteamid.com
 // @resource     admins https://raw.githubusercontent.com/blankdvth/eGOScripts/master/admins.txt
