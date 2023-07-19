@@ -7,9 +7,9 @@
 // @match        https://maul.edgegamers.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=edgegamers.com
 // @require      https://peterolson.github.io/BigInteger.js/BigInteger.min.js
-// @require      https://raw.githubusercontent.com/12pt/steamid-converter/master/js/converter-min.js
+// @require      https://s3.blankdvth.com/mirror-steamid-converter-min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment-with-locales.min.js
-// @require      https://raw.githubusercontent.com/pieroxy/lz-string/master/libs/lz-string.min.js
+// @require      https://raw.githubusercontent.com/pieroxy/lz-string/861d3feda0c9a8b7a48aaf3c028ab57606f1c02f/libs/lz-string.min.js
 // @require      https://raw.githubusercontent.com/sizzlemctwizzle/GM_config/2207c5c1322ebb56e401f03c2e581719f909762a/gm_config.js
 // @connect      api.findsteamid.com
 // @resource     admins https://raw.githubusercontent.com/blankdvth/eGOScripts/master/admins.txt
@@ -60,10 +60,10 @@ let USERNAME = ""; // Current username
 let STEAMID_REGEX: RegExp; // SteamID regex
 
 (unsafeWindow as any as Unsafe_Window).generateFlagHash = function (
-    text: string
+    text: string,
 ) {
     generateHash(text + GM_config.get("flag-salt")).then((hash) =>
-        console.log(hash)
+        console.log(hash),
     );
 };
 
@@ -78,7 +78,7 @@ function addMAULPreset(
     name: string,
     id: string,
     div: HTMLDivElement,
-    func: (event: MouseEvent) => void
+    func: (event: MouseEvent) => void,
 ) {
     div.appendChild(createMAULPresetButton(name, id, func));
 }
@@ -113,7 +113,7 @@ function createPresetDiv(): HTMLDivElement {
 function createMAULPresetButton(
     text: string,
     id: string,
-    callback: (event: MouseEvent) => void
+    callback: (event: MouseEvent) => void,
 ): HTMLButtonElement {
     const button = document.createElement("button");
     button.classList.add("btn", "btn-default");
@@ -133,7 +133,7 @@ function createMAULPresetButton(
 function createLinkButton(
     text: string,
     link: string,
-    target = "_blank"
+    target = "_blank",
 ): HTMLAnchorElement {
     const a = document.createElement("a");
     a.classList.add("btn", "btn-default");
@@ -179,7 +179,7 @@ function generateForumsURL(threadId: any, postId: any): string {
  */
 function getSteamID_M(
     unparsed_id: string,
-    reject_existing: boolean = false
+    reject_existing: boolean = false,
 ): Promise<string> {
     return new Promise((resolve, reject) => {
         if (SteamIDConverter.isSteamID64(unparsed_id))
@@ -193,13 +193,13 @@ function getSteamID_M(
             if (!GM_config.get("lookup-unknown-ids"))
                 return reject("Could not find Steam ID");
             const profile_id = unparsed_id.match(
-                /^(.*id\/)?(?<game_id>[^\/\n\s]*)\/?$/
+                /^(.*id\/)?(?<game_id>[^\/\n\s]*)\/?$/,
             )?.groups?.game_id;
             if (!profile_id) return reject("Could not find Steam ID");
             GM_xmlhttpRequest({
                 method: "GET",
                 url: `https://api.findsteamid.com/steam/api/summary/${encodeURIComponent(
-                    profile_id as string
+                    profile_id as string,
                 )}`,
                 anonymous: true,
                 timeout: 2500,
@@ -362,22 +362,22 @@ function setupMAULConfig() {
             init: function () {
                 GM_config.set(
                     "presets-add-unchecked",
-                    GM_config.get("presets-add")
+                    GM_config.get("presets-add"),
                 );
                 GM_config.set(
                     "presets-edit-unchecked",
-                    GM_config.get("presets-edit")
+                    GM_config.get("presets-edit"),
                 );
                 GM_config.set(
                     "flag-fields-unchecked",
-                    GM_config.get("flag-fields")
+                    GM_config.get("flag-fields"),
                 );
                 if ((GM_config.get("flag-salt") as string).length == 0) {
                     GM_config.set(
                         "flag-salt",
                         [...Array(45)]
                             .map(() => (~~(Math.random() * 36)).toString(36))
-                            .join("")
+                            .join(""),
                     );
                     GM_config.save();
                 }
@@ -390,7 +390,7 @@ function setupMAULConfig() {
                     function () {
                         const presets = GM_config.get(
                             "presets-add-unchecked",
-                            true
+                            true,
                         ) as string;
 
                         if (
@@ -398,13 +398,13 @@ function setupMAULConfig() {
                                 .split(/\r?\n/)
                                 .every((line) =>
                                     line.match(
-                                        /^[^;\r\n]+;[^;\r\n]*;\d*;[^;\r\n]*;[^;\r\n]*;[^;\r\n]*$/
-                                    )
+                                        /^[^;\r\n]+;[^;\r\n]*;\d*;[^;\r\n]*;[^;\r\n]*;[^;\r\n]*$/,
+                                    ),
                                 )
                         )
                             GM_config.set("presets-add", presets);
                     },
-                    false
+                    false,
                 );
                 GM_config.fields[
                     "presets-edit-unchecked"
@@ -413,7 +413,7 @@ function setupMAULConfig() {
                     function () {
                         const presets = GM_config.get(
                             "presets-edit-unchecked",
-                            true
+                            true,
                         ) as string;
 
                         if (
@@ -421,13 +421,13 @@ function setupMAULConfig() {
                                 .split(/\r?\n/)
                                 .every((line) =>
                                     line.match(
-                                        /^[^;\r\n]+;\d*;[^;\r\n]*;[^;\r\n]*;[^;\r\n]*;[^;\r\n]*$/
-                                    )
+                                        /^[^;\r\n]+;\d*;[^;\r\n]*;[^;\r\n]*;[^;\r\n]*;[^;\r\n]*$/,
+                                    ),
                                 )
                         )
                             GM_config.set("presets-edit", presets);
                     },
-                    false
+                    false,
                 );
                 GM_config.fields[
                     "flag-fields-unchecked"
@@ -436,19 +436,19 @@ function setupMAULConfig() {
                     function () {
                         const flagFields = GM_config.get(
                             "flag-fields-unchecked",
-                            true
+                            true,
                         ) as string;
 
                         if (
                             flagFields
                                 .split(/\r?\n/)
                                 .every((line) =>
-                                    line.match(/^[^;\r\n]+;[^;\r\n]+$/)
+                                    line.match(/^[^;\r\n]+;[^;\r\n]+$/),
                                 )
                         )
                             GM_config.set("flag-fields", flagFields);
                     },
-                    false
+                    false,
                 );
             },
             save: function (forgotten) {
@@ -458,21 +458,21 @@ function setupMAULConfig() {
                         GM_config.get("presets-add")
                     )
                         alert(
-                            'Invalid preset format for "Add Ban Presets", value not saved.\nVerify that each line has 6 semicolon-separated values, the preset name is not empty, and that length is either empty or a number > 0.'
+                            'Invalid preset format for "Add Ban Presets", value not saved.\nVerify that each line has 6 semicolon-separated values, the preset name is not empty, and that length is either empty or a number > 0.',
                         );
                     if (
                         forgotten["presets-edit-unchecked"] !==
                         GM_config.get("presets-edit")
                     )
                         alert(
-                            'Invalid preset format for "Edit Ban Presets", value not saved.\nVerify that each line has 6 semicolon-separated values, the preset name is not empty, and that length is either empty or a number > 0.'
+                            'Invalid preset format for "Edit Ban Presets", value not saved.\nVerify that each line has 6 semicolon-separated values, the preset name is not empty, and that length is either empty or a number > 0.',
                         );
                     if (
                         forgotten["flag-fields-unchecked"] !==
                         GM_config.get("flag-fields")
                     )
                         alert(
-                            'Invalid flag format for "Flag Fields", value not saved.\nVerify that each line has 2 semicolon-separated values.'
+                            'Invalid flag format for "Flag Fields", value not saved.\nVerify that each line has 2 semicolon-separated values.',
                         );
                 }
             },
@@ -480,7 +480,7 @@ function setupMAULConfig() {
         css: "textarea {width: 100%; height: 160px; resize: vertical;} #maul-config_field_flag-salt {filter: blur(6px)} #maul-config_field_flag-salt:focus {filter: blur(0)}",
     });
     const dropdownMenu = document.querySelector(
-        ".user-dropdown > ul.dropdown-menu"
+        ".user-dropdown > ul.dropdown-menu",
     );
     if (dropdownMenu) {
         const configButton = document.createElement("li");
@@ -491,7 +491,7 @@ function setupMAULConfig() {
         configButton.style.cursor = "pointer";
         dropdownMenu.insertBefore(
             configButton,
-            dropdownMenu.querySelector("li.divider")
+            dropdownMenu.querySelector("li.divider"),
         );
     }
 }
@@ -515,7 +515,7 @@ function loadAdmins() {
 function loadUsername() {
     if (USERNAME) return;
     const dropdown = document.querySelector(
-        "a.dropdown-toggle"
+        "a.dropdown-toggle",
     ) as HTMLAnchorElement;
     if (dropdown) USERNAME = dropdown.innerText.trim();
 }
@@ -616,7 +616,7 @@ function handleAddBan(hash: string = "") {
                     if (preset.length == 0)
                         (
                             document.getElementById(
-                                "length"
+                                "length",
                             ) as HTMLInputElement
                         ).disabled = true;
                 }
@@ -630,10 +630,10 @@ function handleAddBan(hash: string = "") {
                     ).value = preset.notes;
                 (
                     document.getElementById(
-                        "preventAmnesty"
+                        "preventAmnesty",
                     ) as HTMLInputElement
                 ).checked = preset.pa;
-            }
+            },
         );
     }
 
@@ -643,7 +643,7 @@ function handleAddBan(hash: string = "") {
         !(document.getElementById("gameId") as HTMLInputElement).disabled
     ) {
         const data: AddBan_Data = JSON.parse(
-            LZString.decompressFromEncodedURIComponent(hash)
+            LZString.decompressFromEncodedURIComponent(hash),
         );
         if (data.name)
             (document.getElementById("handle") as HTMLInputElement).value =
@@ -681,7 +681,7 @@ function handleEditBan() {
                     if (preset.length == 0)
                         (
                             document.getElementById(
-                                "length"
+                                "length",
                             ) as HTMLInputElement
                         ).disabled = true;
                 }
@@ -698,17 +698,16 @@ function handleEditBan() {
                         (preset.addUsername ? " " + USERNAME : "");
                 (
                     document.getElementById(
-                        "preventAmnesty"
+                        "preventAmnesty",
                     ) as HTMLInputElement
                 ).checked = preset.pa;
-            }
+            },
         );
     }
 
     // Steam ID buttons
-    const idGroup = document.querySelector(
-        ".control-label[for=gameId]"
-    )?.parentElement;
+    const idGroup = document.querySelector(".control-label[for=gameId]")
+        ?.parentElement;
     const id = idGroup?.querySelector("p")?.innerText;
     if (id) {
         const idDiv = document.createElement("div");
@@ -719,27 +718,30 @@ function handleEditBan() {
         idDiv.appendChild(
             createLinkButton(
                 "Steam",
-                "https://steamcommunity.com/profiles/" + id
-            )
+                "https://steamcommunity.com/profiles/" + id,
+            ),
         );
         idDiv.appendChild(
             createLinkButton(
                 "GameME",
                 "https://edgegamers.gameme.com/search?si=uniqueid&rc=all&q=" +
-                    SteamIDConverter.toSteamID(id)
-            )
+                    SteamIDConverter.toSteamID(id),
+            ),
         );
         idDiv.appendChild(
-            createLinkButton("SteamID (IO)", "https://steamid.io/lookup/" + id)
+            createLinkButton("SteamID (IO)", "https://steamid.io/lookup/" + id),
         );
         idDiv.appendChild(
-            createLinkButton("SteamID (UK)", "https://steamid.uk/profile/" + id)
+            createLinkButton(
+                "SteamID (UK)",
+                "https://steamid.uk/profile/" + id,
+            ),
         );
     }
 
     // IP buttons
     const ipGroup = Array.from(
-        document.querySelectorAll(".control-label")
+        document.querySelectorAll(".control-label"),
     ).find((el) => el.textContent === "IP")?.parentElement; // BECAUSE MAUL HAS THE IP LABELED WITH THE WRONG FOR
     const ip = ipGroup?.querySelector("p")?.innerText;
     if (ip) {
@@ -754,15 +756,15 @@ function handleEditBan() {
                 GM_config.get("spur-account")
                     ? `https://spur.us/app/context?q=${ip}`
                     : `https://spur.us/context/${ip}`,
-                "_blank"
-            )
+                "_blank",
+            ),
         );
         ip_div.appendChild(
             createLinkButton(
                 "Check IPInfo",
                 "https://ipinfo.io/" + ip,
-                "_blank"
-            )
+                "_blank",
+            ),
         );
     }
 
@@ -774,9 +776,9 @@ function handleEditBan() {
                     "div > p.form-control-static, div > input:not(input#preventAmnesty)" +
                         (GM_config.get("flag-ignore-notes")
                             ? ""
-                            : ", div > textarea")
-                )
-            )
+                            : ", div > textarea"),
+                ),
+            ),
         ).then((arr) => {
             const insEl = div.parentElement!;
             const presetHeader = insEl.querySelector("h4");
@@ -784,7 +786,7 @@ function handleEditBan() {
                 const alert = document.createElement("div");
                 alert.classList.add(
                     "alert",
-                    "alert-" + GM_config.get("flag-alert")
+                    "alert-" + GM_config.get("flag-alert"),
                 );
                 alert.innerText = result.message;
                 insEl.insertBefore(alert, presetHeader);
@@ -815,34 +817,34 @@ function handleProfile() {
                 /(?:https?:\/\/)?(?:www\.)?edge-gamers\.com\/forums\/showthread\.php\?p=(\d+)(?:#?post(\d+))?/g,
                 function (match, threadId, postId) {
                     return generateForumsURL(threadId, postId);
-                }
+                },
             )
             .replaceAll(
                 /(?:https?:\/\/)?(?:www\.)?edge-gamers\.com\/forums\/showthread\.php\?(\d+)[\-a-zA-Z]*/g,
                 function (match, threadId) {
                     return generateForumsURL(threadId, null);
-                }
+                },
             )
             .replaceAll(
                 /https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)/g,
-                '<a href="$&" target="_blank" rel="external">$&</a>'
+                '<a href="$&" target="_blank" rel="external">$&</a>',
             )
             .replaceAll(
                 /([^\/\d]|^)(\d{17})([^\/\d]|$)/g,
-                '$1<a href="https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=$2" target="_blank">$2</a>$3'
+                '$1<a href="https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=$2" target="_blank">$2</a>$3',
             );
     });
 
     // Attempt to get Source ID
     const sourceIdHref = document.querySelector(
-        'span.floatRight > a[href^="https://steamcommunity.com/profiles/"]'
+        'span.floatRight > a[href^="https://steamcommunity.com/profiles/"]',
     ) as HTMLAnchorElement;
     const id = sourceIdHref.innerText;
     const btn = createLinkButton(
         "GameME",
         "https://edgegamers.gameme.com/search?si=uniqueid&rc=all&q=" +
             SteamIDConverter.toSteamID(id),
-        "_blank"
+        "_blank",
     );
     btn.classList.remove("btn", "btn-default");
     sourceIdHref.parentElement?.insertBefore(btn, sourceIdHref);
@@ -859,7 +861,7 @@ function handleBanList() {
     if (GM_config.get("convert-search"))
         document
             .querySelector(
-                "div.form-group.input-group > span.input-group-btn > button"
+                "div.form-group.input-group > span.input-group-btn > button",
             )
             ?.addEventListener(
                 "click",
@@ -867,12 +869,12 @@ function handleBanList() {
                     if (
                         (
                             document.getElementById(
-                                "banQType"
+                                "banQType",
                             ) as HTMLSelectElement
                         ).value == "gameId"
                     ) {
                         const searchBox = document.querySelector(
-                            "div.form-group.input-group > input[name='q']"
+                            "div.form-group.input-group > input[name='q']",
                         ) as HTMLInputElement | undefined;
                         const id = searchBox?.value;
                         if (id) {
@@ -888,23 +890,23 @@ function handleBanList() {
                         }
                     }
                 },
-                false
+                false,
             );
     if (GM_config.get("flag-enabled"))
         findFlagFields(
             Array.from(
                 document.querySelectorAll(
-                    "tbody > tr > td:not(.text-center)"
-                ) as NodeListOf<HTMLTableRowElement>
+                    "tbody > tr > td:not(.text-center)",
+                ) as NodeListOf<HTMLTableRowElement>,
             ).filter(
                 (el) =>
                     el.innerText.trim() != "" &&
-                    el.parentElement?.style.display != "none"
-            )
+                    el.parentElement?.style.display != "none",
+            ),
         ).then((arr) => {
             arr.forEach((result) => {
                 result.element.style.backgroundColor = GM_config.get(
-                    "flag-colour"
+                    "flag-colour",
                 ) as string;
                 result.element.title = result.message;
             });
@@ -922,7 +924,7 @@ function assignAdminsOnlineHyperlink(str: string) {
         if (id == undefined) continue;
         str = str.replace(
             admin,
-            `<a href="https://maul.edgegamers.com/index.php?page=home&id=${id}">${admin}</a>`
+            `<a href="https://maul.edgegamers.com/index.php?page=home&id=${id}">${admin}</a>`,
         );
     }
     return str;
@@ -934,7 +936,7 @@ function assignAdminsOnlineHyperlink(str: string) {
 function convertBanningAdmins() {
     if (Object.keys(knownAdmins).length === 0) loadAdmins();
     const headers = document.querySelectorAll(
-        ".expand > td > span.pull-left"
+        ".expand > td > span.pull-left",
     ) as NodeListOf<HTMLSpanElement>;
     let wasAdminOnline = false;
     for (const header of headers) {
@@ -954,8 +956,8 @@ function convertBanningAdmins() {
 function convertGameIDs() {
     const banIDs = Array.from(
         document.querySelectorAll(
-            "table.table-bordered td:not([class]):nth-child(3)"
-        )
+            "table.table-bordered td:not([class]):nth-child(3)",
+        ),
     ).filter((el) => !el.querySelector("a")) as HTMLTableCellElement[];
     banIDs.forEach((el) => {
         const id =
@@ -971,7 +973,7 @@ function convertGameIDs() {
  */
 function convertDurationFields() {
     const banDurations = document.querySelectorAll(
-        "table.table-bordered td:nth-child(5)"
+        "table.table-bordered td:nth-child(5)",
     ) as NodeListOf<HTMLTableCellElement>;
 
     const convertMinutesToHuman = (minutes: number) => {
@@ -1022,7 +1024,7 @@ function convertDurationFields() {
 
             const convertedExpiration = moment(
                 (el.parentElement!.firstElementChild as HTMLTableCellElement)
-                    .innerText
+                    .innerText,
             )
                 .add(banDuration, "minutes")
                 .format(GM_config.get("datetimeformat-expiration") as string);
@@ -1045,7 +1047,7 @@ function convertDurationFields() {
  * @returns {Array<Flag_Field_Result>} Elements that match the flagFields
  */
 async function findFlagFields(
-    elements: Array<HTMLElement>
+    elements: Array<HTMLElement>,
 ): Promise<Array<Flag_Field_Result>> {
     const results: Array<Flag_Field_Result> = [];
     for (const el of elements) {
@@ -1073,11 +1075,11 @@ function updateBanNoteURLs() {
         const replaced = unescapedInnerHTML
             .replaceAll(
                 /https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)/g,
-                '<a href="$&" target="_blank" rel="external">$&</a>'
+                '<a href="$&" target="_blank" rel="external">$&</a>',
             )
             .replaceAll(
                 STEAMID_REGEX, // The most finnicky regex in history, too many false-positives and false-negatives. User configurable for that reason.
-                '$1<a href="https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=$2" target="_blank">$2</a>$3'
+                '$1<a href="https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=$2" target="_blank">$2</a>$3',
             );
         // If the text hasn't been changed, move on
         if (replaced === unescapedInnerHTML) return;
@@ -1095,13 +1097,13 @@ function updateBanNoteURLs() {
                 .original as string;
             event.target?.removeEventListener(
                 "mousedown",
-                handleEditNotesClick as EventListener
+                handleEditNotesClick as EventListener,
             );
             delete (banNote as HTMLSpanElement).dataset.original;
         }
         editNotes?.addEventListener(
             "mousedown",
-            handleEditNotesClick as EventListener
+            handleEditNotesClick as EventListener,
         );
     });
 }
@@ -1120,28 +1122,28 @@ function updateBanNoteURLs() {
 
     if (
         url.match(
-            /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban\/?(?:#.+)?$/
+            /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban\/?(?:#.+)?$/,
         )
     )
         // Add Ban Page (not Edit, that will have &id=12345 in the URL)
         handleAddBan(hash.substring(1));
     else if (
         url.match(
-            /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban&id=\d+\/?$/
+            /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=editban&id=\d+\/?$/,
         )
     )
         // Edit Ban Page
         handleEditBan();
     else if (
         url.match(
-            /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=home&id=\d+\/?$/
+            /^https:\/\/maul\.edgegamers\.com\/index\.php\?page=home&id=\d+\/?$/,
         )
     )
         // Profile Page
         handleProfile();
     else if (
         url.match(
-            /^https:\/\/maul\.edgegamers\.com\/index\.php\?.*page=bans.*$/
+            /^https:\/\/maul\.edgegamers\.com\/index\.php\?.*page=bans.*$/,
         )
     )
         // List Ban Page
