@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement%RELEASE_TYPE%
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
-// @version      4.11.6
+// @version      4.11.7
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS, PixeL
 // @match        https://www.edgegamers.com/*
@@ -133,13 +133,6 @@ function setupForumsConfig() {
         id: "forums-config",
         title: "Forums Enhancement Script Configuration",
         fields: {
-            "maul-dropdown": {
-                label: "Use dropdown for MAUL links",
-                section: ["Feature Settings"],
-                title: "When checked, all additional MAUL links will be in a dropdown in the original MAUL button. When unchecked, all MAUL buttons will be added to the navigation bar after the MAUL button.",
-                type: "checkbox",
-                default: true,
-            },
             "show-confidential-watermark": {
                 label: "Show confidential watermarks on LE forums",
                 title: "When checked, all LE forums will have a red confidential watermark on them.",
@@ -169,18 +162,6 @@ function setupForumsConfig() {
                 title: "Whether to show a confirmation dialog when clicking the trash button.",
                 type: "checkbox",
                 default: true,
-            },
-            "maul-button-text": {
-                label: "MAUL Button Text",
-                title: "The text to display on the MAUL buttons that are displayed on profiles",
-                type: "text",
-                default: "MAUL",
-            },
-            "append-profile": {
-                label: "Append profile buttons",
-                title: "When checked, a buttons added to profiles will be appended to their respective groups, else, they will be prepended. This does not apply to all buttons.",
-                type: "checkbox",
-                default: false,
             },
             "maul-reauth-enable": {
                 label: "Enable MAUL Reauthenthication",
@@ -810,10 +791,9 @@ function loadCannedResponses() {
 function addMAULProfileButton(div: HTMLDivElement, member_id: number | string) {
     createButton(
         "https://maul.edgegamers.com/index.php?page=home&id=" + member_id,
-        GM_config.get("maul-button-text") as string,
+        "MAUL",
         div,
-        "_blank",
-        GM_config.get("append-profile") as boolean,
+        "_blank"
     );
 }
 
@@ -1648,52 +1628,6 @@ function generateResponseText(response: string) {
 }
 
 /**
- * Listens to and appends MAUL button when user hovers over a profile
- * @param {HTMLElementEventMap} event
- * @returns void
- */
-function tooltipMAULListener(target: HTMLElement) {
-    // Make sure this specific event is the node we want
-    if (
-        target.nodeName != "DIV" ||
-        !target.classList.contains("tooltip-content-inner")
-    )
-        return;
-
-    // The buttongroup containing the "Follow" button
-    const buttenGroupOne = target.querySelector(
-        ".memberTooltip > .memberTooltip-actions > :nth-child(1)",
-    ) as HTMLDivElement;
-    if (!buttenGroupOne) return;
-    buttenGroupOne
-        .querySelector("a")
-        ?.href.match(
-            /^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/,
-        );
-    const matches = buttenGroupOne
-        .querySelector("a")
-        ?.href.match(
-            /^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/,
-        );
-    // Make sure matches were found, exit gracefully if not.
-    if (!matches) return;
-
-    const id = matches[1];
-    // The buttongroup containing the "Start conversation" button
-    const buttonGroupTwo = target.querySelector(
-        ".memberTooltip > .memberTooltip-actions > :nth-child(2)",
-    ) as HTMLDivElement;
-    // If the user is banned, buttonGroupTwo will be null. Default to buttonGroupOne.
-    createButton(
-        "https://maul.edgegamers.com/index.php?page=home&id=" + id,
-        GM_config.get("maul-button-text") as string,
-        buttonGroupTwo ?? buttenGroupOne,
-        "_blank",
-        GM_config.get("append-profile") as boolean,
-    );
-}
-
-/**
  * Moves and auto-fills out the moving prompt for a thread.
  * @param {string} hash The hash of the URL, should be the thread ID only
  * @returns void
@@ -2439,18 +2373,6 @@ function blockSignatures() {
     const url = window.location.href;
     const hash = window.location.hash;
 
-    const tooltipObserver = new MutationObserver((mutations) => {
-        mutations.every((mutation) => {
-            mutation.addedNodes.forEach((node) => {
-                tooltipMAULListener(node as HTMLElement);
-            });
-        });
-    });
-    tooltipObserver.observe(document.body, {
-        childList: true,
-        subtree: true,
-    });
-
     const onHoldObserver = new MutationObserver((mutations) => {
         mutations.every((mutation) => {
             mutation.addedNodes.forEach((node) => {
@@ -2473,13 +2395,7 @@ function blockSignatures() {
     removeNavButtons(navbarRemovals, nav_list);
     replaceLogoLink();
 
-    if (url.match(/^https:\/\/www\.edgegamers\.com\/members\/\d+/))
-        // Members Page
-        addMAULProfileButton(
-            document.querySelector(".memberHeader-buttons") as HTMLDivElement,
-            window.location.pathname.match(/\/members\/(\d+)/)![1],
-        );
-    else if (
+    if (
         url.match(
             /^^https:\/\/www\.edgegamers\.com\/threads\/\d+\/move(?:#\d+)?$/,
         ) &&
