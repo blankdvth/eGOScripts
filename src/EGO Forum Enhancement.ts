@@ -64,7 +64,7 @@ const countingURL: string = "https://www.edgegamers.com/threads/333944/";
 function createForumsPresetButton(
     text: string,
     id: string,
-    callback: (event: MouseEvent) => void
+    callback: (event: MouseEvent) => void,
 ): HTMLSpanElement {
     const button = document.createElement("span");
     button.classList.add("button");
@@ -86,7 +86,7 @@ function addForumsPreset(
     name: string,
     id: string,
     div: HTMLDivElement,
-    func: (event: MouseEvent) => void
+    func: (event: MouseEvent) => void,
 ) {
     div.appendChild(createForumsPresetButton(name, id, func));
 }
@@ -106,7 +106,7 @@ function createButton(
     div: HTMLDivElement,
     target: string = "_blank",
     append: boolean = false,
-    ins_el: HTMLElement | null = null
+    ins_el: HTMLElement | null = null,
 ) {
     const button = document.createElement("a");
     button.href = href;
@@ -459,24 +459,24 @@ function setupForumsConfig() {
             init: function () {
                 GM_config.set(
                     "move-to-completed-unchecked",
-                    GM_config.get("move-to-completed")
+                    GM_config.get("move-to-completed"),
                 );
                 GM_config.set(
                     "signature-block-unchecked",
-                    GM_config.get("signature-block")
+                    GM_config.get("signature-block"),
                 );
                 GM_config.set(
                     "navbar-urls-unchecked",
-                    GM_config.get("navbar-urls")
+                    GM_config.get("navbar-urls"),
                 );
                 GM_config.set("on-hold-unchecked", GM_config.get("on-hold"));
                 GM_config.set(
                     "auto-mention-unchecked",
-                    GM_config.get("auto-mention")
+                    GM_config.get("auto-mention"),
                 );
                 GM_config.set(
                     "canned-responses-unchecked",
-                    GM_config.get("canned-responses")
+                    GM_config.get("canned-responses"),
                 );
             },
             open: function (doc) {
@@ -487,7 +487,7 @@ function setupForumsConfig() {
                     function () {
                         const maps = GM_config.get(
                             "move-to-completed-unchecked",
-                            true
+                            true,
                         ) as string;
                         if (
                             maps.length == 0 ||
@@ -497,14 +497,14 @@ function setupForumsConfig() {
                         )
                             GM_config.set("move-to-completed", maps);
                     },
-                    false
+                    false,
                 );
                 GM_config.fields[
                     "signature-block-unchecked"
                 ].node?.addEventListener("change", function () {
                     const ids = GM_config.get(
                         "signature-block-unchecked",
-                        true
+                        true,
                     ) as string;
                     if (ids.split(/\r?\n/).every((id) => id.match(/^\d+$/)))
                         GM_config.set("signature-block", ids);
@@ -514,7 +514,7 @@ function setupForumsConfig() {
                 ].node?.addEventListener("change", function () {
                     const urls = GM_config.get(
                         "navbar-urls-unchecked",
-                        true
+                        true,
                     ) as string;
                     if (
                         urls.length == 0 ||
@@ -522,8 +522,8 @@ function setupForumsConfig() {
                             .split(/\r?\n/)
                             .every((url) =>
                                 url.match(
-                                    /^[^;\r\n]+;https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(?:\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/
-                                )
+                                    /^[^;\r\n]+;https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(?:\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/,
+                                ),
                             )
                     )
                         GM_config.set("navbar-urls", urls);
@@ -533,7 +533,7 @@ function setupForumsConfig() {
                     function () {
                         const onHold = GM_config.get(
                             "on-hold-unchecked",
-                            true
+                            true,
                         ) as string;
                         if (
                             onHold.length == 0 ||
@@ -541,19 +541,19 @@ function setupForumsConfig() {
                                 .split(/\r?\n/)
                                 .every((line) =>
                                     line.match(
-                                        /^[^;\r\n]+;[^;\r\n]*;[^;\r\n]*$/
-                                    )
+                                        /^[^;\r\n]+;[^;\r\n]*;[^;\r\n]*$/,
+                                    ),
                                 )
                         )
                             GM_config.set("on-hold", onHold);
-                    }
+                    },
                 );
                 GM_config.fields[
                     "auto-mention-unchecked"
                 ].node?.addEventListener("change", function () {
                     const autoMention = GM_config.get(
                         "auto-mention-unchecked",
-                        true
+                        true,
                     ) as string;
                     if (
                         autoMention.length == 0 ||
@@ -568,13 +568,13 @@ function setupForumsConfig() {
                 ].node?.addEventListener("change", function () {
                     const cannedResponses = GM_config.get(
                         "canned-responses-unchecked",
-                        true
+                        true,
                     ) as string;
                     // Check if entire config matches the regex by matching all and rejoining the matches, then comparing to the original
                     if (
                         [
                             ...cannedResponses.matchAll(
-                                /(?:===\n|^)- (?<name>.+)\n- (?<category>.+)\n(?<response>(?:.|\n)+?)\n===/gm
+                                /(?:===\n|^)- (?<name>.+)\n- (?<category>.+)\n(?<response>(?:.|\n)+?)\n===/gm,
                             ),
                         ]
                             .map((i) => i[0])
@@ -589,39 +589,39 @@ function setupForumsConfig() {
                     GM_config.get("move-to-completed")
                 )
                     alert(
-                        'Invalid move to completed map, verify that all lines are in the format "origin id:completed id".'
+                        'Invalid move to completed map, verify that all lines are in the format "origin id:completed id".',
                     );
                 if (
                     forgotten["signature-block-unchecked"] !==
                     GM_config.get("signature-block")
                 )
                     alert(
-                        "Invalid signature block ID list. Ensure each ID is on it's own line and all IDs are numerical."
+                        "Invalid signature block ID list. Ensure each ID is on it's own line and all IDs are numerical.",
                     );
                 if (
                     forgotten["navbar-urls-unchecked"] !==
                     GM_config.get("navbar-urls")
                 )
                     alert(
-                        "Invalid navbar URL list. Ensure each URL is valid, on it's own line, and all URLs are in the format 'text;url'."
+                        "Invalid navbar URL list. Ensure each URL is valid, on it's own line, and all URLs are in the format 'text;url'.",
                     );
                 if (forgotten["on-hold-unchecked"] !== GM_config.get("on-hold"))
                     alert(
-                        "Invalid on hold list. Ensure each line is in the format 'name;reason;explain' and that no field contains a semicolon."
+                        "Invalid on hold list. Ensure each line is in the format 'name;reason;explain' and that no field contains a semicolon.",
                     );
                 if (
                     forgotten["auto-mention-unchecked"] !==
                     GM_config.get("auto-mention")
                 )
                     alert(
-                        "Invalid auto mention list. Ensure each ID is on it's own line and all IDs are numerical."
+                        "Invalid auto mention list. Ensure each ID is on it's own line and all IDs are numerical.",
                     );
                 if (
                     forgotten["canned-responses-unchecked"] !==
                     GM_config.get("canned-responses")
                 )
                     alert(
-                        "Invalid canned responses list. Ensure each response is in the proper format (see the wiki for more information)."
+                        "Invalid canned responses list. Ensure each response is in the proper format (see the wiki for more information).",
                     );
             },
         },
@@ -653,7 +653,7 @@ function autoMAULAuth() {
     if (Date.now() - lastAuth < (GM_config.get("maul-reauth") as number))
         return;
     const authLink = document.querySelector(
-        'a.p-navEl-link[href^="/maul"]'
+        'a.p-navEl-link[href^="/maul"]',
     ) as HTMLAnchorElement;
     if (!authLink) return;
     GM_xmlhttpRequest({
@@ -681,7 +681,7 @@ function loadCompletedMap() {
         } else if (!parts[0].match(/\d+/)) {
             // Separate to provide update notice
             alert(
-                `Invalid ID: ${parts[0]}.\nThe completed map format has been changed to use IDs instead of regexes. Please update your config.`
+                `Invalid ID: ${parts[0]}.\nThe completed map format has been changed to use IDs instead of regexes. Please update your config.`,
             );
         }
         completedMap.push({
@@ -768,7 +768,7 @@ function loadCannedResponses() {
     const cannedResponsesRaw = GM_config.get("canned-responses") as string;
     [
         ...cannedResponsesRaw.matchAll(
-            /(?:===\n|^)- (?<name>.+)\n- (?<category>.+)\n(?<response>(?:.|\n)+?)\n===/gm
+            /(?:===\n|^)- (?<name>.+)\n- (?<category>.+)\n(?<response>(?:.|\n)+?)\n===/gm,
         ),
     ].forEach((match) => {
         const category = match.groups!.category;
@@ -791,7 +791,7 @@ function addMAULProfileButton(div: HTMLDivElement, member_id: number | string) {
         GM_config.get("maul-button-text") as string,
         div,
         "_blank",
-        GM_config.get("append-profile") as boolean
+        GM_config.get("append-profile") as boolean,
     );
 }
 
@@ -802,7 +802,7 @@ function addMAULProfileButton(div: HTMLDivElement, member_id: number | string) {
  */
 function addAddBanButton(div: HTMLDivElement, data: AddBan_Data) {
     const urlData = LZString.compressToEncodedURIComponent(
-        JSON.stringify(data)
+        JSON.stringify(data),
     );
     createButton(
         `https://maul.edgegamers.com/index.php?page=editban#${urlData}`,
@@ -811,8 +811,8 @@ function addAddBanButton(div: HTMLDivElement, data: AddBan_Data) {
         "_blank",
         false,
         document.querySelector(
-            "a.button--link.button[href*='move']"
-        ) as HTMLAnchorElement | null
+            "a.button--link.button[href*='move']",
+        ) as HTMLAnchorElement | null,
     );
 }
 
@@ -831,8 +831,8 @@ function addBansButton(div: HTMLDivElement, steam_id_64: string) {
         "_blank",
         false,
         document.querySelector(
-            "a.button--link.button[href*='move']"
-        ) as HTMLAnchorElement | null
+            "a.button--link.button[href*='move']",
+        ) as HTMLAnchorElement | null,
     );
 }
 
@@ -843,7 +843,7 @@ function addBansButton(div: HTMLDivElement, steam_id_64: string) {
  */
 function addLookupButton(div: HTMLDivElement, post_title: string) {
     const steam_id_unknown = post_title.match(
-        /^.* - .* - (?<game_id>[\w\d\/\[\]\-\.:]*)$/
+        /^.* - .* - (?<game_id>[\w\d\/\[\]\-\.:]*)$/,
     );
     if (steam_id_unknown)
         createButton(
@@ -853,8 +853,8 @@ function addLookupButton(div: HTMLDivElement, post_title: string) {
             "_blank",
             false,
             document.querySelector(
-                "a.button--link.button[href*='move']"
-            ) as HTMLAnchorElement | null
+                "a.button--link.button[href*='move']",
+            ) as HTMLAnchorElement | null,
         );
 }
 
@@ -869,7 +869,7 @@ function addMoveButton(
     div: HTMLDivElement,
     url: string,
     text = "Move to Completed",
-    id = "to_completed"
+    id = "to_completed",
 ) {
     const post_id = url.match(/threads\/(?<post_id>\d+)/);
     if (post_id)
@@ -880,7 +880,7 @@ function addMoveButton(
                 id,
             text,
             div,
-            "_self"
+            "_self",
         );
 }
 
@@ -913,12 +913,12 @@ function addPostActionBarButtons() {
     if (!threadId || threadId.length == 0) return;
 
     const posts = document.querySelectorAll(
-        ".message.message--post"
+        ".message.message--post",
     ) as NodeListOf<HTMLElement>;
     if (posts.length == 0) return;
 
     const isThreadUnapproved = document.querySelector(
-        ".blockStatus-message--moderated"
+        ".blockStatus-message--moderated",
     );
 
     for (let i = 0; i < posts.length; i++) {
@@ -926,7 +926,7 @@ function addPostActionBarButtons() {
         if (!post) continue;
 
         const actionBarSet = post.querySelector(
-            ".actionBar-set.actionBar-set--internal"
+            ".actionBar-set.actionBar-set--internal",
         );
 
         if (!actionBarSet) continue;
@@ -949,7 +949,7 @@ function addPostActionBarButtons() {
         // Check the post counter to see if it is the original post so we can make sure we change the button action correctly.
         if (i == 0) {
             const attributionListElements = post.querySelectorAll(
-                ".message-attribution-opposite.message-attribution-opposite--list li"
+                ".message-attribution-opposite.message-attribution-opposite--list li",
             );
             for (let j = 0; j < attributionListElements.length; j++) {
                 const element = attributionListElements[j] as HTMLElement;
@@ -966,7 +966,7 @@ function addPostActionBarButtons() {
         const approvalButton = document.createElement("a");
         approvalButton.classList.add(
             "actionBar-action",
-            "actionBar-action--menuItem"
+            "actionBar-action--menuItem",
         );
         approvalButton.setAttribute("tabindex", "0");
 
@@ -993,7 +993,7 @@ async function setPostApprovalStatus(
     threadId: string,
     postId: string,
     approve: boolean,
-    reload: boolean = true
+    reload: boolean = true,
 ) {
     const xfToken = getXFToken();
     if (!xfToken) {
@@ -1017,7 +1017,7 @@ async function setPostApprovalStatus(
         `https://www.edgegamers.com/inline-mod/?${searchParams.toString()}`,
         {
             credentials: "same-origin",
-        }
+        },
     );
 
     if (!response.ok) {
@@ -1062,7 +1062,7 @@ async function editPost(
     postId: string,
     message: string,
     silent: boolean = false,
-    clearEdits: boolean = false
+    clearEdits: boolean = false,
 ) {
     const xfToken = getXFToken();
     if (!xfToken) {
@@ -1086,7 +1086,7 @@ async function editPost(
             method: "POST",
             credentials: "same-origin",
             body: formdata,
-        }
+        },
     );
     if (!response.ok) {
         console.error("Failed to edit post");
@@ -1137,7 +1137,7 @@ function addNavButtons(urls: NavbarURL_Map[], nav: HTMLElement) {
 function removeNavButtons(removals: string[], nav: HTMLElement) {
     (
         nav.querySelectorAll(
-            "li > div > a:first-of-type"
+            "li > div > a:first-of-type",
         ) as NodeListOf<HTMLAnchorElement>
     ).forEach((a) => {
         if (removals.includes(a.innerText.toLowerCase()))
@@ -1152,7 +1152,7 @@ function replaceLogoLink() {
     if ((GM_config.get("logo-link") as string).length == 0) return;
     (
         document.querySelectorAll(
-            "div.p-header-logo > a, div.p-nav-smallLogo > a"
+            "div.p-header-logo > a, div.p-nav-smallLogo > a",
         ) as NodeListOf<HTMLAnchorElement>
     ).forEach((a: HTMLAnchorElement) => {
         a.href = GM_config.get("logo-link") as string;
@@ -1204,12 +1204,12 @@ function addMAULNav(nav_list: HTMLUListElement) {
         addNav(
             "https://maul.edgegamers.com/index.php?page=bans",
             "Bans",
-            nav_list
+            nav_list,
         );
         addNav(
             "https://maul.edgegamers.com/index.php?page=users",
             "Users",
-            nav_list
+            nav_list,
         );
     }
 }
@@ -1223,13 +1223,13 @@ function getPostBox() {
     ) {
         // BBCode Editor
         const editors = document.querySelectorAll(
-            'textarea.input[name="message"]'
+            'textarea.input[name="message"]',
         ) as NodeListOf<HTMLTextAreaElement>;
         return editors[editors.length - 1]?.value;
     } else {
         // Rich Editor
         const editors = document.querySelectorAll(
-            "div.fr-element.fr-view"
+            "div.fr-element.fr-view",
         ) as NodeListOf<HTMLDivElement>;
         return editors[editors.length - 1]?.innerText;
     }
@@ -1245,13 +1245,13 @@ function getPostBoxEl() {
     ) {
         // BBCode Editor
         const editors = document.querySelectorAll(
-            'textarea.input[name="message"]'
+            'textarea.input[name="message"]',
         ) as NodeListOf<HTMLTextAreaElement>;
         return editors[editors.length - 1];
     } else {
         // Rich Editor
         const editors = document.querySelectorAll(
-            "div.fr-element.fr-view"
+            "div.fr-element.fr-view",
         ) as NodeListOf<HTMLDivElement>;
         return editors[editors.length - 1];
     }
@@ -1263,7 +1263,7 @@ function getPostBoxEl() {
 function getSteamID_F(unparsed_id: string): Promise<string> {
     return new Promise((resolve, reject) => {
         const steam_id_match = unparsed_id.match(
-            /(\d{17})|(STEAM_\d:\d:\d+)|(\[U:\d:\d+\])/
+            /(\d{17})|(STEAM_\d:\d:\d+)|(\[U:\d:\d+\])/,
         );
         if (steam_id_match)
             try {
@@ -1271,19 +1271,19 @@ function getSteamID_F(unparsed_id: string): Promise<string> {
                 return resolve(
                     SteamIDConverter.isSteamID64(steam_id)
                         ? steam_id
-                        : SteamIDConverter.toSteamID64(steam_id)
+                        : SteamIDConverter.toSteamID64(steam_id),
                 );
             } catch (TypeError) {}
         if (!GM_config.get("lookup-unknown-ids"))
             return reject("Could not find Steam ID");
         const profile_id = unparsed_id.match(
-            /^(.*id\/)?(?<game_id>[^\/\n\s]*)\/?$/
+            /^(.*id\/)?(?<game_id>[^\/\n\s]*)\/?$/,
         )?.groups?.game_id;
         if (!profile_id) return reject("Could not find Steam ID");
         GM_xmlhttpRequest({
             method: "GET",
             url: `https://api.findsteamid.com/steam/api/summary/${encodeURIComponent(
-                profile_id as string
+                profile_id as string,
             )}`,
             anonymous: true,
             timeout: 2500,
@@ -1318,7 +1318,7 @@ function editPostBox(text: string, append: boolean = false) {
     ) {
         // BBCode Editor
         const editors = document.querySelectorAll(
-            'div.message textarea.input[name="message"]'
+            'div.message textarea.input[name="message"]',
         );
         const editor = editors[editors.length - 1] as HTMLTextAreaElement;
         editor.value = append ? editor.value + text : text;
@@ -1358,7 +1358,7 @@ function getThreadId() {
 function getUsername() {
     return (
         document.querySelector(
-            "a.p-navgroup-link--user > span.p-navgroup-linkText"
+            "a.p-navgroup-link--user > span.p-navgroup-linkText",
         ) as HTMLSpanElement | null
     )?.innerText;
 }
@@ -1395,7 +1395,7 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
             }
             const html = new DOMParser().parseFromString(
                 res.responseText,
-                "text/html"
+                "text/html",
             );
             const latestBan = html.querySelector("table.table > tbody > tr") as
                 | HTMLTableRowElement
@@ -1438,17 +1438,17 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
                 6 - Actions (don't touch)
             */
             const cols = latestBan.querySelectorAll(
-                "td"
+                "td",
             ) as NodeListOf<HTMLTableCellElement>;
             // Indexes change, there is always Division and Admins Online, but additional rows may be added if overflowed in the table
             const expand = html.getElementById(
-                "expand_" + latestBan.dataset.num
+                "expand_" + latestBan.dataset.num,
             )!;
             const expandColsHeader = expand.querySelectorAll(
-                "span.pull-left:not(.col-xs-9)"
+                "span.pull-left:not(.col-xs-9)",
             ) as NodeListOf<HTMLSpanElement>;
             const expandColsData = expand.querySelectorAll(
-                "span.pull-left.col-xs-9"
+                "span.pull-left.col-xs-9",
             ) as NodeListOf<HTMLSpanElement>;
             const expandCols: { [key: string]: string } = {};
             for (var i = 0; i < expandColsHeader.length; i++) {
@@ -1468,12 +1468,14 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
                                 .replaceAll("(", "")
                                 .replaceAll(")", "")
                                 .split(" ")
-                                .slice(-1)[0]
+                                .slice(-1)[0],
                         ),
-                        "minutes"
+                        "minutes",
                     )
                     .format(
-                        GM_config.get("ban-display-expiration-format") as string
+                        GM_config.get(
+                            "ban-display-expiration-format",
+                        ) as string,
                     );
             }
 
@@ -1481,7 +1483,7 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
                 !(
                     GM_config.get("ban-display-show-expired") ||
                     (expandCols["Duration"] ?? cols[4].innerText).includes(
-                        "("
+                        "(",
                     ) ||
                     (expandCols["Duration"] ?? cols[4].innerText) == "Permanent"
                 )
@@ -1517,7 +1519,7 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
                     expandCols["Banning Admin"] ?? cols[3].innerHTML
                 ).replace(
                     'href="',
-                    'target="_blank" href="https://maul.edgegamers.com/'
+                    'target="_blank" href="https://maul.edgegamers.com/',
                 ); // Hyperlink it
             if (GM_config.get("ban-display-show-admins-online"))
                 banData["Admins Online"] = expandCols["Admins Online"];
@@ -1538,14 +1540,14 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
                 const keyCell = document.createElement("td");
                 row.appendChild(keyCell).classList.add(
                     "dataList-cell",
-                    "small-cell"
+                    "small-cell",
                 );
                 keyCell.innerText = key;
                 keyCell.style.textAlign = "left";
                 const valueCell = document.createElement("td");
                 row.appendChild(valueCell).classList.add(
                     "dataList-cell",
-                    "small-cell"
+                    "small-cell",
                 );
                 if (allowedHTMLData.includes(key)) valueCell.innerHTML = value;
                 else valueCell.innerText = value;
@@ -1553,11 +1555,11 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
             }
 
             const notes = html.getElementById(
-                "notes_" + latestBan.dataset.num
+                "notes_" + latestBan.dataset.num,
             )!.innerHTML;
             if (
                 [...notes.matchAll(/<(.+?)>/g)].some(
-                    (match) => match[1] != "br"
+                    (match) => match[1] != "br",
                 )
             ) {
                 // Failsafe checking, MAUL should always replace these with &lt; and &gt;, if they don't, something is wrong.
@@ -1577,14 +1579,14 @@ function displayBanInfo(steam_id_64: string, insertBefore: HTMLElement) {
                     .replaceAll(/&amp;/g, "&")
                     .replaceAll(
                         /https?:\/\/(www\.)?[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9]{2,6}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)/g,
-                        '<a href="$&" target="_blank" rel="external"><u>$&</u></a>'
+                        '<a href="$&" target="_blank" rel="external"><u>$&</u></a>',
                     );
             }
             if (GM_config.get("ban-display-steamid"))
                 // TODO: Allow user to customize this (like MAUL)
                 replacedNotes = replacedNotes.replaceAll(
                     /(^|\s|[!"#$%&'()*+,\-.:;<=>?@[\]^`{|}~])(\d{17})($|\s|[!"#$%&'()*+,\-.:;<=>?@[\]^`{|}~])/g,
-                    '$1<a href="https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=$2" target="_blank"><u>$2</u></a>$3'
+                    '$1<a href="https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=$2" target="_blank"><u>$2</u></a>$3',
                 );
             notesDiv.innerHTML = replacedNotes;
             notesDiv.style.textAlign = "left";
@@ -1638,18 +1640,18 @@ function tooltipMAULListener(target: HTMLElement) {
 
     // The buttongroup containing the "Follow" button
     const buttenGroupOne = target.querySelector(
-        ".memberTooltip > .memberTooltip-actions > :nth-child(1)"
+        ".memberTooltip > .memberTooltip-actions > :nth-child(1)",
     ) as HTMLDivElement;
     if (!buttenGroupOne) return;
     buttenGroupOne
         .querySelector("a")
         ?.href.match(
-            /^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/
+            /^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/,
         );
     const matches = buttenGroupOne
         .querySelector("a")
         ?.href.match(
-            /^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/
+            /^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/,
         );
     // Make sure matches were found, exit gracefully if not.
     if (!matches) return;
@@ -1657,7 +1659,7 @@ function tooltipMAULListener(target: HTMLElement) {
     const id = matches[1];
     // The buttongroup containing the "Start conversation" button
     const buttonGroupTwo = target.querySelector(
-        ".memberTooltip > .memberTooltip-actions > :nth-child(2)"
+        ".memberTooltip > .memberTooltip-actions > :nth-child(2)",
     ) as HTMLDivElement;
     // If the user is banned, buttonGroupTwo will be null. Default to buttonGroupOne.
     createButton(
@@ -1665,7 +1667,7 @@ function tooltipMAULListener(target: HTMLElement) {
         GM_config.get("maul-button-text") as string,
         buttonGroupTwo ?? buttenGroupOne,
         "_blank",
-        GM_config.get("append-profile") as boolean
+        GM_config.get("append-profile") as boolean,
     );
 }
 
@@ -1682,7 +1684,7 @@ function handleThreadMovePage(hash: string) {
     const checkArr = Array.from(form.querySelectorAll(".inputChoices-choice"));
     const optArr = Array.from(drop.options);
     drop.selectedIndex = optArr.indexOf(
-        optArr.find((el) => el.value == completedId!) as HTMLOptionElement
+        optArr.find((el) => el.value == completedId!) as HTMLOptionElement,
     );
     if (drop.selectedIndex == -1) {
         throw "Could not find forum ID";
@@ -1694,7 +1696,7 @@ function handleThreadMovePage(hash: string) {
                 .find(
                     (el) =>
                         el.textContent ===
-                        "Notify members watching the destination forum"
+                        "Notify members watching the destination forum",
                 )
                 ?.querySelector("label > input") as HTMLInputElement
         ).checked = false;
@@ -1702,8 +1704,8 @@ function handleThreadMovePage(hash: string) {
             checkArr
                 .find((el) =>
                     el.textContent?.startsWith(
-                        "Notify thread starter of this action."
-                    )
+                        "Notify thread starter of this action.",
+                    ),
                 )
                 ?.querySelector("label > input") as HTMLInputElement
         ).checked = false;
@@ -1727,7 +1729,7 @@ function isLeadership(str: string) {
  */
 function handleForumsList() {
     const private_category = document.querySelector(
-        ".block--category1240 > .block-container > .block-body"
+        ".block--category1240 > .block-container > .block-body",
     );
 
     const subforum = document.createElement("div");
@@ -1738,7 +1740,7 @@ function handleForumsList() {
         response.text().then(function (text) {
             forumHtml.innerHTML = text;
             const thread = forumHtml.querySelector(
-                ".js-threadList > :first-child"
+                ".js-threadList > :first-child",
             );
 
             // If the last thread in the bin is unread, mark the forum as unread
@@ -1746,16 +1748,16 @@ function handleForumsList() {
                 subforum.classList.add("node--unread");
             }
             const userHref = thread?.querySelector(
-                ".structItem-cell--main > .structItem-minor > .structItem-parts > li > a"
+                ".structItem-cell--main > .structItem-minor > .structItem-parts > li > a",
             )?.outerHTML;
             const threadTitle = thread?.querySelector(
-                ".structItem-cell--main > .structItem-title"
+                ".structItem-cell--main > .structItem-title",
             )?.innerHTML; // Queryselector gets the parent and var references all children in case of prefixes
             const date = thread?.querySelector(
-                ".structItem-cell--latest > a > time"
+                ".structItem-cell--latest > a > time",
             )?.outerHTML;
             const icon = thread?.querySelector(
-                ".structItem-cell--icon > .structItem-iconContainer > a"
+                ".structItem-cell--icon > .structItem-iconContainer > a",
             )?.outerHTML;
 
             subforum.innerHTML =
@@ -1793,7 +1795,7 @@ function handleGenericThread() {
                     button_group as HTMLDivElement,
                     window.location.href,
                     "Move to Completed",
-                    completedMap[i].completedId
+                    completedMap[i].completedId,
                 );
                 break;
             }
@@ -1803,8 +1805,8 @@ function handleGenericThread() {
             // Trash Bin
             addTrashButton(
                 button_group?.querySelector(
-                    "div.menu > div.menu-content > a[href$=move]"
-                ) as HTMLDivElement
+                    "div.menu > div.menu-content > a[href$=move]",
+                ) as HTMLDivElement,
             );
     }
     if (isLeadership(breadcrumbs))
@@ -1846,19 +1848,19 @@ function handleBanAppealReport(report: boolean = false) {
     const post_title = (document.querySelector(".p-title") as HTMLDivElement)
         .innerText;
     const button_group = document.querySelector(
-        "div.buttonGroup"
+        "div.buttonGroup",
     ) as HTMLDivElement;
     addMAULProfileButton(
         button_group,
         (
             document.querySelector(
-                ".message-name > a.username"
+                ".message-name > a.username",
             ) as HTMLAnchorElement
-        ).href.substring(35)
+        ).href.substring(35),
     );
 
     const title_match = post_title.match(
-        /^(?<game>.*) - (?<handle>.*) - (.*?\/?(?<game_id>[\w\d\/\[\]\-\.: ]*).*)$/
+        /^(?<game>.*) - (?<handle>.*) - (.*?\/?(?<game_id>[\w\d\/\[\]\-\.: ]*).*)$/,
     );
     if (title_match) {
         getSteamID_F(title_match.groups!.game_id)
@@ -1881,7 +1883,7 @@ function handleBanAppealReport(report: boolean = false) {
                             button.remove();
                             displayBanInfo(
                                 steam_id_64 as string,
-                                document.querySelector(".p-body-main")!
+                                document.querySelector(".p-body-main")!,
                             );
                         };
 
@@ -1893,12 +1895,12 @@ function handleBanAppealReport(report: boolean = false) {
                         button.appendChild(button_text);
                         button_group.insertBefore(
                             button,
-                            button_group.lastElementChild
+                            button_group.lastElementChild,
                         );
                     } else
                         displayBanInfo(
                             steam_id_64,
-                            document.querySelector(".p-body-main")!
+                            document.querySelector(".p-body-main")!,
                         );
                 }
                 addBansButton(button_group, steam_id_64);
@@ -1937,13 +1939,13 @@ function handleOnHold(target: HTMLElement) {
     if (target.childNodes.length > 2) return;
 
     const body = target.querySelector(
-        ".overlay > .overlay-content > form > .block-container > .block-body"
+        ".overlay > .overlay-content > form > .block-container > .block-body",
     ) as HTMLDivElement;
     const reason = body.querySelector(
-        ":nth-child(1) > dd > input"
+        ":nth-child(1) > dd > input",
     ) as HTMLInputElement;
     var explain = body.querySelector(
-        ":nth-child(2) > dd > input"
+        ":nth-child(2) > dd > input",
     ) as HTMLInputElement;
     // Convert the explain input into a textarea
     explain.outerHTML = explain.outerHTML.replace("input", "textarea");
@@ -1952,7 +1954,7 @@ function handleOnHold(target: HTMLElement) {
     explain.style.height = "200px";
     explain.setAttribute("maxlength", "1024");
     const div = body.querySelector(
-        ":nth-child(4) > dd > div > .formSubmitRow-controls"
+        ":nth-child(4) > dd > div > .formSubmitRow-controls",
     ) as HTMLDivElement;
 
     // Insert presets
@@ -1966,7 +1968,7 @@ function handleOnHold(target: HTMLElement) {
                     onHoldTemplates[this.dataset.presetId as unknown as number];
                 if (preset.reason) reason.value = preset.reason;
                 if (preset.explain) explain.value = preset.explain;
-            }
+            },
         );
     }
 }
@@ -1990,7 +1992,7 @@ function handleProfileDropdown(target: HTMLElement) {
         .querySelector("li.is-active")
         ?.insertBefore(
             btn,
-            target.querySelector("li.is-active > a.menu-linkRow")
+            target.querySelector("li.is-active > a.menu-linkRow"),
         );
 }
 
@@ -2017,8 +2019,8 @@ function autoMention(focus: boolean) {
     if (username && userId && getPostBox()?.trim().length == 0) {
         editPostBox(
             `[USER=${userId}]@${username}[/USER]${"\n".repeat(
-                GM_config.get("auto-mention-newlines") as number
-            )}`
+                GM_config.get("auto-mention-newlines") as number,
+            )}`,
         );
         if (focus) getPostBoxEl().focus();
     }
@@ -2031,11 +2033,11 @@ function autoCount() {
     if (getPostBox()?.trim().length != 0) return;
     // For some reason using a[class=""] doesn't work, so we have to use a:not(a[class])
     const posts = document.querySelectorAll(
-        "header.message-attribution > ul.message-attribution-opposite > li > a:not(a[class])"
+        "header.message-attribution > ul.message-attribution-opposite > li > a:not(a[class])",
     ) as NodeListOf<HTMLAnchorElement>;
     if (posts.length == 0) return;
     const lastNum = Number(
-        posts[posts.length - 1].innerText.substring(1).replaceAll(",", "")
+        posts[posts.length - 1].innerText.substring(1).replaceAll(",", ""),
     ); // Remove the # and commas from the post number
     editPostBox(`${lastNum + 1}`);
 }
@@ -2095,7 +2097,7 @@ function handleAutoCount() {
  */
 function handleCannedResponses() {
     const bar = document.querySelector(
-        "div.formButtonGroup-extra"
+        "div.formButtonGroup-extra",
     ) as HTMLDivElement;
     if (!bar) {
         console.warn("Could not find post box button bar");
@@ -2125,7 +2127,7 @@ function handleCannedResponses() {
             "menu",
             "menu--structural",
             "menu--potentialFixed",
-            "menu--left"
+            "menu--left",
         );
         dropdownMenu.style.zIndex = "800";
         dropdownMenu.style.display = "none";
@@ -2208,23 +2210,23 @@ function handleUnapprovePost(postBox: HTMLDivElement) {
     ) {
         if (GM_config.get("rich-override"))
             console.warn(
-                "Post box is in rich editor mode, but rich editor override is enabled. The rich editor is NOT supported."
+                "Post box is in rich editor mode, but rich editor override is enabled. The rich editor is NOT supported.",
             );
         else return;
     }
     const threadId = getThreadId();
     const threadBody = document.querySelector(
-        "div.block-body.js-replyNewMessageContainer"
+        "div.block-body.js-replyNewMessageContainer",
     ) as HTMLDivElement;
     const postButton = document.querySelector(
-        "button.button--icon--reply:not(#post-unapprove-button)"
+        "button.button--icon--reply:not(#post-unapprove-button)",
     ) as HTMLButtonElement;
     const postUnapproveButton = document.createElement("a"); // Using a so that it doesn't submit the form
     postUnapproveButton.classList.add(
         "button--primary",
         "button",
         "button--icon",
-        "button--icon--reply"
+        "button--icon--reply",
     );
     postUnapproveButton.style.marginRight = "4px";
     postUnapproveButton.id = "post-unapprove-button";
@@ -2245,20 +2247,20 @@ function handleUnapprovePost(postBox: HTMLDivElement) {
                     if (node.nodeName === "ARTICLE") {
                         const postId = node.dataset.content?.replaceAll(
                             "post-",
-                            ""
+                            "",
                         );
                         if (threadId && postId)
                             setPostApprovalStatus(
                                 threadId,
                                 postId,
                                 false,
-                                false
+                                false,
                             ).then(() => {
                                 editPost(
                                     threadId,
                                     postId,
                                     postBoxContent,
-                                    true
+                                    true,
                                 ).then(() => {
                                     window.location.reload();
                                 });
@@ -2287,7 +2289,7 @@ function handleUnapprovePost(postBox: HTMLDivElement) {
 function handleApplicationPage() {
     const children = (
         document.querySelector(
-            ".dataList-row > .dataList-cell > a"
+            ".dataList-row > .dataList-cell > a",
         ) as HTMLAnchorElement
     ).parentElement?.children;
     if (!children) return;
@@ -2309,7 +2311,7 @@ function blockSignatures() {
         )?.dataset.userId;
         if (userId != null && signatureBlockList.includes(userId)) {
             const signature = post.querySelector(
-                "aside.message-signature > div"
+                "aside.message-signature > div",
             ) as HTMLDivElement;
             // iframe's are added after page load, using a MutationObserver to work around that
             function signatureEvent(target: HTMLElement) {
@@ -2335,12 +2337,12 @@ function blockSignatures() {
             // Was fixed in FireFox a while ago, not sure about Chrome
             (
                 signature.querySelectorAll(
-                    "img[src]"
+                    "img[src]",
                 ) as NodeListOf<HTMLImageElement>
             ).forEach((img) => (img.src = "data:,"));
             (
                 signature.querySelectorAll(
-                    "video[poster]"
+                    "video[poster]",
                 ) as NodeListOf<HTMLVideoElement>
             ).forEach((video) => {
                 video.dataset.poster = video.poster;
@@ -2348,7 +2350,7 @@ function blockSignatures() {
             });
             (
                 signature.querySelectorAll(
-                    "source[src]"
+                    "source[src]",
                 ) as NodeListOf<HTMLSourceElement>
             ).forEach((source) => {
                 source.dataset.src = source.src;
@@ -2361,14 +2363,14 @@ function blockSignatures() {
                 signature.style.display = "";
                 (
                     signature.querySelectorAll(
-                        "img[src][data-url]"
+                        "img[src][data-url]",
                     ) as NodeListOf<HTMLImageElement>
                 ).forEach((img) => {
                     img.src = img.dataset.url as string;
                 });
                 (
                     signature.querySelectorAll(
-                        "iframe[src][data-src]"
+                        "iframe[src][data-src]",
                     ) as NodeListOf<HTMLIFrameElement>
                 ).forEach((iframe) => {
                     iframe.src = iframe.dataset.src as string;
@@ -2376,7 +2378,7 @@ function blockSignatures() {
                 });
                 (
                     signature.querySelectorAll(
-                        "video[poster][data-poster]"
+                        "video[poster][data-poster]",
                     ) as NodeListOf<HTMLVideoElement>
                 ).forEach((video) => {
                     video.poster = video.dataset.poster as string;
@@ -2384,7 +2386,7 @@ function blockSignatures() {
                 });
                 (
                     signature.querySelectorAll(
-                        "source[src][data-src]"
+                        "source[src][data-src]",
                     ) as NodeListOf<HTMLSourceElement>
                 ).forEach((source) => {
                     source.src = source.dataset.src as string;
@@ -2456,11 +2458,11 @@ function blockSignatures() {
         // Members Page
         addMAULProfileButton(
             document.querySelector(".memberHeader-buttons") as HTMLDivElement,
-            window.location.pathname.match(/\/members\/(\d+)/)![1]
+            window.location.pathname.match(/\/members\/(\d+)/)![1],
         );
     else if (
         url.match(
-            /^^https:\/\/www\.edgegamers\.com\/threads\/\d+\/move(?:#\d+)?$/
+            /^^https:\/\/www\.edgegamers\.com\/threads\/\d+\/move(?:#\d+)?$/,
         ) &&
         hash != ""
     )
