@@ -33,12 +33,6 @@ interface NavbarURL_Map {
     url: string;
 }
 
-interface OnHold_Map {
-    name: string;
-    reason: string;
-    explain: string;
-}
-
 interface CannedResponse {
     name: string;
     response: string;
@@ -48,7 +42,6 @@ const completedMap: Completed_Map[] = [];
 const signatureBlockList: string[] = [];
 const navbarURLs: NavbarURL_Map[] = [];
 const navbarRemovals: string[] = [];
-const onHoldTemplates: OnHold_Map[] = [];
 const autoMentionForums: string[] = [];
 const cannedResponses: { [category: string]: CannedResponse[] } = {};
 const appealForums: string[] = ["1234", "1236"];
@@ -252,22 +245,6 @@ function setupForumsConfig() {
                 ],
                 type: "textarea",
                 default: "",
-            },
-            "on-hold-unchecked": {
-                label: "On Hold Templates",
-                section: [
-                    "On Hold Templates",
-                    "See <a  href='https://github.com/blankdvth/eGOScripts/wiki/On-Hold-Templates' target='_blank'>this guide</a> on how to format your templates.",
-                ],
-                type: "textarea",
-                save: false,
-                default:
-                    "No MAUL Account (Reason);MAUL account must be created and verified;\nSteam Verification;Steam account must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!\nMinecraft Verification;Minecraft ID must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" then under ID for Minecraft, input your Minecraft username, click Convert to Game ID, then log onto our Minecraft server. Once you've done so, please reply to this post!\"\nBattlefield Verification;Battlefield account must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, in MAUL hover over the home link in the top left, click help, then follow the instructions for Battlefield. Once you have done so, please reply to this post!\nDiscord Verification;Discord ID must be verfied in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" then click the sign in through Discord button under the discord ID section. Once you have done so, please reply to this post!\nInappropriate Name;Inappropriate Name;As for your name, Please click [URL='https://www.edgegamers.com/account/username']here[/URL] and fill out a name change request. After you fill it out, please wait while your name change request is finalized and the change is completed. Once it is done your application process will resume. If you want to have an understanding on our naming policy inside of eGO please click [URL='https://www.edgegamers.com/threads/378540/']here[/URL].",
-            },
-            "on-hold": {
-                type: "hidden",
-                default:
-                    "No MAUL Account (Reason);MAUL account must be created and verified;\nSteam Verification;Steam account must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!\nMinecraft Verification;Minecraft ID must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" then under ID for Minecraft, input your Minecraft username, click Convert to Game ID, then log onto our Minecraft server. Once you've done so, please reply to this post!\"\nBattlefield Verification;Battlefield account must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, in MAUL hover over the home link in the top left, click help, then follow the instructions for Battlefield. Once you have done so, please reply to this post!\nDiscord Verification;Discord ID must be verfied in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" then click the sign in through Discord button under the discord ID section. Once you have done so, please reply to this post!\nInappropriate Name;Inappropriate Name;As for your name, Please click [URL='https://www.edgegamers.com/account/username']here[/URL] and fill out a name change request. After you fill it out, please wait while your name change request is finalized and the change is completed. Once it is done your application process will resume. If you want to have an understanding on our naming policy inside of eGO please click [URL='https://www.edgegamers.com/threads/378540/']here[/URL].",
             },
             "auto-mention-unchecked": {
                 label: "Auto Mention (Subforum IDs)",
@@ -509,26 +486,6 @@ function setupForumsConfig() {
                     )
                         GM_config.set("navbar-urls", urls);
                 });
-                GM_config.fields["on-hold-unchecked"].node?.addEventListener(
-                    "change",
-                    function () {
-                        const onHold = GM_config.get(
-                            "on-hold-unchecked",
-                            true,
-                        ) as string;
-                        if (
-                            onHold.length == 0 ||
-                            onHold
-                                .split(/\r?\n/)
-                                .every((line) =>
-                                    line.match(
-                                        /^[^;\r\n]+;[^;\r\n]*;[^;\r\n]*$/,
-                                    ),
-                                )
-                        )
-                            GM_config.set("on-hold", onHold);
-                    },
-                );
                 GM_config.fields[
                     "auto-mention-unchecked"
                 ].node?.addEventListener("change", function () {
@@ -585,10 +542,6 @@ function setupForumsConfig() {
                 )
                     alert(
                         "Invalid navbar URL list. Ensure each URL is valid, on it's own line, and all URLs are in the format 'text;url'.",
-                    );
-                if (forgotten["on-hold-unchecked"] !== GM_config.get("on-hold"))
-                    alert(
-                        "Invalid on hold list. Ensure each line is in the format 'name;reason;explain' and that no field contains a semicolon.",
                     );
                 if (
                     forgotten["auto-mention-unchecked"] !==
@@ -732,26 +685,6 @@ function loadNavbarRemovals() {
     if (navbarRemovalsRaw.length == 0) return;
     navbarRemovalsRaw.split(/\r?\n/).forEach((removal) => {
         navbarRemovals.push(removal.toLowerCase());
-    });
-}
-
-/**
- * Loads the on hold templates from config
- */
-function loadOnHoldTemplates() {
-    const onHoldTemplatesRaw = GM_config.get("on-hold") as string;
-    if (onHoldTemplatesRaw.length == 0) return;
-    onHoldTemplatesRaw.split(/\r?\n/).forEach((line) => {
-        const parts = line.split(";");
-        if (parts.length != 3) {
-            alert("Invalid on hold line: " + line);
-            return;
-        }
-        onHoldTemplates.push({
-            name: parts[0],
-            reason: parts[1],
-            explain: parts[2],
-        });
     });
 }
 
@@ -1875,62 +1808,6 @@ function handleBanAppealReport(report: boolean = false) {
 }
 
 /**
- * Adds "On Hold" templates to the menu and increases the size of the explain box.
- * @param {HTMLElementEventMap} event
- * @returns void
- */
-function handleOnHold(target: HTMLElement) {
-    if (
-        target.nodeName != "DIV" ||
-        !target.classList.contains("overlay-container") ||
-        !(
-            target.querySelector(".overlay > .overlay-title") as HTMLDivElement
-        ).innerText.includes("on hold")
-    )
-        return;
-
-    // Event may fire twice - add a mark the first time it fires, and ignore the rest
-    const mark = document.createElement("input");
-    mark.type = "hidden";
-    target.append(mark);
-    if (target.childNodes.length > 2) return;
-
-    const body = target.querySelector(
-        ".overlay > .overlay-content > form > .block-container > .block-body",
-    ) as HTMLDivElement;
-    const reason = body.querySelector(
-        ":nth-child(1) > dd > input",
-    ) as HTMLInputElement;
-    var explain = body.querySelector(
-        ":nth-child(2) > dd > input",
-    ) as HTMLInputElement;
-    // Convert the explain input into a textarea
-    explain.outerHTML = explain.outerHTML.replace("input", "textarea");
-    // Variable gets dereferenced - reference it again
-    explain = body.querySelector(":nth-child(2) > dd > textarea")!;
-    explain.style.height = "200px";
-    explain.setAttribute("maxlength", "1024");
-    const div = body.querySelector(
-        ":nth-child(4) > dd > div > .formSubmitRow-controls",
-    ) as HTMLDivElement;
-
-    // Insert presets
-    for (var i = 0; i < onHoldTemplates.length; i++) {
-        addForumsPreset(
-            onHoldTemplates[i].name,
-            i.toString(),
-            div,
-            function (this: HTMLElement) {
-                const preset =
-                    onHoldTemplates[this.dataset.presetId as unknown as number];
-                if (preset.reason) reason.value = preset.reason;
-                if (preset.explain) explain.value = preset.explain;
-            },
-        );
-    }
-}
-
-/**
  * Adds a button to open the script config in the user dropdown menu
  * @param insertParent The parent element to insert into
  * @param insertBefore The element to insert before
@@ -2366,25 +2243,12 @@ function blockSignatures() {
     loadSignatureBlockList();
     loadNavbarURLs();
     loadNavbarRemovals();
-    loadOnHoldTemplates();
     loadAutoMentionList();
     loadCannedResponses();
 
     // Determine what page we're on
     const url = window.location.href;
     const hash = window.location.hash;
-
-    const onHoldObserver = new MutationObserver((mutations) => {
-        mutations.every((mutation) => {
-            mutation.addedNodes.forEach((node) => {
-                handleOnHold(node as HTMLElement);
-            });
-        });
-    });
-    onHoldObserver.observe(document.body, {
-        childList: true,
-        subtree: true,
-    });
 
     // Add Helpful Links to the Navigation Bar
     const nav_list = document.querySelector(".p-nav-list") as HTMLUListElement;
