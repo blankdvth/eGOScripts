@@ -604,7 +604,9 @@ function setupForumsConfig() {
  * Automatically authenthicates with MAUL in the background if it's been a while since the last authenthication
  */
 function autoMAULAuth() {
-    console.warn("MAUL reauth feature is currently disabled due to issues with the feature. Your config settings have been preserved, and the feature will return once fixed.");
+    console.warn(
+        "MAUL reauth feature is currently disabled due to issues with the feature. Your config settings have been preserved, and the feature will return once fixed.",
+    );
     // if (!GM_config.get("maul-reauth-enable")) return;
     // const lastAuth = GM_getValue("lastMAULAuth", 0);
     // if (Date.now() - lastAuth < (GM_config.get("maul-reauth") as number))
@@ -727,7 +729,7 @@ function addMAULProfileButton(div: HTMLDivElement, member_id: number | string) {
         "https://maul.edgegamers.com/index.php?page=home&id=" + member_id,
         "MAUL",
         div,
-        "_blank"
+        "_blank",
     );
 }
 
