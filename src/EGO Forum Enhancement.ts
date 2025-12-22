@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement%RELEASE_TYPE%
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
-// @version      4.11.6
+// @version      4.11.7
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS, PixeL
 // @match        https://www.edgegamers.com/*
@@ -33,12 +33,6 @@ interface NavbarURL_Map {
     url: string;
 }
 
-interface OnHold_Map {
-    name: string;
-    reason: string;
-    explain: string;
-}
-
 interface CannedResponse {
     name: string;
     response: string;
@@ -48,7 +42,6 @@ const completedMap: Completed_Map[] = [];
 const signatureBlockList: string[] = [];
 const navbarURLs: NavbarURL_Map[] = [];
 const navbarRemovals: string[] = [];
-const onHoldTemplates: OnHold_Map[] = [];
 const autoMentionForums: string[] = [];
 const cannedResponses: { [category: string]: CannedResponse[] } = {};
 const appealForums: string[] = ["1234", "1236"];
@@ -170,18 +163,6 @@ function setupForumsConfig() {
                 type: "checkbox",
                 default: true,
             },
-            "maul-button-text": {
-                label: "MAUL Button Text",
-                title: "The text to display on the MAUL buttons that are displayed on profiles",
-                type: "text",
-                default: "MAUL",
-            },
-            "append-profile": {
-                label: "Append profile buttons",
-                title: "When checked, a buttons added to profiles will be appended to their respective groups, else, they will be prepended. This does not apply to all buttons.",
-                type: "checkbox",
-                default: false,
-            },
             "maul-reauth-enable": {
                 label: "Enable MAUL Reauthenthication",
                 title: "When checked, the script will automatically reauthenthicate with MAUL in the background if it's been a while since the last authenthication (see timeout below).",
@@ -271,22 +252,6 @@ function setupForumsConfig() {
                 ],
                 type: "textarea",
                 default: "",
-            },
-            "on-hold-unchecked": {
-                label: "On Hold Templates",
-                section: [
-                    "On Hold Templates",
-                    "See <a  href='https://github.com/blankdvth/eGOScripts/wiki/On-Hold-Templates' target='_blank'>this guide</a> on how to format your templates.",
-                ],
-                type: "textarea",
-                save: false,
-                default:
-                    "No MAUL Account (Reason);MAUL account must be created and verified;\nSteam Verification;Steam account must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!\nMinecraft Verification;Minecraft ID must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" then under ID for Minecraft, input your Minecraft username, click Convert to Game ID, then log onto our Minecraft server. Once you've done so, please reply to this post!\"\nBattlefield Verification;Battlefield account must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, in MAUL hover over the home link in the top left, click help, then follow the instructions for Battlefield. Once you have done so, please reply to this post!\nDiscord Verification;Discord ID must be verfied in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" then click the sign in through Discord button under the discord ID section. Once you have done so, please reply to this post!\nInappropriate Name;Inappropriate Name;As for your name, Please click [URL='https://www.edgegamers.com/account/username']here[/URL] and fill out a name change request. After you fill it out, please wait while your name change request is finalized and the change is completed. Once it is done your application process will resume. If you want to have an understanding on our naming policy inside of eGO please click [URL='https://www.edgegamers.com/threads/378540/']here[/URL].",
-            },
-            "on-hold": {
-                type: "hidden",
-                default:
-                    "No MAUL Account (Reason);MAUL account must be created and verified;\nSteam Verification;Steam account must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" then click the Sign in through Steam button under the Source ID section. Once you've done so, please reply to this post!\nMinecraft Verification;Minecraft ID must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" then under ID for Minecraft, input your Minecraft username, click Convert to Game ID, then log onto our Minecraft server. Once you've done so, please reply to this post!\"\nBattlefield Verification;Battlefield account must be verified in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, in MAUL hover over the home link in the top left, click help, then follow the instructions for Battlefield. Once you have done so, please reply to this post!\nDiscord Verification;Discord ID must be verfied in MAUL;In order for you to fix this you'll need to click the MAUL link at the top of the page in the navbar, click \"Edit Game IDs,\" then click the sign in through Discord button under the discord ID section. Once you have done so, please reply to this post!\nInappropriate Name;Inappropriate Name;As for your name, Please click [URL='https://www.edgegamers.com/account/username']here[/URL] and fill out a name change request. After you fill it out, please wait while your name change request is finalized and the change is completed. Once it is done your application process will resume. If you want to have an understanding on our naming policy inside of eGO please click [URL='https://www.edgegamers.com/threads/378540/']here[/URL].",
             },
             "auto-mention-unchecked": {
                 label: "Auto Mention (Subforum IDs)",
@@ -469,7 +434,6 @@ function setupForumsConfig() {
                     "navbar-urls-unchecked",
                     GM_config.get("navbar-urls"),
                 );
-                GM_config.set("on-hold-unchecked", GM_config.get("on-hold"));
                 GM_config.set(
                     "auto-mention-unchecked",
                     GM_config.get("auto-mention"),
@@ -528,26 +492,6 @@ function setupForumsConfig() {
                     )
                         GM_config.set("navbar-urls", urls);
                 });
-                GM_config.fields["on-hold-unchecked"].node?.addEventListener(
-                    "change",
-                    function () {
-                        const onHold = GM_config.get(
-                            "on-hold-unchecked",
-                            true,
-                        ) as string;
-                        if (
-                            onHold.length == 0 ||
-                            onHold
-                                .split(/\r?\n/)
-                                .every((line) =>
-                                    line.match(
-                                        /^[^;\r\n]+;[^;\r\n]*;[^;\r\n]*$/,
-                                    ),
-                                )
-                        )
-                            GM_config.set("on-hold", onHold);
-                    },
-                );
                 GM_config.fields[
                     "auto-mention-unchecked"
                 ].node?.addEventListener("change", function () {
@@ -604,10 +548,6 @@ function setupForumsConfig() {
                 )
                     alert(
                         "Invalid navbar URL list. Ensure each URL is valid, on it's own line, and all URLs are in the format 'text;url'.",
-                    );
-                if (forgotten["on-hold-unchecked"] !== GM_config.get("on-hold"))
-                    alert(
-                        "Invalid on hold list. Ensure each line is in the format 'name;reason;explain' and that no field contains a semicolon.",
                     );
                 if (
                     forgotten["auto-mention-unchecked"] !==
@@ -670,21 +610,24 @@ function setupForumsConfig() {
  * Automatically authenthicates with MAUL in the background if it's been a while since the last authenthication
  */
 function autoMAULAuth() {
-    if (!GM_config.get("maul-reauth-enable")) return;
-    const lastAuth = GM_getValue("lastMAULAuth", 0);
-    if (Date.now() - lastAuth < (GM_config.get("maul-reauth") as number))
-        return;
-    const authLink = document.querySelector(
-        'a.p-navEl-link[href^="/maul"]',
-    ) as HTMLAnchorElement;
-    if (!authLink) return;
-    GM_xmlhttpRequest({
-        method: "GET",
-        url: authLink.href,
-        onload: function () {
-            GM_setValue("lastMAULAuth", Date.now());
-        },
-    });
+    console.warn(
+        "MAUL reauth feature is currently disabled due to issues with the feature. Your config settings have been preserved, and the feature will return once fixed.",
+    );
+    // if (!GM_config.get("maul-reauth-enable")) return;
+    // const lastAuth = GM_getValue("lastMAULAuth", 0);
+    // if (Date.now() - lastAuth < (GM_config.get("maul-reauth") as number))
+    //     return;
+    // const authLink = document.querySelector(
+    //     'a.p-navEl-link[href^="/maul"]',
+    // ) as HTMLAnchorElement;
+    // if (!authLink) return;
+    // GM_xmlhttpRequest({
+    //     method: "GET",
+    //     url: authLink.href,
+    //     onload: function () {
+    //         GM_setValue("lastMAULAuth", Date.now());
+    //     },
+    // });
 }
 
 /**
@@ -754,26 +697,6 @@ function loadNavbarRemovals() {
 }
 
 /**
- * Loads the on hold templates from config
- */
-function loadOnHoldTemplates() {
-    const onHoldTemplatesRaw = GM_config.get("on-hold") as string;
-    if (onHoldTemplatesRaw.length == 0) return;
-    onHoldTemplatesRaw.split(/\r?\n/).forEach((line) => {
-        const parts = line.split(";");
-        if (parts.length != 3) {
-            alert("Invalid on hold line: " + line);
-            return;
-        }
-        onHoldTemplates.push({
-            name: parts[0],
-            reason: parts[1],
-            explain: parts[2],
-        });
-    });
-}
-
-/**
  * Loads the auto mention list from config
  */
 function loadAutoMentionList() {
@@ -810,10 +733,9 @@ function loadCannedResponses() {
 function addMAULProfileButton(div: HTMLDivElement, member_id: number | string) {
     createButton(
         "https://maul.edgegamers.com/index.php?page=home&id=" + member_id,
-        GM_config.get("maul-button-text") as string,
+        "MAUL",
         div,
         "_blank",
-        GM_config.get("append-profile") as boolean,
     );
 }
 
@@ -1648,52 +1570,6 @@ function generateResponseText(response: string) {
 }
 
 /**
- * Listens to and appends MAUL button when user hovers over a profile
- * @param {HTMLElementEventMap} event
- * @returns void
- */
-function tooltipMAULListener(target: HTMLElement) {
-    // Make sure this specific event is the node we want
-    if (
-        target.nodeName != "DIV" ||
-        !target.classList.contains("tooltip-content-inner")
-    )
-        return;
-
-    // The buttongroup containing the "Follow" button
-    const buttenGroupOne = target.querySelector(
-        ".memberTooltip > .memberTooltip-actions > :nth-child(1)",
-    ) as HTMLDivElement;
-    if (!buttenGroupOne) return;
-    buttenGroupOne
-        .querySelector("a")
-        ?.href.match(
-            /^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/,
-        );
-    const matches = buttenGroupOne
-        .querySelector("a")
-        ?.href.match(
-            /^https:\/\/www\.edgegamers\.com\/members\/(\d+)\/follow$/,
-        );
-    // Make sure matches were found, exit gracefully if not.
-    if (!matches) return;
-
-    const id = matches[1];
-    // The buttongroup containing the "Start conversation" button
-    const buttonGroupTwo = target.querySelector(
-        ".memberTooltip > .memberTooltip-actions > :nth-child(2)",
-    ) as HTMLDivElement;
-    // If the user is banned, buttonGroupTwo will be null. Default to buttonGroupOne.
-    createButton(
-        "https://maul.edgegamers.com/index.php?page=home&id=" + id,
-        GM_config.get("maul-button-text") as string,
-        buttonGroupTwo ?? buttenGroupOne,
-        "_blank",
-        GM_config.get("append-profile") as boolean,
-    );
-}
-
-/**
  * Moves and auto-fills out the moving prompt for a thread.
  * @param {string} hash The hash of the URL, should be the thread ID only
  * @returns void
@@ -1936,62 +1812,6 @@ function handleBanAppealReport(report: boolean = false) {
         if (GM_config.get("show-list-bans-unknown"))
             addBansButton(button_group, post_title.split(" - ")[2]);
         addLookupButton(button_group, post_title);
-    }
-}
-
-/**
- * Adds "On Hold" templates to the menu and increases the size of the explain box.
- * @param {HTMLElementEventMap} event
- * @returns void
- */
-function handleOnHold(target: HTMLElement) {
-    if (
-        target.nodeName != "DIV" ||
-        !target.classList.contains("overlay-container") ||
-        !(
-            target.querySelector(".overlay > .overlay-title") as HTMLDivElement
-        ).innerText.includes("on hold")
-    )
-        return;
-
-    // Event may fire twice - add a mark the first time it fires, and ignore the rest
-    const mark = document.createElement("input");
-    mark.type = "hidden";
-    target.append(mark);
-    if (target.childNodes.length > 2) return;
-
-    const body = target.querySelector(
-        ".overlay > .overlay-content > form > .block-container > .block-body",
-    ) as HTMLDivElement;
-    const reason = body.querySelector(
-        ":nth-child(1) > dd > input",
-    ) as HTMLInputElement;
-    var explain = body.querySelector(
-        ":nth-child(2) > dd > input",
-    ) as HTMLInputElement;
-    // Convert the explain input into a textarea
-    explain.outerHTML = explain.outerHTML.replace("input", "textarea");
-    // Variable gets dereferenced - reference it again
-    explain = body.querySelector(":nth-child(2) > dd > textarea")!;
-    explain.style.height = "200px";
-    explain.setAttribute("maxlength", "1024");
-    const div = body.querySelector(
-        ":nth-child(4) > dd > div > .formSubmitRow-controls",
-    ) as HTMLDivElement;
-
-    // Insert presets
-    for (var i = 0; i < onHoldTemplates.length; i++) {
-        addForumsPreset(
-            onHoldTemplates[i].name,
-            i.toString(),
-            div,
-            function (this: HTMLElement) {
-                const preset =
-                    onHoldTemplates[this.dataset.presetId as unknown as number];
-                if (preset.reason) reason.value = preset.reason;
-                if (preset.explain) explain.value = preset.explain;
-            },
-        );
     }
 }
 
@@ -2431,37 +2251,12 @@ function blockSignatures() {
     loadSignatureBlockList();
     loadNavbarURLs();
     loadNavbarRemovals();
-    loadOnHoldTemplates();
     loadAutoMentionList();
     loadCannedResponses();
 
     // Determine what page we're on
     const url = window.location.href;
     const hash = window.location.hash;
-
-    const tooltipObserver = new MutationObserver((mutations) => {
-        mutations.every((mutation) => {
-            mutation.addedNodes.forEach((node) => {
-                tooltipMAULListener(node as HTMLElement);
-            });
-        });
-    });
-    tooltipObserver.observe(document.body, {
-        childList: true,
-        subtree: true,
-    });
-
-    const onHoldObserver = new MutationObserver((mutations) => {
-        mutations.every((mutation) => {
-            mutation.addedNodes.forEach((node) => {
-                handleOnHold(node as HTMLElement);
-            });
-        });
-    });
-    onHoldObserver.observe(document.body, {
-        childList: true,
-        subtree: true,
-    });
 
     // Add Helpful Links to the Navigation Bar
     const nav_list = document.querySelector(".p-nav-list") as HTMLUListElement;
@@ -2473,13 +2268,7 @@ function blockSignatures() {
     removeNavButtons(navbarRemovals, nav_list);
     replaceLogoLink();
 
-    if (url.match(/^https:\/\/www\.edgegamers\.com\/members\/\d+/))
-        // Members Page
-        addMAULProfileButton(
-            document.querySelector(".memberHeader-buttons") as HTMLDivElement,
-            window.location.pathname.match(/\/members\/(\d+)/)![1],
-        );
-    else if (
+    if (
         url.match(
             /^^https:\/\/www\.edgegamers\.com\/threads\/\d+\/move(?:#\d+)?$/,
         ) &&
