@@ -126,6 +126,13 @@ function setupForumsConfig() {
         id: "forums-config",
         title: "Forums Enhancement Script Configuration",
         fields: {
+            "maul-dropdown": {
+                label: "Use dropdown for MAUL links",
+                section: ["Feature Settings"],
+                title: "When checked, all additional MAUL links will be in a dropdown in the original MAUL button. When unchecked, all MAUL buttons will be added to the navigation bar after the MAUL button.",
+                type: "checkbox",
+                default: true,
+            },
             "show-confidential-watermark": {
                 label: "Show confidential watermarks on LE forums",
                 title: "When checked, all LE forums will have a red confidential watermark on them.",
