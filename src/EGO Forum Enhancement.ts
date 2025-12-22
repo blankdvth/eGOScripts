@@ -651,21 +651,22 @@ function setupForumsConfig() {
  * Automatically authenthicates with MAUL in the background if it's been a while since the last authenthication
  */
 function autoMAULAuth() {
-    if (!GM_config.get("maul-reauth-enable")) return;
-    const lastAuth = GM_getValue("lastMAULAuth", 0);
-    if (Date.now() - lastAuth < (GM_config.get("maul-reauth") as number))
-        return;
-    const authLink = document.querySelector(
-        'a.p-navEl-link[href^="/maul"]',
-    ) as HTMLAnchorElement;
-    if (!authLink) return;
-    GM_xmlhttpRequest({
-        method: "GET",
-        url: authLink.href,
-        onload: function () {
-            GM_setValue("lastMAULAuth", Date.now());
-        },
-    });
+    console.warn("MAUL reauth feature is currently disabled due to issues with the feature. Your config settings have been preserved, and the feature will return once fixed.");
+    // if (!GM_config.get("maul-reauth-enable")) return;
+    // const lastAuth = GM_getValue("lastMAULAuth", 0);
+    // if (Date.now() - lastAuth < (GM_config.get("maul-reauth") as number))
+    //     return;
+    // const authLink = document.querySelector(
+    //     'a.p-navEl-link[href^="/maul"]',
+    // ) as HTMLAnchorElement;
+    // if (!authLink) return;
+    // GM_xmlhttpRequest({
+    //     method: "GET",
+    //     url: authLink.href,
+    //     onload: function () {
+    //         GM_setValue("lastMAULAuth", Date.now());
+    //     },
+    // });
 }
 
 /**
