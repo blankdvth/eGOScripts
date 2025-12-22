@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement%RELEASE_TYPE%
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
-// @version      4.11.4
+// @version      4.11.5
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS, PixeL
 // @match        https://www.edgegamers.com/*
@@ -629,12 +629,19 @@ function setupForumsConfig() {
     });
 
     const profileMenu = document.querySelector("div.js-visitorMenuBody");
-    if (profileMenu)
-        profileMenu.addEventListener(
-            "DOMNodeInserted",
-            handleProfileDropdown,
-            false,
-        );
+    if (profileMenu) {
+        const profileMenuObserver = new MutationObserver((mutations) => {
+            mutations.every((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    handleProfileDropdown(node as HTMLElement);
+                });
+            });
+        });
+        profileMenuObserver.observe(profileMenu, {
+            childList: true,
+            subtree: true,
+        });
+    }
 }
 
 /**
@@ -1623,10 +1630,8 @@ function generateResponseText(response: string) {
  * @param {HTMLElementEventMap} event
  * @returns void
  */
-function tooltipMAULListener(event: Event) {
+function tooltipMAULListener(target: HTMLElement) {
     // Make sure this specific event is the node we want
-    if (!event.target) return;
-    const target = event.target as HTMLElement;
     if (
         target.nodeName != "DIV" ||
         !target.classList.contains("tooltip-content-inner")
@@ -1697,11 +1702,10 @@ function handleThreadMovePage(hash: string) {
         ).checked = false;
         (
             checkArr
-                .find(
-                    (el) =>
-                        el.textContent?.startsWith(
-                            "Notify thread starter of this action.",
-                        ),
+                .find((el) =>
+                    el.textContent?.startsWith(
+                        "Notify thread starter of this action.",
+                    ),
                 )
                 ?.querySelector("label > input") as HTMLInputElement
         ).checked = false;
@@ -1918,9 +1922,7 @@ function handleBanAppealReport(report: boolean = false) {
  * @param {HTMLElementEventMap} event
  * @returns void
  */
-function handleOnHold(event: Event) {
-    if (!event.target) return;
-    const target = event.target as HTMLElement;
+function handleOnHold(target: HTMLElement) {
     if (
         target.nodeName != "DIV" ||
         !target.classList.contains("overlay-container") ||
@@ -1976,9 +1978,7 @@ function handleOnHold(event: Event) {
  * @param {HTMLElementEventMap} event
  * @returns void
  */
-function handleProfileDropdown(event: Event) {
-    if (!event.target) return;
-    const target = event.target as HTMLElement;
+function handleProfileDropdown(target: HTMLElement) {
     if (target.nodeName != "UL" || !target.classList.contains("tabPanes"))
         return;
     const btn = document.createElement("a");
@@ -2313,21 +2313,25 @@ function blockSignatures() {
             const signature = post.querySelector(
                 "aside.message-signature > div",
             ) as HTMLDivElement;
-            // iframe's are added after page load, using a DOMNodeInserted event to work around that
-            function signatureEvent(event: Event) {
-                if (!event.target) return;
-                if (!((event.target as HTMLElement).nodeName === "IFRAME"))
-                    return;
-                (event.target as HTMLIFrameElement).dataset.src = (
-                    event.target as HTMLIFrameElement
+            // iframe's are added after page load, using a MutationObserver to work around that
+            function signatureEvent(target: HTMLElement) {
+                if (!(target.nodeName === "IFRAME")) return;
+                (target as HTMLIFrameElement).dataset.src = (
+                    target as HTMLIFrameElement
                 ).src;
-                (event.target as HTMLIFrameElement).src = "about:blank";
+                (target as HTMLIFrameElement).src = "about:blank";
             }
-            signature.addEventListener(
-                "DOMNodeInserted",
-                signatureEvent,
-                false,
-            );
+            const signatureObserver = new MutationObserver((mutations) => {
+                mutations.every((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        signatureEvent(node as HTMLElement);
+                    });
+                });
+            });
+            signatureObserver.observe(signature, {
+                childList: true,
+                subtree: true,
+            });
             // Set the SRC of content to nothing (data:,), empty string is not used as it may cause additional requests to the page
             // Issue originated back in 2009, unsure if it is still a problem but best to lean on the safe side.
             // Was fixed in FireFox a while ago, not sure about Chrome
@@ -2388,11 +2392,7 @@ function blockSignatures() {
                     source.src = source.dataset.src as string;
                     delete source.dataset.src;
                 });
-                signature.removeEventListener(
-                    "DOMNodeInserted",
-                    signatureEvent,
-                    false,
-                );
+                signatureObserver.disconnect();
                 btn.remove();
             };
             btn.innerHTML = "Load Signature";
@@ -2420,12 +2420,29 @@ function blockSignatures() {
     const url = window.location.href;
     const hash = window.location.hash;
 
-    document.body.addEventListener(
-        "DOMNodeInserted",
-        tooltipMAULListener,
-        false,
-    );
-    document.body.addEventListener("DOMNodeInserted", handleOnHold, false);
+    const tooltipObserver = new MutationObserver((mutations) => {
+        mutations.every((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                tooltipMAULListener(node as HTMLElement);
+            });
+        });
+    });
+    tooltipObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+    });
+
+    const onHoldObserver = new MutationObserver((mutations) => {
+        mutations.every((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                handleOnHold(node as HTMLElement);
+            });
+        });
+    });
+    onHoldObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+    });
 
     // Add Helpful Links to the Navigation Bar
     const nav_list = document.querySelector(".p-nav-list") as HTMLUListElement;

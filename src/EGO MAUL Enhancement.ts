@@ -649,13 +649,13 @@ function handleAddBan(hash: string = "") {
             (document.getElementById("handle") as HTMLInputElement).value =
                 data.name;
         if (data.threadId)
-            (
-                document.getElementById("notes") as HTMLTextAreaElement
-            ).value = `https://edgegamers.com/threads/${data.threadId}/\n\n`;
+            (document.getElementById("notes") as HTMLTextAreaElement).value =
+                `https://edgegamers.com/threads/${data.threadId}/\n\n`;
         (document.getElementById("gameId") as HTMLInputElement).value = data.id;
         (
             document.querySelector("input[name='redirect']") as HTMLInputElement
-        ).value = `https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=${data.id}`;
+        ).value =
+            `https://maul.edgegamers.com/index.php?page=bans&qType=gameId&q=${data.id}`;
     }
 }
 
@@ -706,8 +706,9 @@ function handleEditBan() {
     }
 
     // Steam ID buttons
-    const idGroup = document.querySelector(".control-label[for=gameId]")
-        ?.parentElement;
+    const idGroup = document.querySelector(
+        ".control-label[for=gameId]",
+    )?.parentElement;
     const id = idGroup?.querySelector("p")?.innerText;
     if (id) {
         const idDiv = document.createElement("div");
