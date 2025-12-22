@@ -427,7 +427,6 @@ function setupForumsConfig() {
                     "navbar-urls-unchecked",
                     GM_config.get("navbar-urls"),
                 );
-                GM_config.set("on-hold-unchecked", GM_config.get("on-hold"));
                 GM_config.set(
                     "auto-mention-unchecked",
                     GM_config.get("auto-mention"),
