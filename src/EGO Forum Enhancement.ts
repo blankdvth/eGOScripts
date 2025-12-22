@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement%RELEASE_TYPE%
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
-// @version      4.11.5
+// @version      4.11.6
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS, PixeL
 // @match        https://www.edgegamers.com/*
@@ -630,12 +630,13 @@ function setupForumsConfig() {
 
     const profileMenu = document.querySelector("div.js-visitorMenuBody");
     if (profileMenu) {
-        const profileMenuObserver = new MutationObserver((mutations) => {
-            mutations.every((mutation) => {
-                mutation.addedNodes.forEach((node) => {
-                    handleProfileDropdown(node as HTMLElement);
-                });
-            });
+        const profileMenuObserver = new MutationObserver(() => {
+            // Manually performing querySelector here due to odd failure to identify added node by MutationObserver
+            const target = profileMenu.querySelector("ul.tabPanes");
+            if (target) {
+                handleProfileDropdown(target as HTMLElement);
+                profileMenuObserver.disconnect();
+            }
         });
         profileMenuObserver.observe(profileMenu, {
             childList: true,
