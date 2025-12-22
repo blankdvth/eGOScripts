@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EdgeGamers Forum Enhancement%RELEASE_TYPE%
 // @namespace    https://github.com/blankdvth/eGOScripts/blob/master/src/EGO%20Forum%20Enhancement.ts
-// @version      4.11.5
+// @version      4.11.6
 // @description  Add various enhancements & QOL additions to the EdgeGamers Forums that are beneficial for Leadership members.
 // @author       blank_dvth, Skle, MSWS, PixeL
 // @match        https://www.edgegamers.com/*
@@ -630,12 +630,34 @@ function setupForumsConfig() {
 
     const profileMenu = document.querySelector("div.js-visitorMenuBody");
     if (profileMenu) {
-        const profileMenuObserver = new MutationObserver((mutations) => {
-            mutations.every((mutation) => {
-                mutation.addedNodes.forEach((node) => {
-                    handleProfileDropdown(node as HTMLElement);
-                });
-            });
+        const profileMenuObserver = new MutationObserver(() => {
+            // Manually performing querySelector here due to odd failure to identify added node by MutationObserver
+            const tabPanes = profileMenu.querySelector("ul.tabPanes");
+            if (tabPanes) {
+                // Found tabbed menu (forum mod w/ bookmarks tab)
+                const insertParent = tabPanes.querySelector("li.is-active");
+                const insertBefore = insertParent?.querySelector(
+                    ":scope > a.menu-linkRow",
+                );
+                if (insertBefore)
+                    insertConfigButton(
+                        insertParent as HTMLElement,
+                        insertBefore as HTMLElement,
+                    );
+            } else if (profileMenu.querySelector("a.menu-linkRow")) {
+                // Didn't find, but has menu buttons now (normal direct menu)
+                const insertParent = profileMenu;
+                const insertBefore = insertParent.querySelector(
+                    ":scope > a.menu-linkRow",
+                );
+                if (insertBefore)
+                    insertConfigButton(
+                        insertParent as HTMLElement,
+                        insertBefore as HTMLElement,
+                    );
+            } else return; // Still didn't find, wait for next mutation
+
+            profileMenuObserver.disconnect();
         });
         profileMenuObserver.observe(profileMenu, {
             childList: true,
@@ -1975,12 +1997,14 @@ function handleOnHold(target: HTMLElement) {
 
 /**
  * Adds a button to open the script config in the user dropdown menu
- * @param {HTMLElementEventMap} event
+ * @param insertParent The parent element to insert into
+ * @param insertBefore The element to insert before
  * @returns void
  */
-function handleProfileDropdown(target: HTMLElement) {
-    if (target.nodeName != "UL" || !target.classList.contains("tabPanes"))
-        return;
+function insertConfigButton(
+    insertParent: HTMLElement,
+    insertBefore: HTMLElement,
+) {
     const btn = document.createElement("a");
     btn.classList.add("menu-linkRow");
     btn.innerHTML = "Forum Enhancement Script Config";
@@ -1988,12 +2012,7 @@ function handleProfileDropdown(target: HTMLElement) {
     btn.onclick = function () {
         GM_config.open();
     };
-    target
-        .querySelector("li.is-active")
-        ?.insertBefore(
-            btn,
-            target.querySelector("li.is-active > a.menu-linkRow"),
-        );
+    insertParent.insertBefore(btn, insertBefore);
 }
 
 /**
